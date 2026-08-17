@@ -143,10 +143,18 @@ Two consequences to keep in mind:
   "never straight to the default branch" rule below is also the rule that keeps unreviewed work
   off the live site — a push to that branch *is* a production release, with no preview or PR
   gate in front of it. Other branches produce preview deployments only.
-- **Root Directory is a project setting, not part of the Git connection.** It survived the
-  reconnection pointing at `health-wellbeing-hub`, a folder that does not exist in this repo, so
-  the first builds after the switch failed to trigger or build. It must be cleared to `/` under
-  Vercel → Settings → Build and Deployment.
+- **A new commit is what triggers a deploy.** Pushing a branch that merely points at a commit
+  Vercel has already seen does not start a build. Verified on the switch: creating
+  `claude/great-hypatia-f6nrrb` at the existing tip produced nothing, and the next real commit
+  built immediately.
+- **Root Directory is a project setting, not part of the Git connection**, so it is worth
+  checking after any reconnection — the old project built from a `health-wellbeing-hub`
+  subdirectory that does not exist in this repo. Confirmed correct on 2026-08-17: the first
+  build after the switch cloned this repository at its root and completed.
+
+Preview deployments sit behind Vercel Authentication (SSO), so a preview URL returns a 302 to
+`vercel.com/sso-api` rather than the page when fetched without a session. That is deployment
+protection working as intended, not a broken build — read the build logs to judge a build.
 
 There is no build step at deploy time: `build.py` renders `templates/` into static HTML that is
 committed to the repo, and Vercel serves those files directly. Run `build.py` and commit its
