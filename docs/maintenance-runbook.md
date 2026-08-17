@@ -123,6 +123,43 @@ until it is scheduled.
 
 ---
 
+## How the live site deploys
+
+`thehealthwellbeinghub.com` is served by the Vercel project **health-wellbeing-hub** under the
+team `the-health-wellness-being-hub` (project ID `prj_xAASAtvdRe2ohkCXvcESudaRC2EE`). Four
+domains point at it: the apex, `www`, and two `.vercel.app` aliases.
+
+**The Git connection moved on 2026-08-17.** Until then, production was built from a completely
+different repository — `bbangll/Tabby`, subdirectory `health-wellbeing-hub`, branch
+`claude/health-wellbeing-seo-audit-7g6gwx`. This repository was not connected to Vercel at all,
+so commits here did not reach the live site. The project is now connected to
+`The-Health-Wellbeing-Hub/TheHealthWellbeingHubWebsite` instead, making this repo both the
+source of truth and the deploy source.
+
+Two consequences to keep in mind:
+
+- **The default branch is the production branch.** Vercel builds production from the repo's
+  default branch, which is `claude/health-wellbeing-hub-site-f84rj6`. There is no `main`. So the
+  "never straight to the default branch" rule below is also the rule that keeps unreviewed work
+  off the live site — a push to that branch *is* a production release, with no preview or PR
+  gate in front of it. Other branches produce preview deployments only.
+- **Root Directory is a project setting, not part of the Git connection.** It survived the
+  reconnection pointing at `health-wellbeing-hub`, a folder that does not exist in this repo, so
+  the first builds after the switch failed to trigger or build. It must be cleared to `/` under
+  Vercel → Settings → Build and Deployment.
+
+There is no build step at deploy time: `build.py` renders `templates/` into static HTML that is
+committed to the repo, and Vercel serves those files directly. Run `build.py` and commit its
+output as part of any content change — editing `content.py` alone changes nothing that gets
+served. The one dynamic piece is `api/hubspot-submit.js`, a serverless function that reads
+`HUBSPOT_TOKEN` from Vercel's production environment variables; changing that variable requires
+a redeploy before the function picks it up.
+
+To verify a deploy landed, check that the newest production deployment's commit SHA matches the
+tip of the default branch, and that its `gitRepo` metadata names this repository — not `Tabby`.
+
+---
+
 ## Working agreement
 
 - Claude drafts; a human approves anything participant-facing or compliance-related.
