@@ -158,15 +158,33 @@ def copy_static():
         raise SystemExit("static/ directory missing")
 
 
+# Top-level directories this generator owns and may delete. These must match the
+# route prefixes rendered in pages.py — add an entry when adding a new top-level
+# route. Any directory not listed here is hand-authored and never touched.
+GENERATED_DIRS = (
+    "about",
+    "blog",
+    "complaints-feedback",
+    "contact",
+    "locations",
+    "multilingual-ndis-support",
+    "participant-rights",
+    "privacy-policy",
+    "provider-directory",
+    "referrals",
+    "services",
+)
+
+
 def clean_generated_dirs():
-    """Remove previously generated page directories so renamed/removed
-    pages don't leave stale files behind. Only touches known output dirs,
-    never templates/, static/, build.py or content.py."""
-    keep = {"templates", "static", "api", "build.py", "content.py", "README-SEO.md",
-            "robots.txt", "sitemap.xml", "index.html", ".gitignore", "vercel.json"}
-    for entry in os.listdir(ROOT):
-        if entry in keep or entry.startswith("."):
-            continue
+    """Remove previously generated page directories so renamed/removed pages
+    don't leave stale files behind.
+
+    Deletes only the directories named in GENERATED_DIRS. This is deliberately
+    a list of what to remove rather than a list of what to keep: the latter
+    silently destroys any hand-authored directory nobody remembered to exempt,
+    which is how docs/ and email-templates/ were deleted on a rebuild."""
+    for entry in GENERATED_DIRS:
         full = os.path.join(ROOT, entry)
         if os.path.isdir(full):
             shutil.rmtree(full)
