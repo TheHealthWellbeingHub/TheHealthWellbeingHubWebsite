@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-eyebrow">{{ icon('language') }} Multilingual &amp; multicultural NDIS support</div>
+    <h1 class="page-h1">Multilingual &amp; Culturally Responsive NDIS Support in Logan &amp; Brisbane</h1>
+    <p class="page-sub">A multicultural NDIS provider serving Arabic, Somali, Dari and Amharic speaking communities across Logan, Logan Central and Brisbane.</p>
+    <div class="page-hero-btns">
+      <a href="{{ url(site.enquire_url) }}" class="btn-hero-primary" data-track="enquiry_cta_click" data-track-location="multilingual_hero">{{ icon('arrow-right') }} Make an enquiry</a>
+      <a href="tel:{{ site.phone_tel }}" class="btn-hero-ghost" data-track="phone_click" data-track-location="multilingual_hero">{{ icon('phone') }} Call {{ site.phone_display }}</a>
+    </div>
+  </div>
+</section>
+
+<div class="section">
+  <div class="section-inner layout-split">
+    <div class="prose">
+      <h2>A team that speaks your language</h2>
+      <p>The Health &amp; Well-being Hub was founded in Logan Central by {{ site.founder_name }}, who saw first-hand how many Arabic-speaking, Somali, Afghan and Ethiopian families in Brisbane's diverse communities struggled to find an NDIS provider who understood their culture, faith and language. Our team speaks English, Arabic, Somali, Dari and Amharic, and supports participants across Logan, Logan Central, Brisbane and surrounding South East Queensland as a multicultural, culturally diverse NDIS provider.</p>
+
+      <h2>Languages our team speaks</h2>
+      <div class="lang-cards" style="margin:24px 0">
+        {% for l in languages %}
+        <div class="lang-card">
+          <div class="lang-flag-bg" style="background:{{ l.gradient }};display:flex;align-items:flex-start;justify-content:flex-end;padding:14px"><span style="font-size:26px;opacity:.5">{{ l.flag }}</span></div>
+          <div class="lang-overlay"></div>
+          <div class="lang-content"><div><div class="lang-name">{{ l.name }}</div><div class="lang-native">{{ l.native }}</div></div><span class="lang-badge">Spoken</span></div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <h3>Arabic-speaking NDIS support — العربية</h3>
+      <p>Our team includes Arabic speakers who can discuss your NDIS plan, support needs and enquiries directly in Arabic. Call {{ site.phone_display }} or WhatsApp us and ask for Arabic-language support.</p>
+
+      <h3>Somali-speaking NDIS support</h3>
+      <p>Our team includes Somali speakers for participants and families who are more comfortable discussing their NDIS support in Somali.</p>
+
+      <h3>Dari-speaking NDIS support</h3>
+      <p>Our team includes Dari speakers, supporting Afghan families across Logan and Brisbane with their NDIS plans and daily support needs.</p>
+
+      <h3>Amharic-speaking NDIS support</h3>
+      <p>Our team includes Amharic speakers, supporting Ethiopian families across Logan and Brisbane.</p>
+
+      <h2>Culturally responsive support, not just translation</h2>
+      <p>Speaking your language is only part of it. Our team also understands:</p>
+      <ul>
+        <li>Gender-matched support worker preferences for cultural or religious reasons</li>
+        <li>Dietary requirements, including halal meal preparation</li>
+        <li>Prayer times and religious observances built into scheduling, not treated as a special request</li>
+        <li>Support to attend a mosque, church, temple or other place of worship as part of community participation</li>
+        <li>Cultural celebrations including Eid, Christmas and Diwali</li>
+      </ul>
+
+      <h2>A note on what this page is — and isn't</h2>
+      <p>This page, and the rest of our website, is currently published in English only. We haven't published fully translated versions of our site in Arabic, Somali, Dari or Amharic, and we'd rather tell you that directly than imply otherwise. What we do have is team members who speak these languages and can talk you through your NDIS support directly, by phone, WhatsApp or in person at our Logan Central office.</p>
+      <p>If you'd prefer to start the conversation in your own language, call {{ site.phone_display }} or WhatsApp us and let us know your preferred language — we'll connect you with a team member who speaks it.</p>
+
+      <div class="article-cta">
+        <p>Prefer to talk in Arabic, Somali, Dari or Amharic?</p>
+        <div class="page-hero-btns" style="justify-content:center">
+          <a href="tel:{{ site.phone_tel }}" class="btn-hero-primary" data-track="phone_click" data-track-location="multilingual_bottom_cta">{{ icon('phone') }} Call {{ site.phone_display }}</a>
+          <a href="{{ site.whatsapp_url }}" class="btn-hero-ghost on-light" target="_blank" rel="noopener" data-track="whatsapp_click" data-track-location="multilingual_bottom_cta">{{ icon('brand-whatsapp') }} WhatsApp us</a>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="side-card">
+        <div class="side-card-title">Related reading</div>
+        <div class="side-list">
+          <a href="{{ url('/blog/finding-a-multilingual-ndis-provider-in-brisbane/') }}">{{ icon('arrow-right') }} Finding a Multilingual NDIS Provider in Brisbane</a>
+          <a href="{{ url('/about/') }}">{{ icon('arrow-right') }} About our team</a>
+          <a href="{{ url('/locations/brisbane/') }}">{{ icon('arrow-right') }} NDIS Provider Brisbane</a>
+        </div>
+      </div>
+      <div class="side-card navy">
+        <div class="side-card-title">Talk to our team</div>
+        <p>We aim to respond within 2 business hours.</p>
+        <a href="tel:{{ site.phone_tel }}" class="side-cta-btn" data-track="phone_click" data-track-location="multilingual_sidebar">{{ icon('phone') }} {{ site.phone_display }}</a>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

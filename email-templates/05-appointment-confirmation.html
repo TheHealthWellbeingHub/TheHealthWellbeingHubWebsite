@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Your appointment is confirmed</title>
+<!--[if mso]>
+<noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+<![endif]-->
+<style>
+  body,table,td { font-family: Arial, Helvetica, sans-serif; }
+  body { margin:0; padding:0; background:#F7F4F7; }
+  .wrap { width:100%; background:#F7F4F7; }
+  .card { background:#FFFFFF; border:1px solid #EADFEC; border-radius:14px; overflow:hidden; }
+  h1 { font-family: Georgia, 'Playfair Display', serif; }
+  @media (max-width:620px) {
+    .container { width:100% !important; }
+    .px { padding-left:20px !important; padding-right:20px !important; }
+  }
+</style>
+</head>
+<body>
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Your appointment is confirmed — details and how to prepare below.</div>
+  <table role="presentation" class="wrap" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" class="container card" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;">
+          <tr>
+            <td style="background:linear-gradient(120deg,#7B2D8B 0%,#5C2068 100%);background-color:#7B2D8B;padding:30px 32px;" bgcolor="#7B2D8B">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family:Arial,Helvetica,sans-serif;font-weight:bold;font-size:15px;color:#ffffff;letter-spacing:.02em;">
+                    The Health &amp; Well-being Hub
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="px" style="padding:36px 32px 28px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;letter-spacing:.08em;text-transform:uppercase;color:#7B2D8B;padding-bottom:8px;">
+                    Appointment confirmed
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <h1 style="margin:0 0 18px;font-size:24px;line-height:1.3;color:#1D3461;">Your appointment is confirmed</h1>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.65;color:#333A4D;">
+                    <p style="margin:0 0 16px;">Hi {{participant_first_name}},</p><p style="margin:0 0 16px;">This confirms your upcoming appointment:</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F7F1F8;border-radius:10px;margin:4px 0 20px;"><tr><td style="padding:18px 20px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.8;color:#333A4D;">Type: {{appointment_type}}<br>With: {{provider_name}}<br>Date &amp; time: {{appointment_date}}, {{appointment_time}}<br>Location: {{appointment_location}}</td></tr></table><p style="margin:0 0 16px;"><strong>Before your appointment:</strong> {{preparation_notes}}</p><p style="margin:0 0 16px;">Need to reschedule? Reply to this email or call us as soon as you can so we can offer the time to someone else.</p>
+                  </td>
+                </tr>
+
+              <tr><td style="height:8px;line-height:8px;font-size:1px;">&nbsp;</td></tr>
+              <tr>
+                <td align="center" style="padding:6px 0 4px;">
+                  <a href="{{reschedule_url}}" style="display:inline-block;background:#7B2D8B;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 32px;border-radius:999px;">Reschedule or cancel</a>
+                </td>
+              </tr>
+
+              </table>
+            </td>
+          </tr>
+
+      <tr>
+        <td style="background:#1D3461;padding:28px 32px;" bgcolor="#1D3461">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.7;color:#C9D2E8;">
+                <strong style="color:#ffffff;">The Health &amp; Well-being Hub</strong><br>
+                NDIS Registered Provider — Registration #4050045262<br>
+                73 Jacaranda Avenue, Logan QLD 4114<br>
+                <a href="tel:+61433604507" style="color:#C9D2E8;text-decoration:underline;">0433 604 507</a>
+                &nbsp;·&nbsp;
+                <a href="https://wa.me/61433604507" style="color:#C9D2E8;text-decoration:underline;">WhatsApp</a>
+                &nbsp;·&nbsp;
+                <a href="mailto:thehealthwellbeinghub@gmail.com" style="color:#C9D2E8;text-decoration:underline;">thehealthwellbeinghub@gmail.com</a>
+              </td>
+            </tr>
+            <tr><td style="height:16px;line-height:16px;font-size:1px;">&nbsp;</td></tr>
+            <tr>
+              <td style="font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.6;color:#8B96B8;border-top:1px solid #2E4270;padding-top:14px;">
+                We can respond in English, Arabic, Somali, Dari or Amharic — let us know your preferred language.<br>
+                This message was sent to {{recipient_email}} because you're in contact with The Health &amp; Well-being Hub about NDIS supports.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

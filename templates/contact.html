@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-eyebrow">{{ icon('mail') }} Get in touch</div>
+    <h1 class="page-h1">Contact Us — NDIS Enquiry</h1>
+    <p class="page-sub">We aim to call you back within 2 business hours. No NDIS number needed to get started.</p>
+  </div>
+</section>
+
+<section class="section" id="enquiry-form">
+  <div class="section-inner enquiry-grid">
+    <div class="reveal">
+      <div class="section-label">Reach us directly</div>
+      <div class="enquiry-left-title">Talk to our team today</div>
+      <p class="enquiry-left-sub">Call, WhatsApp, or send an enquiry below. Support workers are available 7 days a week, and our office is open Monday to Friday.</p>
+      <div class="contact-row">{{ icon('phone') }}<a href="tel:{{ site.phone_tel }}" data-track="phone_click" data-track-location="contact_page">{{ site.phone_display }}</a></div>
+      <div class="contact-row">{{ icon('brand-whatsapp') }}<a href="{{ site.whatsapp_url }}" target="_blank" rel="noopener" data-track="whatsapp_click" data-track-location="contact_page">WhatsApp us</a></div>
+      <div class="contact-row">{{ icon('mail') }}<a href="mailto:{{ site.email }}" data-track="email_click" data-track-location="contact_page">{{ site.email }}</a></div>
+      <div class="contact-row">{{ icon('map-pin') }} {{ site.address_full }}</div>
+      <div class="contact-row">{{ icon('clock') }} {{ site.hours }}</div>
+      <div class="map-wrap">
+        <iframe src="https://maps.google.com/maps?q=73+Jacaranda+Avenue+Logan+QLD+4114+Australia&amp;output=embed&amp;z=16" loading="lazy" title="The Health and Well-being Hub location"></iframe>
+      </div>
+      <p style="font-size:13px;color:var(--tm);margin-top:20px">Are you a plan manager, support coordinator or health professional? Use our dedicated <a href="{{ url('/referrals/') }}" style="color:var(--p);font-weight:600">referral page</a> instead.</p>
+    </div>
+    <div class="reveal">
+      {% include "partials/enquiry_form.html" %}
+    </div>
+  </div>
+</section>
+{% endblock %}

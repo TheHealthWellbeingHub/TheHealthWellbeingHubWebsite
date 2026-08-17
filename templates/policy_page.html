@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-eyebrow">{{ icon('shield-check') }} Trust &amp; Policies</div>
+    <h1 class="page-h1">{{ page_h1 }}</h1>
+    {% if page_sub %}<p class="page-sub">{{ page_sub }}</p>{% endif %}
+  </div>
+</section>
+<div class="section">
+  <div class="section-inner">
+    <div class="update-note">Last updated {{ current_year }}</div>
+    <div class="policy-body">
+      {{ policy_html | safe }}
+    </div>
+  </div>
+</div>
+{% endblock %}

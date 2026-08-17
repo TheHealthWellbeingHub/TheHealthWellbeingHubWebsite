@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-eyebrow">{{ icon('send') }} For plan managers, support coordinators &amp; health professionals</div>
+    <h1 class="page-h1">Refer an NDIS Participant</h1>
+    <p class="page-sub">NDIS #{{ site.ndis_reg_number }} · All plan types accepted · QLD · NSW · VIC · WA · Referrals answered within 2 business hours.</p>
+    <div class="page-hero-btns">
+      <a href="tel:{{ site.phone_tel }}" class="btn-hero-ghost" data-track="phone_click" data-track-location="referrals_hero">{{ icon('phone') }} Call {{ site.phone_display }}</a>
+      <a href="mailto:{{ site.email }}?subject=Client%20Referral" class="btn-hero-ghost" data-track="email_click" data-track-location="referrals_hero">{{ icon('mail') }} Email a referral</a>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner layout-split">
+    <div class="prose">
+      <h2>Why refer to The Health &amp; Well-being Hub</h2>
+      <ul>
+        <li>Fully NDIS registered provider — registration #{{ site.ndis_reg_number }}</li>
+        <li>We work with all plan types: agency managed, plan managed and self managed</li>
+        <li>Team members who speak Arabic, Somali, Dari and Amharic, in addition to English</li>
+        <li>Gender-matched support workers available on request</li>
+        <li>Operating across Logan, Brisbane, the Gold Coast, Ipswich, and further afield in QLD, NSW, VIC and WA</li>
+        <li>We aim to acknowledge referrals within 2 business hours</li>
+      </ul>
+
+      <h2>What happens after you refer</h2>
+      <ol>
+        <li>Submit the referral form below, or email us directly</li>
+        <li>We acknowledge receipt, typically within 2 business hours</li>
+        <li>We contact the participant directly to arrange a needs assessment</li>
+        <li>We confirm the support plan and start date with you and the participant</li>
+        <li>Ongoing updates are provided to you, with the participant's consent</li>
+      </ol>
+
+      <h2>Services you can refer for</h2>
+      <ul>
+        {% for s in services %}<li><a href="{{ url('/services/' + s.slug + '/') }}">{{ s.name }}</a> — {{ s.card_desc }}</li>{% endfor %}
+      </ul>
+
+      {% include "partials/referral_form.html" %}
+    </div>
+
+    <aside>
+      <div class="side-card navy">
+        <div class="side-card-title">Prefer to talk first?</div>
+        <p>Call us directly and we'll take the referral details over the phone.</p>
+        <a href="tel:{{ site.phone_tel }}" class="side-cta-btn" data-track="phone_click" data-track-location="referrals_sidebar">{{ icon('phone') }} {{ site.phone_display }}</a>
+        <a href="mailto:{{ site.email }}?subject=Client%20Referral" class="side-cta-btn o" data-track="email_click" data-track-location="referrals_sidebar">{{ icon('mail') }} Email us</a>
+      </div>
+      <div class="side-card">
+        <div class="side-card-title">Learn more</div>
+        <div class="side-list">
+          <a href="{{ url('/services/') }}">{{ icon('arrow-right') }} All NDIS services</a>
+          <a href="{{ url('/about/') }}">{{ icon('arrow-right') }} About our team</a>
+          <a href="{{ url('/multilingual-ndis-support/') }}">{{ icon('arrow-right') }} Multilingual support</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}

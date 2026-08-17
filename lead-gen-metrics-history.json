@@ -1,0 +1,72 @@
+{
+  "note": "Internal tracking log for the Lead-Gen Command Centre dashboard. Not part of the deployed website. GA4 metrics have real daily history since launch; CRM metrics start 2026-08-12 (the date the referral contact list was rebuilt) \u2014 earlier CRM data is a different, unrelated dataset and isn't included to avoid a misleading trend line. GA4's standard reporting API finalizes daily numbers over the following day or two (differs from Realtime) \u2014 earlier same-day snapshots get revised upward as processing catches up; that's expected, not an error.",
+  "ga4_daily": [
+    {
+      "date": "2026-08-11",
+      "sessions": 10,
+      "activeUsers": 6,
+      "engagedSessions": 6
+    },
+    {
+      "date": "2026-08-12",
+      "sessions": 15,
+      "activeUsers": 8,
+      "engagedSessions": 6
+    },
+    {
+      "date": "2026-08-13",
+      "sessions": 11,
+      "activeUsers": 6,
+      "engagedSessions": 5
+    },
+    {
+      "date": "2026-08-14",
+      "sessions": 5,
+      "activeUsers": 5,
+      "engagedSessions": 1
+    },
+    {
+      "date": "2026-08-15",
+      "sessions": 10,
+      "activeUsers": 10,
+      "engagedSessions": 5
+    },
+    {
+      "date": "2026-08-16",
+      "sessions": 2,
+      "activeUsers": 2,
+      "engagedSessions": 0
+    },
+    {
+      "date": "2026-08-17",
+      "sessions": 4,
+      "activeUsers": 4,
+      "engagedSessions": 0
+    }
+  ],
+  "crm_snapshots": [
+    {
+      "date": "2026-08-12",
+      "contacts": 23,
+      "companies": 17,
+      "openDeals": 0,
+      "pipelineB_deals": 23
+    },
+    {
+      "date": "2026-08-13",
+      "contacts": 23,
+      "companies": 17,
+      "openDeals": 0,
+      "pipelineB_deals": 23,
+      "pipelineB_stage": "all Identified, none contacted yet"
+    },
+    {
+      "date": "2026-08-17",
+      "contacts": 23,
+      "companies": 17,
+      "openDeals": 0,
+      "pipelineB_deals": 23,
+      "pipelineB_stage": "all Identified, none contacted yet"
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-eyebrow">{{ icon('certificate') }} {{ svc.eyebrow }} · NDIS #{{ site.ndis_reg_number }}</div>
+    <h1 class="page-h1">{{ svc.h1 }}</h1>
+    <p class="page-sub">{{ svc.intro[0] }}</p>
+    <div class="page-hero-btns">
+      <a href="{{ url(site.enquire_url) }}" class="btn-hero-primary" data-track="enquiry_cta_click" data-track-location="service_hero">{{ icon('arrow-right') }} Get started today</a>
+      <a href="tel:{{ site.phone_tel }}" class="btn-hero-ghost" data-track="phone_click" data-track-location="service_hero">{{ icon('phone') }} Call {{ site.phone_display }}</a>
+    </div>
+  </div>
+</section>
+
+<div class="section">
+  <div class="section-inner layout-split">
+    <div class="prose">
+      {% if svc.intro|length > 1 %}{% for p in svc.intro[1:] %}<p>{{ p }}</p>{% endfor %}{% endif %}
+
+      <h2>{{ svc.what_is_heading }}</h2>
+      {% for p in svc.what_is %}<p>{{ p }}</p>{% endfor %}
+
+      <h2>How we can help</h2>
+      <p>Here's what {{ svc.name.lower() }} looks like in practice with our team, and who it's typically suited to.</p>
+
+      <div class="info-panel" style="margin-top:24px">
+        <div class="info-panel-hero" style="background:{{ svc.hero_gradient }}">
+          <div class="info-panel-eyebrow">{{ svc.eyebrow }}</div>
+          <div class="info-panel-title">{{ svc.included_heading }}</div>
+        </div>
+        <div class="info-panel-body">
+          <div class="info-panel-grid">
+            {% for cat in svc.included_categories %}
+            <div>
+              <div class="category-title"><div class="cat-icon">{{ cat.icon }}</div> {{ cat.title }}</div>
+              <div class="check-list">
+                {% for item in cat['items'] %}
+                <div class="chk"><div class="chk-tick">{{ icon('check') }}</div> {{ item }}</div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="highlight-box" style="background:{{ 'var(--pt)' if svc.highlight.color=='purple' else 'var(--gl)' }};border-left:4px solid {{ 'var(--p)' if svc.highlight.color=='purple' else 'var(--g)' }}">
+            <div class="highlight-label" style="color:{{ 'var(--p)' if svc.highlight.color=='purple' else 'var(--g)' }}">{{ svc.highlight.label }}</div>
+            <p>{{ svc.highlight.text }}</p>
+          </div>
+        </div>
+      </div>
+
+      <h2>{{ svc.who_for_heading }}</h2>
+      <ul>
+        {% for item in svc.who_for %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+
+      <h2>{{ svc.how_we_work_heading }}</h2>
+      {% for p in svc.how_we_work %}<p>{{ p }}</p>{% endfor %}
+
+      <h2>{{ svc.multilingual_heading }}</h2>
+      <p>{{ svc.multilingual }}</p>
+
+      <h2>Areas we service</h2>
+      <p>We deliver {{ svc.name.lower() }} to NDIS participants based in {{ locations|map(attribute='name')|join(', ') }} and across South East Queensland, with participants also supported in New South Wales, Victoria and Western Australia.</p>
+
+      <h2>Why choose The Health &amp; Well-being Hub</h2>
+      <ul>
+        {% for item in svc.why_choose %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+
+      <h2>How to get started</h2>
+      <ol>
+        {% for step in svc.get_started_steps %}<li>{{ step }}</li>{% endfor %}
+      </ol>
+
+      <h2>Frequently asked questions</h2>
+      <div class="faq-grid single">
+        {% for f in svc.faqs %}
+        <details class="faq-item">
+          <summary>{{ f.q }} {{ icon('chevron-down') }}</summary>
+          <div class="faq-a">{{ f.a }}</div>
+        </details>
+        {% endfor %}
+      </div>
+
+      <div class="article-cta">
+        <p>Ready to talk about {{ svc.name.lower() }} in Logan or Brisbane?</p>
+        <div class="page-hero-btns" style="justify-content:center">
+          <a href="{{ url(site.enquire_url) }}" class="btn-hero-primary" data-track="enquiry_cta_click" data-track-location="service_bottom_cta">{{ icon('arrow-right') }} Make an enquiry</a>
+          <a href="tel:{{ site.phone_tel }}" class="btn-hero-ghost on-light" data-track="phone_click" data-track-location="service_bottom_cta">{{ icon('phone') }} Call {{ site.phone_display }}</a>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="side-card">
+        <div class="side-card-title">Other NDIS services</div>
+        <div class="side-list">
+          {% for other in services %}
+            {% if other.slug != svc.slug %}
+            <a href="{{ url('/services/' + other.slug + '/') }}">{{ icon('arrow-right') }} {{ other.name }}</a>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="side-card">
+        <div class="side-card-title">Service areas</div>
+        <div class="side-list">
+          {% for loc in locations %}
+          <a href="{{ url('/locations/' + loc.slug + '/') }}">{{ icon('arrow-right') }} NDIS Provider {{ loc.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="side-card navy">
+        <div class="side-card-title">Talk to our team</div>
+        <p>We aim to respond within 2 business hours.</p>
+        <a href="tel:{{ site.phone_tel }}" class="side-cta-btn" data-track="phone_click" data-track-location="service_sidebar">{{ icon('phone') }} {{ site.phone_display }}</a>
+        <a href="{{ site.whatsapp_url }}" class="side-cta-btn o" target="_blank" rel="noopener" data-track="whatsapp_click" data-track-location="service_sidebar">{{ icon('brand-whatsapp') }} WhatsApp us</a>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="referral-cta">
+  <div class="referral-inner">
+    <div><div class="referral-title">Plan manager or health professional?</div><p class="referral-sub">NDIS #{{ site.ndis_reg_number }} · All plan types · QLD · NSW · VIC · WA · Referrals answered within 2 business hours</p></div>
+    <a href="{{ url('/referrals/') }}" class="btn-purple" data-track="referral_click" data-track-location="service_referral_band">{{ icon('send') }} Refer a participant</a>
+  </div>
+</div>
+{% endblock %}

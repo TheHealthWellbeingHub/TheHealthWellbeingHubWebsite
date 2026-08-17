@@ -1,0 +1,80 @@
+<div class="form-card">
+  <div class="form-title">Refer an NDIS participant</div>
+  <div class="form-sub">For plan managers, support coordinators, GPs and other health professionals. We aim to acknowledge referrals within 2 business hours.</div>
+  <form id="referral-form" class="enquiry-form" data-form-name="referral" novalidate>
+    <div class="form-row form-row-split">
+      <div>
+        <label class="form-label" for="rf-referrer-name">Your name <span aria-hidden="true">*</span></label>
+        <input class="form-field" id="rf-referrer-name" type="text" name="referrer_name" required>
+      </div>
+      <div>
+        <label class="form-label" for="rf-org">Organisation</label>
+        <input class="form-field" id="rf-org" type="text" name="referrer_organisation">
+      </div>
+    </div>
+    <div class="form-row form-row-split">
+      <div>
+        <label class="form-label" for="rf-referrer-phone">Your phone <span aria-hidden="true">*</span></label>
+        <input class="form-field" id="rf-referrer-phone" type="tel" name="referrer_phone" required>
+      </div>
+      <div>
+        <label class="form-label" for="rf-referrer-email">Your email <span aria-hidden="true">*</span></label>
+        <input class="form-field" id="rf-referrer-email" type="email" name="referrer_email" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="rf-referrer-role">Your role</label>
+      <select class="form-field" id="rf-referrer-role" name="referrer_role">
+        <option>Support Coordinator</option>
+        <option>Plan Manager</option>
+        <option>GP</option>
+        <option>Allied health professional</option>
+        <option>NDIA planner / LAC</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-row form-row-split">
+      <div>
+        <label class="form-label" for="rf-participant-name">Participant's name <span aria-hidden="true">*</span></label>
+        <input class="form-field" id="rf-participant-name" type="text" name="participant_name" required>
+      </div>
+      <div>
+        <label class="form-label" for="rf-participant-contact">Participant's phone or email</label>
+        <input class="form-field" id="rf-participant-contact" type="text" name="participant_contact">
+      </div>
+    </div>
+    <div class="form-row form-row-split">
+      <div>
+        <label class="form-label" for="rf-service">Service(s) required</label>
+        <select class="form-field" id="rf-service" name="service_needed">
+          <option value="">Please select</option>
+          <option>Support Coordination</option>
+          <option>Core Supports &amp; Daily Living</option>
+          <option>Community Participation</option>
+          <option>Therapy Services</option>
+          <option>Multiple / not sure</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="rf-plan-type">Plan management type</label>
+        <select class="form-field" id="rf-plan-type" name="plan_type">
+          <option>Agency managed</option>
+          <option>Plan managed</option>
+          <option>Self managed</option>
+          <option>Not sure</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="rf-notes">Referral details</label>
+      <textarea class="form-field" id="rf-notes" name="referral_details" rows="4" placeholder="Relevant background, urgency, preferred language, gender preference, etc."></textarea>
+    </div>
+    <label class="form-consent">
+      <input type="checkbox" name="privacy_consent" required>
+      <span>I confirm the participant (or their nominee) has consented to this referral, and I've read the <a href="{{ url('/privacy-policy/') }}">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
+    </label>
+    <button class="form-submit" type="submit">Submit referral</button>
+    <div class="form-status" role="status" aria-live="polite"></div>
+    <div class="form-note">Or email <a href="mailto:{{ site.email }}?subject=Client%20Referral">{{ site.email }}</a> directly</div>
+  </form>
+</div>

@@ -1,0 +1,81 @@
+<div class="form-card">
+  <div class="form-title">Make an NDIS enquiry</div>
+  <div class="form-sub">We aim to call you back within 2 business hours. No NDIS number needed to get started.</div>
+  <form id="enquiry-form" class="enquiry-form" data-form-name="enquiry" novalidate>
+    <div class="form-row">
+      <label class="form-label" for="ef-name">Full name <span aria-hidden="true">*</span></label>
+      <input class="form-field" id="ef-name" type="text" name="name" autocomplete="name" required>
+    </div>
+    <div class="form-row form-row-split">
+      <div>
+        <label class="form-label" for="ef-phone">Phone number <span aria-hidden="true">*</span></label>
+        <input class="form-field" id="ef-phone" type="tel" name="phone" autocomplete="tel" required>
+      </div>
+      <div>
+        <label class="form-label" for="ef-email">Email</label>
+        <input class="form-field" id="ef-email" type="email" name="email" autocomplete="email">
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="ef-role">I am a... <span aria-hidden="true">*</span></label>
+      <select class="form-field" id="ef-role" name="enquirer_role" required>
+        <option value="">Please select</option>
+        <option>NDIS Participant</option>
+        <option>Parent / Family member / Carer</option>
+        <option>Support Coordinator</option>
+        <option>Plan Manager</option>
+        <option>GP / Health professional</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-row form-row-split">
+      <div>
+        <label class="form-label" for="ef-service">Service needed</label>
+        <select class="form-field" id="ef-service" name="service_needed">
+          <option value="">Not sure — please advise</option>
+          <option>Support Coordination</option>
+          <option>Core Supports &amp; Daily Living</option>
+          <option>Community Participation</option>
+          <option>Therapy Services</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="ef-suburb">Suburb / location</label>
+        <input class="form-field" id="ef-suburb" type="text" name="suburb" placeholder="e.g. Logan Central">
+      </div>
+    </div>
+    <div class="form-row form-row-split">
+      <div>
+        <label class="form-label" for="ef-lang">Preferred language</label>
+        <select class="form-field" id="ef-lang" name="preferred_language">
+          <option>English</option>
+          <option>Arabic — العربية</option>
+          <option>Somali — Soomaali</option>
+          <option>Dari — دری</option>
+          <option>Amharic — አማርኛ</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="ef-contact">Preferred contact method</label>
+        <select class="form-field" id="ef-contact" name="preferred_contact_method">
+          <option>Phone call</option>
+          <option>Text message</option>
+          <option>Email</option>
+          <option>WhatsApp</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="ef-info">Anything else we should know? (optional)</label>
+      <textarea class="form-field" id="ef-info" name="additional_info" rows="3"></textarea>
+    </div>
+    <label class="form-consent">
+      <input type="checkbox" name="privacy_consent" required>
+      <span>I agree to be contacted about my enquiry and have read the <a href="{{ url('/privacy-policy/') }}">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
+    </label>
+    <button class="form-submit" type="submit">Send enquiry — we'll call you back</button>
+    <div class="form-status" role="status" aria-live="polite"></div>
+    <div class="form-note">No NDIS number needed · Your details are kept private · Or call <a href="tel:0433604507">0433 604 507</a></div>
+  </form>
+</div>

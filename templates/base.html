@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }}</title>
+<meta name="description" content="{{ meta_description }}">
+<link rel="canonical" href="{{ site.base_url }}{{ canonical }}">
+{% if robots %}<meta name="robots" content="{{ robots }}">{% endif %}
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ site.base_url }}{{ canonical }}">
+<meta property="og:title" content="{{ og_title or title }}">
+<meta property="og:description" content="{{ og_description or meta_description }}">
+<meta property="og:site_name" content="{{ site.name }}">
+<meta property="og:locale" content="en_AU">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#7B2D8B">
+
+<!-- Google Search Console: verified via DNS TXT record on the domain
+     property (thehealthwellbeinghub.com), not an HTML meta tag — see
+     README-SEO.md. -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="{{ asset('/static/css/style.css') }}">
+<link rel="icon" href="data:image/svg+xml,{{ '<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2246%22 fill=%22%237B2D8B%22/><path d=%22M50 34c-8-12-30-8-30 10 0 16 30 40 30 40s30-24 30-40c0-18-22-22-30-10z%22 fill=%22%23fff%22/></svg>' }}">
+
+{% if schema_json %}<script type="application/ld+json">{{ schema_json | safe }}</script>{% endif %}
+
+{% block extra_head %}{% endblock %}
+
+<!-- Google Tag Manager. GA4 and Google Ads conversion tags are configured
+     INSIDE this GTM container (not hardcoded here), wired to the
+     dataLayer events pushed by /static/js/main.js — see README-SEO.md
+     for the exact event names. -->
+<script>
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','{{ site.gtm_id }}');
+</script>
+</head>
+<body{% if body_class %} class="{{ body_class }}"{% endif %}>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ site.gtm_id }}"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+{% include "partials/icon-sprite.svg" %}
+
+<a href="#main" class="skip-link">Skip to main content</a>
+
+{% include "partials/topbar.html" %}
+{% include "partials/nav.html" %}
+
+<a href="https://wa.me/61433604507" class="wa-float" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp" data-track="whatsapp_click" data-track-location="floating_button">
+  {{ icon('brand-whatsapp') }}
+</a>
+
+<div class="sticky-mobile">
+  <a href="tel:0433604507" class="sticky-call" data-track="phone_click" data-track-location="sticky_mobile_bar">{{ icon('phone') }} 0433 604 507</a>
+  <a href="{{ site.enquire_url }}" class="sticky-enquire" data-track="enquiry_cta_click" data-track-location="sticky_mobile_bar">Make an enquiry</a>
+</div>
+
+<main id="main">
+{% if breadcrumbs %}{% include "partials/breadcrumbs.html" %}{% endif %}
+{% block content %}{% endblock %}
+</main>
+
+{% include "partials/footer.html" %}
+
+<script src="{{ asset('/static/js/main.js') }}" defer></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

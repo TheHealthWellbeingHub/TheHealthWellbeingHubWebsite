@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-eyebrow">{{ icon('list') }} What we offer</div>
+    <h1 class="page-h1">NDIS Services in Logan &amp; Brisbane</h1>
+    <p class="page-sub">Four core NDIS services, delivered by a multilingual, culturally responsive team based in Logan Central — support designed around your goals, not a one-size-fits-all roster.</p>
+    <div class="page-hero-btns">
+      <a href="{{ url(site.enquire_url) }}" class="btn-hero-primary" data-track="enquiry_cta_click" data-track-location="services_index_hero">{{ icon('arrow-right') }} Get started today</a>
+      <a href="tel:{{ site.phone_tel }}" class="btn-hero-ghost" data-track="phone_click" data-track-location="services_index_hero">{{ icon('phone') }} Call {{ site.phone_display }}</a>
+    </div>
+  </div>
+</section>
+
+<div class="section">
+  <div class="section-inner">
+    <div class="services-grid">
+      {% for s in services %}
+      <a href="{{ url('/services/' + s.slug + '/') }}" class="svc-card">
+        <div class="svc-icon-wrap">{{ s.icon }}</div>
+        <div class="svc-name">{{ s.name }}</div>
+        <p class="svc-desc">{{ s.card_desc }}</p>
+        <div class="svc-link">{{ s.h1 }} {{ icon('arrow-right') }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="section bg-off">
+  <div class="section-inner">
+    <div class="section-label">Service areas</div>
+    <h2 class="section-title">Where we work</h2>
+    <p class="section-sub">Based in Logan Central, servicing Logan, Brisbane, the Gold Coast and Ipswich, with participants also supported across New South Wales, Victoria and Western Australia.</p>
+    <div class="areas-grid">
+      {% for l in locations %}
+      <a href="{{ url('/locations/' + l.slug + '/') }}" class="area-card">
+        <div class="area-emoji">📍</div>
+        <div class="area-name">NDIS Provider {{ l.name }}</div>
+        <div class="area-desc">{{ l.intro[0][:110] }}…</div>
+        <div class="area-tag">{{ l.region_tag }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="referral-cta">
+  <div class="referral-inner">
+    <div><div class="referral-title">Not sure which service is right for you?</div><p class="referral-sub">Call {{ site.phone_display }} or make an enquiry — we'll help you work it out, in your preferred language.</p></div>
+    <a href="{{ url(site.enquire_url) }}" class="btn-purple" data-track="enquiry_cta_click" data-track-location="services_index_band">{{ icon('arrow-right') }} Make an enquiry</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-eyebrow">{{ icon('list') }} {{ post.category }}</div>
+    <h1 class="page-h1">{{ post.title }}</h1>
+    <p class="page-sub">{{ post.dek }}</p>
+    <div style="color:rgba(255,255,255,.6);font-size:13px">{{ post.read_time }}</div>
+  </div>
+</section>
+
+<div class="section">
+  <div class="section-inner layout-split">
+    <article class="prose">
+      {% for block in post.body %}
+        {% if block.type == 'p' %}<p>{{ block.text }}</p>
+        {% elif block.type == 'h2' %}<h2>{{ block.text }}</h2>
+        {% elif block.type == 'h3' %}<h3>{{ block.text }}</h3>
+        {% elif block.type == 'ul' %}<ul>{% for i in block['items'] %}<li>{{ i }}</li>{% endfor %}</ul>
+        {% elif block.type == 'ol' %}<ol>{% for i in block['items'] %}<li>{{ i }}</li>{% endfor %}</ol>
+        {% endif %}
+      {% endfor %}
+
+      {% set rel_svc = services | selectattr('slug', 'equalto', post.related_service) | first %}
+      {% set rel_loc = locations | selectattr('slug', 'equalto', post.related_location) | first %}
+      <div class="article-cta">
+        <p>Want to talk this through with our team?</p>
+        <div class="page-hero-btns" style="justify-content:center">
+          <a href="{{ url(site.enquire_url) }}" class="btn-hero-primary" data-track="enquiry_cta_click" data-track-location="blog_bottom_cta">{{ icon('arrow-right') }} Make an enquiry</a>
+          <a href="tel:{{ site.phone_tel }}" class="btn-hero-ghost on-light" data-track="phone_click" data-track-location="blog_bottom_cta">{{ icon('phone') }} Call {{ site.phone_display }}</a>
+        </div>
+      </div>
+
+      <div class="related-links">
+        {% if rel_svc %}<a href="{{ url('/services/' + rel_svc.slug + '/') }}">{{ rel_svc.h1 }}</a>{% endif %}
+        {% if rel_loc %}<a href="{{ url('/locations/' + rel_loc.slug + '/') }}">NDIS Provider {{ rel_loc.name }}</a>{% endif %}
+        <a href="{{ url('/blog/') }}">All NDIS resources &amp; guides</a>
+      </div>
+    </article>
+
+    <aside>
+      <div class="side-card">
+        <div class="side-card-title">More NDIS guides</div>
+        <div class="side-list">
+          {% for p in blog_posts %}
+            {% if p.slug != post.slug %}
+            <a href="{{ url('/blog/' + p.slug + '/') }}">{{ icon('arrow-right') }} {{ p.title }}</a>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="side-card navy">
+        <div class="side-card-title">Talk to our team</div>
+        <p>We aim to respond within 2 business hours.</p>
+        <a href="tel:{{ site.phone_tel }}" class="side-cta-btn" data-track="phone_click" data-track-location="blog_sidebar">{{ icon('phone') }} {{ site.phone_display }}</a>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

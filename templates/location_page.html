@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-eyebrow">{{ icon('map-pin') }} {{ loc.region_tag }} · NDIS Registered Provider</div>
+    <h1 class="page-h1">{{ loc.h1 }}</h1>
+    <p class="page-sub">{{ loc.intro[0] }}</p>
+    <div class="page-hero-btns">
+      <a href="{{ url(site.enquire_url) }}" class="btn-hero-primary" data-track="enquiry_cta_click" data-track-location="location_hero">{{ icon('arrow-right') }} Make an enquiry</a>
+      <a href="tel:{{ site.phone_tel }}" class="btn-hero-ghost" data-track="phone_click" data-track-location="location_hero">{{ icon('phone') }} Call {{ site.phone_display }}</a>
+    </div>
+  </div>
+</section>
+
+<div class="section">
+  <div class="section-inner layout-split">
+    <div class="prose">
+      {% for p in loc.intro[1:] %}<p>{{ p }}</p>{% endfor %}
+
+      <h2>NDIS services available in {{ loc.name }}</h2>
+      <p>Our full range of NDIS services is available to participants in {{ loc.name }}:</p>
+      <ul>
+        {% for s in services %}<li><a href="{{ url('/services/' + s.slug + '/') }}">{{ s.name }}</a> — {{ s.card_desc }}</li>{% endfor %}
+      </ul>
+
+      <h2>Culturally responsive and multilingual support</h2>
+      <p>Our team speaks English, Arabic, Somali, Dari and Amharic, and is experienced supporting culturally and religiously diverse families in {{ loc.name }} and across South East Queensland. Gender-matched support workers are available on request, and dietary and religious observances are accommodated as standard. Read more on our <a href="{{ url('/multilingual-ndis-support/') }}">multilingual and multicultural support page</a>.</p>
+
+      <h2>How quickly can support start in {{ loc.name }}?</h2>
+      <p>In most cases we can begin support within the same week as your first enquiry. We aim to call every enquiry back within 2 business hours.</p>
+
+      <h2>Switching NDIS providers in {{ loc.name }}</h2>
+      <p>You can change NDIS providers at any time — it's your plan and your choice. If you're not happy with your current provider in {{ loc.name }}, we can manage the transition and aim for no gap in your support.</p>
+
+      <h2>Local service coverage</h2>
+      <p>{{ loc.local_note }}</p>
+
+      <h2>Referrals</h2>
+      <p>We accept referrals from plan managers, support coordinators, GPs and other health professionals for participants in {{ loc.name }}. See our <a href="{{ url('/referrals/') }}">referral page</a> for the fastest way to refer a participant.</p>
+
+      <h2>Frequently asked questions</h2>
+      <div class="faq-grid single">
+        {% for f in loc.faqs %}
+        <details class="faq-item">
+          <summary>{{ f.q }} {{ icon('chevron-down') }}</summary>
+          <div class="faq-a">{{ f.a }}</div>
+        </details>
+        {% endfor %}
+      </div>
+
+      <div class="article-cta">
+        <p>Looking for an NDIS provider in {{ loc.name }}?</p>
+        <div class="page-hero-btns" style="justify-content:center">
+          <a href="{{ url(site.enquire_url) }}" class="btn-hero-primary" data-track="enquiry_cta_click" data-track-location="location_bottom_cta">{{ icon('arrow-right') }} Make an enquiry</a>
+          <a href="tel:{{ site.phone_tel }}" class="btn-hero-ghost on-light" data-track="phone_click" data-track-location="location_bottom_cta">{{ icon('phone') }} Call {{ site.phone_display }}</a>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="side-card">
+        <div class="side-card-title">NDIS services</div>
+        <div class="side-list">
+          {% for s in services %}
+          <a href="{{ url('/services/' + s.slug + '/') }}">{{ icon('arrow-right') }} {{ s.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="side-card">
+        <div class="side-card-title">Other service areas</div>
+        <div class="side-list">
+          {% for other in locations %}
+            {% if other.slug != loc.slug %}
+            <a href="{{ url('/locations/' + other.slug + '/') }}">{{ icon('arrow-right') }} NDIS Provider {{ other.name }}</a>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="side-card navy">
+        <div class="side-card-title">{{ site.address_full }}</div>
+        <p>{{ site.hours }}</p>
+        <a href="tel:{{ site.phone_tel }}" class="side-cta-btn" data-track="phone_click" data-track-location="location_sidebar">{{ icon('phone') }} {{ site.phone_display }}</a>
+        <a href="{{ site.whatsapp_url }}" class="side-cta-btn o" target="_blank" rel="noopener" data-track="whatsapp_click" data-track-location="location_sidebar">{{ icon('brand-whatsapp') }} WhatsApp us</a>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-eyebrow">{{ icon('heart') }} Our story</div>
+    <h1 class="page-h1">About The Health &amp; Well-being Hub</h1>
+    <p class="page-sub">Founded in Logan Central by {{ site.founder_name }}, a Brisbanite with more than 20 years of active community service.</p>
+  </div>
+</section>
+
+<div class="section">
+  <div class="section-inner layout-split">
+    <div class="prose">
+      <h2>Founded by community, built for community</h2>
+      <p>The Health &amp; Well-being Hub was founded by <strong>{{ site.founder_name }}</strong> — a Brisbanite with more than 20 years of active community service and a lifelong passion for helping people in need.</p>
+      <p>{{ site.founder_name.split(' ')[0] }} saw how many families in Brisbane's Muslim community — Arabic-speaking, Somali, Afghan and Ethiopian families — were struggling to navigate the NDIS without a provider who truly understood their culture, their faith, and their language. Existing providers could offer competent support, but few could offer support that felt like it came from inside the community rather than outside it. She built The Health &amp; Well-being Hub to fill that gap.</p>
+      <blockquote>"I started this because I believe everyone deserves support that truly sees them — their faith, their culture, their language, their goals."</blockquote>
+      <p><strong>{{ site.founder_name }}</strong><br>Founder, The Health &amp; Well-being Hub</p>
+
+      <h2>Our approach</h2>
+      <p>We don't run a one-size-fits-all roster. Every participant's support is built around their own goals, routines, culture and preferences — including gender-matched support workers on request, dietary and religious observances accommodated as standard, and a team that speaks English, Arabic, Somali, Dari and Amharic.</p>
+      <p>We work with all NDIS plan types (agency managed, plan managed and self managed), and we aim to respond to every enquiry within 2 business hours.</p>
+
+      <h2>Where we work</h2>
+      <p>We're based at {{ site.address_full }}, in Logan Central — one of Queensland's most culturally diverse communities. From there, our team supports participants across Logan, Brisbane, the Gold Coast and Ipswich, as well as further afield in New South Wales, Victoria and Western Australia.</p>
+
+      <h2>Registration &amp; compliance</h2>
+      <ul>
+        <li>NDIS Registration Number: {{ site.ndis_reg_number }}</li>
+        <li>ABN: {{ site.abn }}</li>
+        <li>Fully insured</li>
+        <li>Meets NDIS Practice Standards</li>
+      </ul>
+      <p>Read more about how we handle your information in our <a href="{{ url('/privacy-policy/') }}">Privacy Policy</a>, how to raise a concern in our <a href="{{ url('/complaints-feedback/') }}">Complaints &amp; Feedback</a> page, and what you can expect as a participant on our <a href="{{ url('/participant-rights/') }}">Participant Rights</a> page.</p>
+
+      <div class="article-cta">
+        <p>Want to talk to our team about your NDIS support?</p>
+        <div class="page-hero-btns" style="justify-content:center">
+          <a href="{{ url(site.enquire_url) }}" class="btn-hero-primary" data-track="enquiry_cta_click" data-track-location="about_bottom_cta">{{ icon('arrow-right') }} Make an enquiry</a>
+          <a href="tel:{{ site.phone_tel }}" class="btn-hero-ghost on-light" data-track="phone_click" data-track-location="about_bottom_cta">{{ icon('phone') }} Call {{ site.phone_display }}</a>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="side-card">
+        <div class="side-card-title">Credentials</div>
+        <div class="cred-pills" style="margin-top:0">
+          <span class="cred-pill">{{ icon('certificate') }} NDIS #{{ site.ndis_reg_number }}</span>
+          <span class="cred-pill">{{ icon('shield-check') }} Fully insured</span>
+          <span class="cred-pill">{{ icon('users') }} 15+ team members</span>
+        </div>
+      </div>
+      <div class="side-card">
+        <div class="side-card-title">Our services</div>
+        <div class="side-list">
+          {% for s in services %}
+          <a href="{{ url('/services/' + s.slug + '/') }}">{{ icon('arrow-right') }} {{ s.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="side-card navy">
+        <div class="side-card-title">{{ site.address_full }}</div>
+        <p>{{ site.hours }}</p>
+        <a href="tel:{{ site.phone_tel }}" class="side-cta-btn" data-track="phone_click" data-track-location="about_sidebar">{{ icon('phone') }} {{ site.phone_display }}</a>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

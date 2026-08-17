@@ -26,7 +26,12 @@ alter any of them, stop and confirm with the user rather than guessing.
 | Fact | Value |
 |---|---|
 | NDIS registration number | **4050045262** |
+| ABN | **91 643 237 045** |
 | Base location | Logan Central, Queensland |
+| Street address | 73 Jacaranda Avenue, Logan QLD 4114 |
+| Public domain | thehealthwellbeinghub.com |
+| Phone | 0433 604 507 |
+| Enquiry email | thehealthwellbeinghub@gmail.com |
 | Service lines | Support Coordination · Core Supports & Daily Living · Community Participation · Therapy Services |
 | Languages spoken | English · Arabic · Somali · Dari · Amharic |
 | Gender-matched workers | Available on request |
@@ -70,9 +75,10 @@ publishing.
 4. **Email template library** — nine branded, responsive NDIS email templates covering the
    participant lifecycle from referral through to exit.
 
-> **Repo status:** this repository started empty. Assets built before it existed live
-> elsewhere and still need importing. Do not assume a file is absent because it was never
-> written — check with the user before rebuilding something that may already exist.
+> **Repo status:** the site, provider directory and all nine email templates have now been
+> imported (see `README-SEO.md` for the tracking/GTM/GA4/HubSpot implementation status). The
+> Command Centre artifact and the `docs/analytics/` handoff described below are still
+> outstanding — nothing has been committed there yet.
 
 ## Which Claude surface can do what
 
@@ -115,24 +121,30 @@ that does not translate.
 
 - **Branch:** develop on `claude/health-wellbeing-hub-site-f84rj6`. Never push elsewhere
   without explicit permission.
-- **Naming:** one scheme per directory, applied consistently. The email template library
-  already drifted — display labels stopped matching filenames from item 06 onward, and one
-  template sits outside the directory under a different convention. Do not add to it; fix it
-  when touching that area.
+- **Naming:** one scheme per directory, applied consistently. The email template library's
+  drift (display labels not matching filenames, one template living outside the directory
+  under a different convention) has been fixed — all nine now live in `email-templates/` as
+  `01-`–`09-` prefixed files with labels matching filenames. Keep it that way.
 - **Merge fields:** the email templates use `{{double brackets}}`. HubSpot uses its own
   token syntax. Anything intended to sync into HubSpot needs deliberate conversion — do not
   assume the two are interchangeable.
-- **Stack:** not yet chosen. The user has expressed no preference. Ask before introducing a
-  framework or build tooling.
+- **Stack:** static Python + Jinja2 site generator (`build.py` renders `templates/` using
+  content from `content.py`/`pages.py` into committed static HTML — no build step at serve
+  time, no framework). Deployed on Vercel. Don't introduce a different framework or build
+  tool without asking first — this was a deliberate choice, not a placeholder.
 
 ## Unconfirmed — verify before publishing
 
-Not yet supplied by the user. Do not invent values for these:
+Domain, phone, enquiry email, street address and ABN were confirmed directly by the user and
+are now in the canonical facts table above. Trading hours are also confirmed: **Mon–Fri
+8:00am–5:00pm, support available 7 days**.
 
-- Public domain name
-- Business phone number and enquiry email address
-- Full street address
-- ABN
-- Trading hours
-- Provider Directory data source and licensing terms
-- Google Analytics property ID and HubSpot portal ID
+Still not verified — do not invent values for these:
+
+- **Provider Directory licensing terms.** The ~47,848-row dataset's source and how it was
+  cleaned is known (see `README-SEO.md` / the load scripts), but the formal licence/terms
+  under which it can be redistributed on this site has not been confirmed. Don't represent it
+  as clear until someone checks.
+- **HubSpot portal ID.** GA4's Measurement ID (`G-66FG6SCSL0`) is documented in
+  `README-SEO.md`, but the HubSpot portal ID isn't recorded anywhere in this repo — check
+  the Vercel environment variables or HubSpot account settings before assuming a value.

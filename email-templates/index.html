@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>H&amp;W NDIS Email Template Library</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f7f4f7;color:#1D3461;font-family:Arial,Helvetica,sans-serif}
+    .hero{padding:54px 22px;text-align:center;background:linear-gradient(120deg,#f8eff8,#f7f5ee,#f0f7e8)}
+    .hero h1{margin:0;font:700 38px/1.2 Georgia,serif}
+    .hero p{margin:14px auto 0;max-width:660px;color:#5f6681;line-height:1.6}
+    .grid{width:100%;max-width:1000px;margin:0 auto;padding:34px 20px 60px;display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
+    .card{display:block;padding:22px;border:1px solid #eadfec;border-radius:14px;background:#fff;color:#1D3461;text-decoration:none;box-shadow:0 5px 18px rgba(37,54,90,.06)}
+    .card:hover{border-color:#7B2D8B;transform:translateY(-1px)}
+    .number{font-size:11px;font-weight:700;letter-spacing:.8px;color:#7B2D8B}
+    .card h2{margin:8px 0 7px;font:700 20px/1.3 Georgia,serif}
+    .card p{margin:0;color:#6c7185;font-size:13px;line-height:1.5}
+    .note{max-width:960px;margin:0 auto;padding:0 20px 30px;color:#6c7185;font-size:13px;line-height:1.6;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="hero"><h1>H&amp;W Email Template Library</h1><p>Nine responsive, branded NDIS email templates. Open any template to preview it, then replace the fields shown in double brackets before sending.</p></div>
+  <main class="grid">
+    <a class="card" href="01-referrer-introduction.html"><span class="number">TEMPLATE 01</span><h2>Referrer introduction</h2><p>Introducing The Health & Well-being Hub — NDIS supports for your clients</p></a>
+    <a class="card" href="02-referral-received.html"><span class="number">TEMPLATE 02</span><h2>Referral received</h2><p>We've received your referral for {{participant_first_name}}</p></a>
+    <a class="card" href="03-new-enquiry-acknowledgement.html"><span class="number">TEMPLATE 03</span><h2>New enquiry</h2><p>Thanks for reaching out to The Health & Well-being Hub</p></a>
+    <a class="card" href="04-participant-welcome-onboarding.html"><span class="number">TEMPLATE 04</span><h2>Welcome and onboarding</h2><p>Welcome to The Health & Well-being Hub, {{participant_first_name}}</p></a>
+    <a class="card" href="05-appointment-confirmation.html"><span class="number">TEMPLATE 05</span><h2>Appointment confirmation</h2><p>Confirmed: {{appointment_type}} on {{appointment_date}}</p></a>
+    <a class="card" href="06-support-worker-introduction.html"><span class="number">TEMPLATE 06</span><h2>Support-worker introduction</h2><p>Meet {{support_worker_name}} — your support worker</p></a>
+    <a class="card" href="07-feedback-acknowledgement.html"><span class="number">TEMPLATE 07</span><h2>Feedback acknowledgement</h2><p>Thank you for your feedback</p></a>
+    <a class="card" href="08-complaint-acknowledgement.html"><span class="number">TEMPLATE 08</span><h2>Complaint acknowledgement</h2><p>We've received your complaint — reference {{complaint_reference}}</p></a>
+    <a class="card" href="09-service-cancellation-exit.html"><span class="number">TEMPLATE 09</span><h2>Cancellation or exit</h2><p>Confirming the end of {{service_name}} with us</p></a>
+  </main>
+  <p class="note">Operational and compliance wording should be reviewed against H&amp;W&rsquo;s approved policies, service agreement and current NDIS requirements before production use. Numbering has been straightened out so every label now matches its filename — template 01 also moved into this directory (it previously lived one level up under a different naming convention).</p>
+</body>
+</html>

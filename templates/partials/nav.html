@@ -1,0 +1,47 @@
+<nav class="site-nav" aria-label="Primary">
+  <a href="{{ site.base_url }}/" class="nav-logo">
+    <div class="nav-logo-mark">{{ icon('heart') }}</div>
+    <div>
+      <div class="nav-logo-name">H <span class="amp">&amp;</span> W</div>
+      <div class="nav-logo-sub">Health <span class="amp">&amp;</span> Wellbeing</div>
+    </div>
+  </a>
+
+  <button class="nav-toggle" id="nav-toggle" aria-controls="nav-menu" aria-expanded="false" aria-label="Open menu">
+    {{ icon('menu-2') }}
+  </button>
+
+  <div class="nav-menu" id="nav-menu">
+    <div class="nav-links">
+      <div class="nav-dropdown">
+        <a href="{{ url('/services/') }}" class="nav-link{{ ' active' if is_active('/services/') else '' }}">Services {{ icon('chevron-down') }}</a>
+        <div class="nav-dropdown-panel">
+          <a href="{{ url('/services/support-coordination/') }}">Support Coordination</a>
+          <a href="{{ url('/services/core-supports-daily-living/') }}">Core Supports &amp; Daily Living</a>
+          <a href="{{ url('/services/community-participation/') }}">Community Participation</a>
+          <a href="{{ url('/services/therapy-services/') }}">Therapy Services</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <a href="{{ url('/locations/logan/') }}" class="nav-link{{ ' active' if is_active('/locations/') else '' }}">Service Areas {{ icon('chevron-down') }}</a>
+        <div class="nav-dropdown-panel">
+          <a href="{{ url('/locations/logan-central/') }}">Logan Central</a>
+          <a href="{{ url('/locations/logan/') }}">Logan</a>
+          <a href="{{ url('/locations/brisbane/') }}">Brisbane</a>
+          <a href="{{ url('/locations/gold-coast/') }}">Gold Coast</a>
+          <a href="{{ url('/locations/ipswich/') }}">Ipswich</a>
+        </div>
+      </div>
+      <a href="{{ url('/multilingual-ndis-support/') }}" class="nav-link{{ ' active' if is_active('/multilingual-ndis-support/') else '' }}">Multilingual Support</a>
+      <a href="{{ url('/provider-directory/') }}" class="nav-link{{ ' active' if is_active('/provider-directory/') else '' }}">Provider Directory</a>
+      <a href="{{ url('/about/') }}" class="nav-link{{ ' active' if is_active('/about/') else '' }}">About</a>
+      <a href="{{ url('/blog/') }}" class="nav-link{{ ' active' if is_active('/blog/') else '' }}">Blog</a>
+      <a href="{{ url('/contact/') }}" class="nav-link{{ ' active' if is_active('/contact/') else '' }}">Contact</a>
+    </div>
+    <div class="nav-actions">
+      <a href="tel:0433604507" class="nav-phone" data-track="phone_click" data-track-location="nav">{{ icon('phone') }} 0433 604 507</a>
+      <a href="{{ url('/referrals/') }}" class="nav-refer" data-track="referral_click" data-track-location="nav">Refer a participant</a>
+      <a href="{{ site.enquire_url }}" class="nav-cta" data-track="enquiry_cta_click" data-track-location="nav">{{ icon('arrow-right') }} Get started</a>
+    </div>
+  </div>
+</nav>
