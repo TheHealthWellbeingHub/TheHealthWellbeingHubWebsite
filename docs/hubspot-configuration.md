@@ -43,7 +43,8 @@ What that does and does not buy, because it decides where automation can live:
 | Custom properties | ✅ |
 | Ticket pipelines | ✅ |
 | **Simple workflows** — max 10 actions, **one per form**, form-triggered only | ✅ |
-| Simple-workflow actions: send marketing email · internal notification · create record or task · assign contact · add/remove from list · **send webhook** | ✅ |
+| Simple-workflow actions: send marketing email · internal notification · create record or task · assign contact · add/remove from list | ✅ |
+| **Send webhook** from a simple workflow | ❌ **not available** — verified 18 Aug 2026 |
 | Full workflow builder with branching, delays, enrolment triggers | ❌ Professional |
 | Transactional email Single-Send API | ❌ Professional **plus** a paid add-on |
 

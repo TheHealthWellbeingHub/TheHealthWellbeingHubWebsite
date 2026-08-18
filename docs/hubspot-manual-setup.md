@@ -182,3 +182,35 @@ Both were wrong or missing and have been corrected. Neither is obvious from the 
   apply to what actually sends. Needs a branded address — which needs a mailbox, which needs an
   **MX record** the domain does not currently have.
 - Currency is still `USD`; should be `AUD`. Affects deal reporting, not this workflow.
+
+---
+
+## Date format — open defect (18 Aug 2026)
+
+`latest_referral_date` is a HubSpot **date** property, so HubSpot renders it using the portal's
+locale. It currently renders **US format**:
+
+```
+Date received: 08/18/2026
+```
+
+Today's date is unambiguous, but `05/08/2026` reads as **8 May** to an Australian recipient and
+**5 August** to HubSpot. Referral acknowledgements go to Support Coordinators and health
+professionals who may act on that date.
+
+HubL date filters cannot fix this: the marketing email rich-text module **strips HubL logic**,
+keeping only bare `{{ contact.property }}` tokens. Three approaches were tried
+(`personalization_token` with a default, the `default` filter, and `{% if %}/{% else %}`) — all
+were removed by the sanitiser. Token *defaults* had to be set through the editor UI for the
+same reason.
+
+Two ways to fix, neither applied yet:
+
+1. **Change the portal date format** so dates render day-first. One setting, affects everything
+   in the portal. Still numeric, so `08/05/2026` remains harder to read than a written month.
+2. **Change `latest_referral_date` to a single-line text property** and have the endpoint write
+   a preformatted string — `18 August 2026`. Unambiguous in any locale, and takes the rendering
+   decision away from HubSpot entirely. Costs a property change plus an endpoint change.
+
+Option 2 is the more robust and is the recommendation, but it is a schema change and has not
+been made without a decision.

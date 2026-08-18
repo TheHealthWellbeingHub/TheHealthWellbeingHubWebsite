@@ -477,10 +477,21 @@ The simple workflow fires on the form submission. Ten actions maximum, one workf
 2. Marketing email → the referrer, template 02
 3. **Webhook** → `POST /api/hubspot-sent`
 
-Action 3 is worth spending a slot on. The Vercel function cannot know when HubSpot actually
-sent, so without it `first_response_at` would be an approximation stamped at submission time —
-which is the moment the email was *queued*, not delivered. The webhook makes the SLA
-measurement real rather than assumed.
+> **[tested 18 Aug 2026 — not available] The webhook action does not exist on Starter.** The
+> simple-workflow action list offers internal notification, send email, list membership,
+> contact assignment and record/task creation — no webhook. The capability table in
+> `hubspot-configuration.md` lists "send webhook" as a Starter simple-workflow action; that is
+> wrong and has been corrected there.
+>
+> **Consequence, accepted:** `first_response_at` is stamped by the endpoint at submission —
+> the moment the acknowledgement is *queued*, not sent. In practice the gap is seconds to
+> minutes, so it does not change whether the 2-business-hour promise is met. It does mean the
+> timestamp is evidence of dispatch, not of delivery. If the timing ever has to be *proven*
+> rather than monitored, that distinction matters.
+
+The reasoning for wanting it stands, and applies if the portal is ever upgraded: the Vercel
+function cannot know when HubSpot actually sent, so without it `first_response_at` is an
+approximation stamped at submission time.
 
 ### Vercel Cron — every 15 minutes
 
