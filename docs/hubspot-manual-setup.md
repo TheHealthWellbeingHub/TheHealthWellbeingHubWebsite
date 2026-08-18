@@ -140,3 +140,45 @@ email. Create after Tier 1 and 2.
 - **Workflow wiring** — Workflows API is Professional+. Simple workflow built in the UI.
 - **Domain verification** — in progress via Entri, up to 48h. Blocks *sending*, not building.
   Until it verifies, the only from-address in the portal is `thehealthwellbeinghub@gmail.com`.
+
+---
+
+## Built — marketing email 02 (18 Aug 2026)
+
+| | |
+|---|---|
+| Name | `02 — Referral received (acknowledgement)` |
+| Marketing email object ID | `708868075963` |
+| Content ID (editor URL) | `367062870493` |
+| Editor | https://app-ap1.hubspot.com/email/443542186/edit/367062870493 |
+| Type | **AUTOMATED** (permanent — required for workflow enrolment) |
+| Subscription type | Referral acknowledgements (`3428566311`) |
+| Reply-to | `thehealthwellbeinghub@gmail.com` — swap when a branded address exists |
+
+Tokens bound, all verified rendering against real contact properties:
+
+| Template token | HubSpot token |
+|---|---|
+| Referrer first name | `{{ contact.firstname }}` |
+| Participant | `{{ contact.latest_referral_participant_name }}` |
+| Reference | `{{ contact.latest_referral_reference }}` |
+| Date received | `{{ contact.latest_referral_date }}` |
+| Requested support | `{{ contact.latest_referral_service }}` |
+
+### Portal settings this email depends on
+
+Both were wrong or missing and have been corrected. Neither is obvious from the email itself.
+
+- **Timezone** was `US/Eastern`; now `Australia/Brisbane`. Every timestamp the referral workflow
+  writes, and the date rendered in this email, keyed off it. A 14-hour error.
+- **Footer address** did not exist, so the footer rendered `, , ,`. It is configured under
+  *Settings → Marketing → Email → Configuration → Footer addresses*, **not** under Account
+  Defaults → Company Information. Filling the latter does not fix the former.
+
+### Still outstanding for this email
+
+- **From address is `@gmail.com`.** The sending domain is authenticated, but a gmail.com from
+  address cannot be DKIM-aligned to `thehealthwellbeinghub.com`, so the authentication does not
+  apply to what actually sends. Needs a branded address — which needs a mailbox, which needs an
+  **MX record** the domain does not currently have.
+- Currency is still `USD`; should be `AUD`. Affects deal reporting, not this workflow.
