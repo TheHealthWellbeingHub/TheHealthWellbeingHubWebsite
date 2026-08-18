@@ -214,3 +214,77 @@ Two ways to fix, neither applied yet:
 
 Option 2 is the more robust and is the recommendation, but it is a schema change and has not
 been made without a decision.
+
+---
+
+## Deliverability — resolved 18 Aug 2026
+
+The acknowledgement initially landed in **spam**. Cause was the sender identity, not the content.
+
+HubSpot cannot send as `@gmail.com`, so it rewrote the from-address onto its own shared
+domain: `thehealthwellbeinghub.gmail.com@hubspotstarter.net`. Three problems at once — no DKIM
+alignment with the authenticated domain, shared reputation with every other Starter portal, and
+the literal string `gmail.com` inside a from-address on another domain.
+
+### What was built
+
+| Piece | Value |
+|---|---|
+| Mailbox | `hello@thehealthwellbeinghub.com` (Google Workspace) |
+| MX | `1 smtp.google.com` |
+| Google DKIM | `google._domainkey` published |
+| HubSpot DKIM | `hs1-443542186._domainkey` / `hs2-443542186._domainkey` |
+| DMARC | `v=DMARC1; p=none;` |
+| From address | `hello@thehealthwellbeinghub.com` (HubSpot custom address) |
+
+### The SPF trap
+
+Adding Google Workspace did **not** update SPF. The record still read:
+
+```
+v=spf1 include:443542186.spf03.hubspotemail.net -all
+```
+
+`-all` is a hard fail and Google was not listed, so every message sent from the new mailbox —
+including ordinary replies to referrers — would have failed SPF. Corrected to:
+
+```
+v=spf1 include:_spf.google.com include:443542186.spf03.hubspotemail.net -all
+```
+
+**One SPF record only.** A second `v=spf1` record produces a permerror and breaks
+authentication for *both* senders.
+
+### Result
+
+Live test 3 (`REF-2026-TEST03`): `SENT → DELIVERED → OPENED`, **primary inbox**, first send from
+a new domain.
+
+### Naming convention
+
+`hello@` is the single sending identity for all nine lifecycle templates. Per-purpose addresses
+(`referrals@`, `enquiries@`) should be **aliases onto the same mailbox**, not separate mailboxes
+— one sending reputation rather than several weak ones.
+
+**Complaints are the exception.** Give `complaints@` its own mailbox when the complaints
+pipeline is built: separate retention and access control, because that pipeline carries the
+NDIS Commission obligation and may need to be produced at audit.
+
+---
+
+## Verified end to end — 18 Aug 2026
+
+Three live submissions through the production Forms API confirmed the full chain:
+
+```
+Forms API POST  →  contact enrolled (recent_conversion_event_name set, marketable)
+                →  simple workflow fires
+                →  internal notification to thehealthwellbeinghub@gmail.com
+                →  acknowledgement to the referrer, tokens populated
+                →  DELIVERED to primary inbox
+```
+
+**What this does not yet cover:** `api/hubspot-submit.js` never calls the Forms API and never
+writes the `latest_referral_*` properties. Every test above was driven by hand. A real referral
+from the website still creates CRM records and triggers **nothing**. That endpoint work is the
+remaining gap between this and production.
