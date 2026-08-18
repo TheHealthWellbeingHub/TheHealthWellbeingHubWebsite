@@ -441,3 +441,13 @@ footer{background:var(--nd);padding:64px 32px 28px}
 @media print{
   .wa-float,.sticky-mobile,.site-nav,.topbar,.nav-toggle{display:none !important}
 }
+
+/* Honeypot field — hidden from people, visible to naive bots. Positioned off
+   screen rather than display:none, since some bots skip undisplayed fields. */
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

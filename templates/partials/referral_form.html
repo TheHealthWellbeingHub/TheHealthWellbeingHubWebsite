@@ -69,6 +69,15 @@
       <label class="form-label" for="rf-notes">Referral details</label>
       <textarea class="form-field" id="rf-notes" name="referral_details" rows="4" placeholder="Relevant background, urgency, preferred language, gender preference, etc."></textarea>
     </div>
+    <!-- Honeypot. Hidden from people, harvested by naive bots. A submission
+         with this filled in is discarded server-side. aria-hidden and
+         tabindex=-1 keep it away from screen readers and keyboard users;
+         autocomplete=off stops browsers filling it in for real people. -->
+    <div class="hp-field" aria-hidden="true">
+      <label for="rf-company-website">Company website</label>
+      <input type="text" id="rf-company-website" name="company_website"
+             tabindex="-1" autocomplete="off">
+    </div>
     <label class="form-consent">
       <input type="checkbox" name="privacy_consent" required>
       <span>I confirm the participant (or their nominee) has consented to this referral, and I've read the <a href="{{ url('/privacy-policy/') }}">Privacy Policy</a>. <span aria-hidden="true">*</span></span>

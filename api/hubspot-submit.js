@@ -23,6 +23,54 @@ const HUBSPOT_BASE = 'https://api.hubapi.com';
 // submissions for this ap1 portal and both return 200 (NOT 204 — that is the
 // legacy v2 endpoint's response). api-ap1 is used because it matches the
 // portal region explicitly.
+// --- Abuse protection -----------------------------------------------------
+//
+// This endpoint is reachable by anyone and each successful call now sends an
+// email from hello@thehealthwellbeinghub.com. That raises the stakes: a flood
+// no longer just pollutes the CRM, it burns a young sending reputation and
+// consumes the 1,000 marketing-contact allowance.
+//
+// Honest about what each layer is worth:
+//   - Origin allowlist  stops casual cross-site embedding. Trivially spoofed
+//                       by a script, so it is a filter, not a defence.
+//   - Honeypot          stops naive bots that fill every field. Activates only
+//                       if the form sends the field; harmless until then.
+//   - Rate limit        the one that actually bounds a flood. In-memory, so it
+//                       is per-instance and best-effort on serverless. If real
+//                       abuse appears, move this to a KV store — do not mistake
+//                       this for a hard limit.
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
+  'https://www.thehealthwellbeinghub.com,https://thehealthwellbeinghub.com')
+  .split(',').map((o) => o.trim()).filter(Boolean);
+
+const HONEYPOT_FIELD = 'company_website';
+const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX || 5);
+const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 10 * 60 * 1000);
+const MAX_BODY_BYTES = 20 * 1024;
+
+const rateLimitBuckets = new Map();
+
+function clientIp(req) {
+  const fwd = req.headers['x-forwarded-for'];
+  if (typeof fwd === 'string' && fwd.length) return fwd.split(',')[0].trim();
+  return req.socket && req.socket.remoteAddress ? req.socket.remoteAddress : 'unknown';
+}
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const hits = (rateLimitBuckets.get(ip) || []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  hits.push(now);
+  rateLimitBuckets.set(ip, hits);
+
+  // Keep the map from growing without bound on a long-lived instance.
+  if (rateLimitBuckets.size > 5000) {
+    for (const [key, times] of rateLimitBuckets) {
+      if (!times.some((t) => now - t < RATE_LIMIT_WINDOW_MS)) rateLimitBuckets.delete(key);
+    }
+  }
+  return hits.length > RATE_LIMIT_MAX;
+}
+
 const FORMS_API_BASE = process.env.HUBSPOT_FORMS_BASE || 'https://api-ap1.hsforms.com';
 const HUBSPOT_PORTAL_ID = process.env.HUBSPOT_PORTAL_ID || '443542186';
 const REFERRAL_FORM_GUID =
@@ -277,14 +325,47 @@ function buildReferralNote(f) {
 }
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Reflect only an allowlisted origin. Previously this was '*', which let any
+  // site on the internet POST here from a browser.
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
 
+  // A browser always sends Origin on a cross-origin POST, so a present-but-
+  // unlisted Origin is a real signal and is refused. An absent Origin is not
+  // treated as proof of anything — server-to-server callers simply omit it —
+  // so those fall through to the rate limit rather than being waved past.
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    console.warn('rejected submission from disallowed origin:', origin);
+    return res.status(403).json({ ok: false, error: 'Forbidden' });
+  }
+
+  const ip = clientIp(req);
+  if (isRateLimited(ip)) {
+    console.warn('rate limited submission from', ip);
+    return res.status(429).json({ ok: false, error: 'Too many submissions. Please try again shortly.' });
+  }
+
   try {
     const f = req.body || {};
+
+    // Honeypot: a hidden field no human fills in. Respond 200 and discard —
+    // never tell a bot it failed, or it just adapts. Inert until the form
+    // actually renders the field.
+    if (typeof f[HONEYPOT_FIELD] === 'string' && f[HONEYPOT_FIELD].trim() !== '') {
+      console.warn('honeypot triggered, discarding submission from', ip);
+      return res.status(200).json({ ok: true });
+    }
+
+    if (JSON.stringify(f).length > MAX_BODY_BYTES) {
+      return res.status(413).json({ ok: false, error: 'Submission too large' });
+    }
     const formName = f.form_name || (f.participant_name ? 'referral' : 'enquiry');
 
     let contactId, dealId, noteBody, dealName;
