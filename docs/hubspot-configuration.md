@@ -9,8 +9,11 @@ Business facts are in [`../CLAUDE.md`](../CLAUDE.md). The wider operating proces
 endpoint already writes to it. This document is therefore a reconciliation — what exists,
 what is missing, and what should change — not a clean-slate design.
 
-Nothing here has been applied to HubSpot by this session; its connector is not reachable from
-Claude Code, so everything below was derived by reading the committed code.
+**Connector reachability — updated 18 Aug 2026.** The HubSpot connector *is* reachable from
+Claude Code and was used to verify the pipeline and property state below. It can read schema
+and read/write **records**, but it exposes **no tool for creating or editing property
+definitions** — so all property creation is manual. See
+[`hubspot-manual-setup.md`](hubspot-manual-setup.md).
 
 ---
 
@@ -101,14 +104,39 @@ Turnstile if abuse actually appears. None of these change the participant's expe
 
 The endpoint hard-codes stage IDs, so a pipeline exists with at least these stages:
 
-| Stage | ID | Source |
-|---|---|---|
-| New Enquiry | `3607635399` | `NEW_ENQUIRY_STAGE_ID` |
-| Participant Onboarded | `3607504325` | `CLOSED_STAGE_IDS` |
-| Lost / Not Suitable | `3607504326` | `CLOSED_STAGE_IDS` |
+**[verified against live HubSpot, 18 Aug 2026]** All three hard-coded IDs are correct. Full
+stage list read from the live `dealstage` property:
 
-Comments in the file also refer to a second pipeline, "Referral Partner Pipeline". Deals are
-created with `pipeline: 'default'`.
+**Participant / Lead Pipeline** — `pipeline: 'default'`, the one the endpoint writes to:
+
+| Stage | ID | Used by code |
+|---|---|---|
+| New Enquiry | `3607635399` | `NEW_ENQUIRY_STAGE_ID` ✅ |
+| Contact Attempted | `3607504320` | |
+| Qualified | `3607504321` | |
+| Initial Consultation | `3607504322` | |
+| Service Fit Confirmed | `3607504323` | |
+| Service Agreement Sent | `3607504324` | |
+| Participant Onboarded | `3607504325` | `CLOSED_STAGE_IDS` ✅ |
+| Lost / Not Suitable | `3607504326` | `CLOSED_STAGE_IDS` ✅ |
+
+**Referral Partner Pipeline** — `2087843269`:
+
+| Stage | ID |
+|---|---|
+| Identified | `3611296211` |
+| Contacted | `3611296212` |
+| Conversation Started | `3611296213` |
+| Meeting / Introduction | `3611296214` |
+| Active Referral Partner | `3611296215` |
+| Referral Received | `3611296216` |
+
+The properties API returns one flat list, so the *split* between the two pipelines is inferred
+from the ID blocks and stage names. The three IDs the endpoint depends on are confirmed
+directly.
+
+The live pipeline has **eight** stages, not the nine proposed in section 2, and the names
+differ. Section 2 remains a target shape — see the warning below before acting on it.
 
 **The nine stages proposed in section 2 are a target shape, not an instruction to rebuild.**
 The live pipeline must be read from HubSpot first. Stage IDs are hard-coded in production

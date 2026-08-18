@@ -9,7 +9,9 @@ should not invent values for them.
 Business facts: [`../CLAUDE.md`](../CLAUDE.md). Property definitions:
 [`hubspot-configuration.md`](hubspot-configuration.md).
 
-**Status:** specification. Not yet built.
+**Status:** partly built. Decisions below marked **[decided 18 Aug 2026]** were confirmed by
+the user in a live HubSpot session. Contact properties for the acknowledgement email exist;
+the marketing email and the simple workflow are not yet built.
 
 ---
 
@@ -282,9 +284,27 @@ Note also that this sentence promises contact with the **participant** within th
 whereas the canonical promise is about answering the **enquirer**. Recorded as the user's
 decision, not a drafting slip.
 
-**Which template these apply to.** The repo copy contains neither token, so the instruction
-only resolves against the uploaded version. That version is therefore treated as the intended
-structure. Flagged rather than assumed silently — say if the repo copy should win instead.
+**Which template these apply to. [resolved 18 Aug 2026]** A revised upload was supplied that
+contains **neither** `{{Staff Member}}` nor `{{Expected Timeframe}}` — both had already been
+removed, so those two instructions are no-ops against it. The uploaded structure wins: it has
+the corrected sign-off, an `{{unsubscribe_url}}`, the NDIS registration number, and
+consent-aware wording the repo copy lacks.
+
+The token *style* question (Title Case vs snake_case) is moot — every token is replaced with
+HubSpot personalisation syntax bound to a contact property, so neither scheme survives the
+build.
+
+Two changes made to the uploaded copy:
+
+- **`{{Participant First Name / their nominated representative}}` removed.** It is an editorial
+  note left inside token braces. It maps to no property and would render literally in every
+  acknowledgement. Rewritten as prose.
+- **The 2-business-hour promise added back. [decided 18 Aug 2026]** The uploaded copy made no
+  timing commitment at all. It now reads *"be in touch with you within 2 business hours"* —
+  addressed to the **referrer**, which is both the canonical promise in `CLAUDE.md` (response
+  to the *enquirer*) and consistent with `first_response_at` being stamped by this email. A
+  trading-hours clarifier was drafted and **rejected by the user** — the line stays as plain
+  "2 business hours".
 
 ---
 
@@ -337,9 +357,17 @@ looksLikeEmail(participant_contact)
 Today the phone branch does not exist, so `findContactByEmail(undefined)` returns `null` and
 **a new contact is created on every submission**.
 
-Merge values for the email are written **here, on the contact** — not only on the deal.
-HubSpot marketing personalisation reads the enrolled record, and a contact-enrolled email
-cannot reach deal properties.
+> **[corrected 18 Aug 2026] Merge values do NOT belong here.** This step upserts the
+> *participant*. The acknowledgement is sent to the **referrer**, and enrolment is decided by
+> the `email` field in the Forms API submission. HubSpot personalisation resolves tokens
+> against the **enrolled** contact — so values stored on the participant render **blank**.
+> The email sends, the system reports success, and the referrer receives empty fields.
+>
+> Merge values are written on the **referrer** (step 2), as `latest_referral_*` properties.
+> See [`hubspot-manual-setup.md`](hubspot-manual-setup.md).
+
+It remains true that a contact-enrolled email cannot reach deal properties — the merge values
+must live on a contact either way. The correction is *which* contact.
 
 #### 4. Associate the two people
 
@@ -406,13 +434,31 @@ offers.
 **The portal is in the `ap1` region**, confirmed by the embed code
 (`js-ap1.hsforms.net`, `data-region="ap1"`). HubSpot serves regional accounts from
 region-specific hosts — the EU equivalent is documented as `api-eu1.hsforms.com` — so the
-plain `api.hsforms.com` host used elsewhere in HubSpot's docs is **probably wrong for this
-account**.
+plain `api.hsforms.com` host used elsewhere in HubSpot's docs was assumed **probably wrong for
+this account**. **That assumption was tested and is incorrect — see below.**
 
 *Must be verified before go-live.* The failure mode is quiet: a submission to the wrong
 regional host returns an error the endpoint would log but nobody would read, the CRM record
-would still be created correctly, and no acknowledgement would ever send. Test both hosts and
-keep whichever returns `204`.
+would still be created correctly, and no acknowledgement would ever send.
+
+**[tested 18 Aug 2026 — resolved]** Both hosts were submitted against live, with form
+`98d9dea9-840e-42f5-864a-747f97456bb1`:
+
+| Host | Result | Contact created |
+|---|---|---|
+| `api.hsforms.com` | `200` | yes, source `FORM` |
+| `api-ap1.hsforms.com` | `200` | yes, source `FORM` |
+
+Two corrections to the guidance above:
+
+1. **Both hosts work.** They resolve to the same anycast IPs, and the portal and form are
+   identified by the URL path, not the hostname. Region routing is not a factor here.
+2. **Neither returns `204`.** The v3 integration endpoint returns `200 {"inlineMessage":""}`.
+   `204` is the *legacy v2* endpoint's response. "Keep whichever returns 204" would have
+   discarded both working hosts.
+
+`api-ap1.hsforms.com` remains the host to use — it matches the embed code and is explicit
+about region — but this is a preference, not the silent-failure risk it was thought to be.
 
 **Ordering matters.** CRM writes happen first, the form submission last. If the sequence
 breaks midway the failure mode is *"record exists, email missing"* — recoverable by hand.
@@ -685,9 +731,12 @@ notices, because spam-filing is invisible from the sending side.
 
 ### 4. Who receives the internal notification?
 
-**[blank]** Not yet decided. `thehealthwellbeinghub@gmail.com` is the recorded enquiry
-address and the obvious candidate, but a role-based address may be preferable. The internal
-notification action cannot be built until this is set.
+**[decided 18 Aug 2026]** `thehealthwellbeinghub@gmail.com`.
+
+A role-based address was considered and deferred — it needs a mailbox that does not yet exist.
+Note that `thehealthwellbeinghub.com` currently has **no MX record**, so it cannot receive mail
+at all. Any future move to a branded address needs mail routing set up first, or replies bounce
+silently — and template 02 explicitly invites a reply.
 
 ### 5. Unsubscribed referrers are silently dropped
 
@@ -696,8 +745,18 @@ receiving referral acknowledgements — for every future referral, with no notic
 no signal to you. It sits awkwardly beside `referrer_wants_updates = false`: being sent
 marketing email means being subscribed to something.
 
-Either treat the acknowledgement as a subscription referrers are opted into, or accept that
-an unsubscribe quietly disables it. Needs a decision before go-live.
+**[decided 18 Aug 2026] Detect and escalate.** Three parts:
+
+1. The dedicated *Referral acknowledgements* subscription type (id `3428566311`) is created and
+   active, so a general marketing unsubscribe no longer disables acknowledgements. Only an
+   explicit opt-out of this type does.
+2. The endpoint checks subscription status at submission and sets
+   `acknowledgement_status = suppressed` when the referrer has opted out.
+3. The existing follow-up task is rewritten to `ACKNOWLEDGE MANUALLY — referrer unsubscribed`,
+   due immediately.
+
+The unsubscribe itself is always honoured. What changes is that the drop becomes visible, and
+the referrer still gets a reply — from a person rather than from the system.
 
 ---
 
