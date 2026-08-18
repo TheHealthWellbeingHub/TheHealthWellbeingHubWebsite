@@ -451,6 +451,91 @@ submission. Both leave a correct-looking CRM record and a referrer who was never
 
 ---
 
+## Designing against the silent failures
+
+Both silent failures — a failed form submission, and a suppressed email to an unsubscribed
+referrer — end the same way: a CRM record that looks correct, and a referrer nobody contacted.
+Neither raises an error. Both are invisible from your side and read as being ignored from
+theirs.
+
+One mechanism covers both: **make the acknowledgement's state explicit, reconcile it, and put
+the fallback in front of a human.**
+
+### The mechanism
+
+A single deal property, `acknowledgement_status`, with four states:
+
+| State | Set when | Meaning |
+|---|---|---|
+| `pending` | endpoint submits to the Forms API | queued, not confirmed |
+| `sent` | HubSpot's webhook arrives | actually sent |
+| `failed` | Forms API errors after retries | no email will arrive |
+| `suppressed` | referrer is unsubscribed | HubSpot will drop it silently |
+
+Nothing is assumed. `pending` means *we do not yet know*, which is the honest state between
+submission and confirmation — and an unresolved `pending` is itself the alarm.
+
+### Failure A — the form submission fails
+
+1. **Retry** with exponential backoff, three attempts. Most failures are transient.
+2. **Still failing:** set `acknowledgement_status = failed`.
+3. **Rewrite the task** that already exists — subject becomes
+   `ACKNOWLEDGE MANUALLY — automated email failed: {referrer}`, due immediately.
+4. **Return `200` to the browser regardless.** The referrer submitted successfully and the
+   record exists; a failed acknowledgement is your problem to fix, not an error to show them.
+
+The task is the safety net. It is already in the workflow, a person already works that queue,
+and it converts a silent system failure into a visible human one.
+
+### Failure B — the referrer is unsubscribed
+
+You cannot and should not override an unsubscribe. The design detects it and routes around it.
+
+**Prevention first: a dedicated subscription type.** Create *Referral acknowledgements* as its
+own subscription type in HubSpot, separate from any newsletter or marketing list. Then a
+referrer unsubscribing from marketing keeps their acknowledgements, and only someone who
+explicitly opts out of referral acknowledgements loses them — which is a legitimate choice
+rather than an accident.
+
+Without this, one unsubscribe from any HubSpot email silently disables acknowledgements for
+every future referral that person makes.
+
+**Detection at submission:**
+
+```
+GET /communication-preferences/v3/status/email/{referrer_email}
+```
+
+Unsubscribed from the referral-acknowledgement type →
+`acknowledgement_status = suppressed`, and the task becomes
+`ACKNOWLEDGE BY PHONE — referrer unsubscribed: {referrer}`.
+
+*To verify when the connector is reachable:* that this endpoint is available on Starter.
+If it is not, the reconciliation sweep below still catches it, one cycle later.
+
+### Reconciliation — the backstop
+
+The existing Vercel Cron, every 15 minutes, widens from one query to three:
+
+| Query | Action |
+|---|---|
+| `first_response_at` empty, past **90 business minutes** | SLA alert |
+| `acknowledgement_status = pending`, older than **15 minutes** | treat as failed — no webhook arrived |
+| `acknowledgement_status` in (`failed`, `suppressed`) | daily digest until cleared |
+
+The middle query is what makes the webhook meaningful. Without it, a webhook that never
+arrives is indistinguishable from one that has not arrived *yet*, and `pending` becomes a
+state records die in.
+
+### Why the task, not an alert
+
+Both fallbacks route to the **task the workflow already creates**, rather than a new alerting
+channel. A referral where the acknowledgement failed still needs the same action as any other
+referral — contact the referrer within 2 business hours — just done by hand. Putting it in the
+queue a person already works means it cannot be missed separately from the work itself.
+
+---
+
 ## Open questions
 
 ### 1. `first_response_at` cannot be driven by an email to the participant
