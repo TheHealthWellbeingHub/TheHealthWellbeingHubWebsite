@@ -182,9 +182,40 @@ needs Marketing Hub Professional plus a paid add-on. The site form is custom HTM
 submission and enrols the contact, so the simple workflow fires.
 
 This keeps both halves: the endpoint retains the referrer upsert, deal reuse, server-side
-constants and consent handling; HubSpot gains a trigger it can act on. Replacing the site form
-with an embedded HubSpot form would also work, but would discard all of that logic — a bad
-trade for one email.
+constants and consent handling; HubSpot gains a trigger it can act on.
+
+### Why an embedded HubSpot form cannot replace the endpoint
+
+Worth stating plainly, because "just use a HubSpot form" is the obvious simplification and it
+does not work for *this* form.
+
+**A HubSpot form submission creates one contact.** The referral form describes **two people** —
+the referrer and the participant — who must both exist as contacts and be associated with each
+other and with the deal. A single form maps to a single enrolled contact, and the fields for
+the other person become properties on the wrong record.
+
+Losing that would undo the point of the workflow: no referral-partner record, so "who refers us
+the most" stays unanswerable, and the participant's details end up attached to their referrer.
+
+Everything else an embedded form would give — fields landing as properties, native spam
+protection, no CORS surface — the endpoint can do too. The two-contact requirement is the one
+thing it cannot.
+
+The enquiry form is a different case: one submitter, one contact. If a pure-HubSpot form is
+wanted anywhere, that is where it fits, and it is worth deciding separately rather than by
+analogy with this one.
+
+### What is and is not still Vercel
+
+| Concern | Where it runs | Why |
+|---|---|---|
+| Site hosting | Vercel | unchanged |
+| Form endpoint, CRM writes, consent branch | Vercel function | two associated contacts; branching |
+| **Email sending** | **HubSpot** | **[confirmed]** |
+| Storage | **Supabase not used** | HubSpot is the record for this workflow |
+
+Postmark and the other transactional services are out. Supabase plays no part in this
+workflow — it was raised earlier as an alternative architecture and is not in use here.
 
 *To verify once the connector is reachable:* that a Forms API submission does fire the
 follow-up email, not only the internal notification.
