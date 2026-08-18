@@ -264,6 +264,193 @@ tier. That is fine — as code it is testable and costs nothing.
 
 ---
 
+## Template 02 — token decisions
+
+**`{{Staff Member}}` is removed.** **[confirmed]** Both occurrences go: the *Assigned contact*
+row in the details panel, and the sign-off, which becomes **The Health & Well-being Hub**
+alone. This also removes the need for owner-assignment logic, which was previously a blocker.
+
+**`{{Expected Timeframe}}` = "2 business hours".** **[confirmed]**
+
+One precision point. The canonical fact is *"Enquiry response time: within **2 business
+hours**"*. Rendering this token as a bare "2 hours" would be a **stronger** claim than the
+table supports — a referral at 6pm Friday would promise contact by 8pm Friday. `CLAUDE.md`
+says not to restate these more strongly, so the token renders as **2 business hours**, and
+trading hours are Mon–Fri 8:00am–5:00pm.
+
+Note also that this sentence promises contact with the **participant** within that window,
+whereas the canonical promise is about answering the **enquirer**. Recorded as the user's
+decision, not a drafting slip.
+
+**Which template these apply to.** The repo copy contains neither token, so the instruction
+only resolves against the uploaded version. That version is therefore treated as the intended
+structure. Flagged rather than assumed silently — say if the repo copy should win instead.
+
+---
+
+## Behind the scenes — the full sequence
+
+Every call the system makes, in order. Timings are for a warm function.
+
+### Browser — T+0
+
+`referrals/index.html` carries `<form data-form-name="referral" novalidate>`. `novalidate`
+means the browser runs no validation; `static/js/main.js` owns it, serialises the fields to
+JSON, and `fetch`es `POST /api/hubspot-submit`.
+
+**Nothing here is trustworthy.** Every value arrives from a client that can be scripted.
+
+### Vercel function — T+0 to ~2s
+
+#### 1. Gate
+
+| Check | On failure |
+|---|---|
+| `Origin` header against allowlist | `403` |
+| Honeypot field empty | **`200 OK`, discard silently** — never tell a bot it failed |
+| Per-IP rate limit | `429` |
+| Required fields present | `400` |
+| `privacy_consent === true` | `400` |
+| `participant_consent_confirmed` cast to boolean | never blocks |
+
+`receivedAt = new Date().toISOString()` is captured here, from **server** time.
+
+#### 2. Upsert the referrer
+
+```
+POST /crm/v3/objects/contacts/search      filter: email EQ referrer_email
+→ found:  PATCH /crm/v3/objects/contacts/{id}
+→ absent: POST  /crm/v3/objects/contacts
+```
+
+Properties: `firstname`, `lastname`, `company`, `phone`, `email`, `referrer_role`,
+`contact_type = "Referral partner"`, `referrer_wants_updates = false`.
+
+#### 3. Upsert the participant — the duplicate fix
+
+```
+looksLikeEmail(participant_contact)
+  ? search filter: email EQ value
+  : search filter: phone EQ value        ← the fix
+```
+
+Today the phone branch does not exist, so `findContactByEmail(undefined)` returns `null` and
+**a new contact is created on every submission**.
+
+Merge values for the email are written **here, on the contact** — not only on the deal.
+HubSpot marketing personalisation reads the enrolled record, and a contact-enrolled email
+cannot reach deal properties.
+
+#### 4. Associate the two people
+
+```
+PUT /crm/v4/objects/contacts/{participantId}/associations/default/contacts/{referrerId}
+```
+
+#### 5. Find or create the deal
+
+```
+GET /crm/v3/objects/contacts/{participantId}/associations/deals
+GET /crm/v3/objects/deals/{id}?properties=dealstage       (per associated deal)
+```
+
+A deal whose stage is **not** in `CLOSED_STAGE_IDS` is reused — the same journey continuing,
+not a parallel one. Otherwise:
+
+```
+POST /crm/v3/objects/deals
+  dealstage = 3607635399  ("New Enquiry")
+  enquiry_type = "Referral"                (constant)
+  referral_source_detail = referrer name   (derived)
+  enquiry_received_at = receivedAt         (server)
+```
+
+Then associate the deal to both contacts.
+
+#### 6. Mint the reference
+
+The reference needs the deal ID, so it cannot be minted earlier: `REF-{YYYY}-{dealId}`.
+Written to **both** the deal and the participant contact — the contact copy is what the email
+token reads.
+
+#### 7. Note and task
+
+```
+POST /crm/v3/objects/notes    hs_note_body = referral_details narrative
+POST /crm/v3/objects/tasks    priority HIGH, type CALL
+```
+
+The task's due time is `receivedAt` **+ 2 business hours**, computed against
+Australia/Brisbane and Mon–Fri 8:00am–5:00pm. A 4:30pm Friday referral is due 9:30am Monday,
+not 6:30pm Friday.
+
+The task subject branches on consent:
+
+| Consent | Subject |
+|---|---|
+| `true` | `Contact participant: {name}` |
+| `false` | `Contact REFERRER — participant consent not confirmed: {name}` |
+
+That branch lives here because Starter's simple workflows cannot branch.
+
+#### 8. Trigger the email
+
+```
+POST https://api.hsforms.com/submissions/v3/integration/submit/{portalId}/{formGuid}
+```
+
+Different host, and **no Bearer token** — form submissions authenticate by portal and form ID
+alone. This registers a genuine form submission, which is the only enrolment trigger Starter
+offers.
+
+**Ordering matters.** CRM writes happen first, the form submission last. If the sequence
+breaks midway the failure mode is *"record exists, email missing"* — recoverable by hand.
+The reverse order risks *"email sent, no record"*, where a referrer is told you have their
+referral and nothing exists.
+
+#### 9. Respond
+
+`200 {ok: true, reference}`. Total ~1–2s warm, ~3s cold.
+
+### HubSpot — asynchronous, seconds to minutes later
+
+The simple workflow fires on the form submission. Ten actions maximum, one workflow per form:
+
+1. Internal notification email → the team
+2. Marketing email → the referrer, template 02
+3. **Webhook** → `POST /api/hubspot-sent`
+
+Action 3 is worth spending a slot on. The Vercel function cannot know when HubSpot actually
+sent, so without it `first_response_at` would be an approximation stamped at submission time —
+which is the moment the email was *queued*, not delivered. The webhook makes the SLA
+measurement real rather than assumed.
+
+### Vercel Cron — every 15 minutes
+
+Queries deals at *New Enquiry* where `enquiry_received_at` is more than **90 business
+minutes** old and `first_response_at` is still empty, and alerts. Ninety minutes leaves half
+an hour to act before the promise is broken, rather than reporting it afterwards.
+
+---
+
+## Failure modes
+
+What breaks, and what it looks like.
+
+| Failure | Consequence | Handling |
+|---|---|---|
+| HubSpot `429` | Writes fail mid-sequence | Exponential backoff, up to 3 attempts |
+| Forms API fails, CRM writes succeeded | Record exists, **referrer hears nothing** | Log and alert — silence is invisible to you and reads as being ignored |
+| Deal created, association fails | Orphaned deal | Retry association; alert if it still fails |
+| Double submit | Two submissions | Deal reuse absorbs it; contact upsert is idempotent |
+| Referrer previously unsubscribed | Marketing email **silently suppressed** | See open question 5 |
+| Token unconverted | Renders literally: `Hi {{Referrer First Name}},` | Caught by the template check, not at runtime |
+
+The two worth designing against are the silent ones — the suppressed send and the failed form
+submission. Both leave a correct-looking CRM record and a referrer who was never contacted.
+
+---
+
 ## Open questions
 
 ### 1. `first_response_at` cannot be driven by an email to the participant
@@ -301,11 +488,21 @@ unchanged: `thehealthwellbeinghub.com` must be connected and authenticated in Hu
 branded mail can send from it. Until then the acknowledgement is unreliable in a way nobody
 notices, because spam-filing is invisible from the sending side.
 
-### 4. Who receives the internal notification (step 8)?
+### 4. Who receives the internal notification?
 
 **[blank]** Not yet decided. `thehealthwellbeinghub@gmail.com` is the recorded enquiry
-address and the obvious candidate, but a role-based address may be preferable. Step 8 cannot
-be built until this is set.
+address and the obvious candidate, but a role-based address may be preferable. The internal
+notification action cannot be built until this is set.
+
+### 5. Unsubscribed referrers are silently dropped
+
+Because these send as *marketing* email on Starter, a referrer who ever unsubscribes stops
+receiving referral acknowledgements — for every future referral, with no notice to them and
+no signal to you. It sits awkwardly beside `referrer_wants_updates = false`: being sent
+marketing email means being subscribed to something.
+
+Either treat the acknowledgement as a subscription referrers are opted into, or accept that
+an unsubscribe quietly disables it. Needs a decision before go-live.
 
 ---
 
