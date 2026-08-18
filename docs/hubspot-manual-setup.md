@@ -332,3 +332,41 @@ form endpoint — no form change could be tested before going live. A Preview-sc
 exists. Note that Vercel will not let a **Sensitive** variable's environment scope be edited
 after creation; a second entry scoped to Preview is the way to do this without touching the
 working Production credential.
+
+---
+
+## Abuse protection — added and tested 18 Aug 2026
+
+| Guard | Result | How verified |
+|---|---|---|
+| Origin allowlist | `403` | POST with `Origin: https://evil.example.com` |
+| Honeypot (`company_website`) | `200`, discarded | POST with the field filled; response carried no `contactId`, so nothing was written |
+| Payload cap (20KB) | `413` | 25KB body |
+| Per-IP rate limit | ⚠️ **logic verified, deployment not** | see below |
+| Legitimate submission | `200`, contact and deal reused | full referral payload after hardening |
+
+### The rate limit is the weakest layer, and this is not a formality
+
+The limit (5 per 10 minutes) was **not** verified against the deployment. Seven rapid posts all
+returned `200`, and the runtime logs show why: each arrived from a different source IP —
+`160.79.106.128`, `.131`, `.136`, `.137` — because the test traffic egressed through a rotating
+proxy pool. The guard behaved correctly; it saw seven distinct clients.
+
+The logic itself was verified in isolation: the sixth request from one IP is blocked, other IPs
+are unaffected.
+
+**The accident is the lesson.** A per-IP limit was bypassed without trying, by ordinary
+infrastructure. Anyone deliberately rotating IPs evades it just as easily. Two further
+limitations compound it:
+
+- The bucket is **in-memory**, so it is per serverless instance. Concurrent instances each keep
+  their own count and share nothing.
+- Nothing persists across cold starts.
+
+So the ordering of the layers by real value is: **honeypot** (stops naive bots) > **origin
+allowlist** (stops casual cross-site embedding) > **rate limit** (bounds a single-source flood
+only). None stops a determined attacker.
+
+If real abuse appears, the fix is a shared store — Vercel KV or Upstash — keyed by IP, plus
+Cloudflare Turnstile on the form. Both were considered out of scope for this change; neither is
+warranted before abuse is actually observed.
