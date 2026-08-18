@@ -13,6 +13,21 @@ const NEW_ENQUIRY_STAGE_ID = '3607635399';
 const CLOSED_STAGE_IDS = new Set(['3607504325', '3607504326']); // Participant Onboarded, Lost / Not Suitable
 const HUBSPOT_BASE = 'https://api.hubapi.com';
 
+// The Forms API bridge. A HubSpot form submission is the ONLY workflow
+// enrolment trigger available on Starter, so after the CRM writes succeed
+// this endpoint registers a genuine submission against a form that is
+// published but deliberately never embedded. That fires the simple
+// workflow, which sends the acknowledgement.
+//
+// Verified 18 Aug 2026: both api.hsforms.com and api-ap1.hsforms.com accept
+// submissions for this ap1 portal and both return 200 (NOT 204 — that is the
+// legacy v2 endpoint's response). api-ap1 is used because it matches the
+// portal region explicitly.
+const FORMS_API_BASE = process.env.HUBSPOT_FORMS_BASE || 'https://api-ap1.hsforms.com';
+const HUBSPOT_PORTAL_ID = process.env.HUBSPOT_PORTAL_ID || '443542186';
+const REFERRAL_FORM_GUID =
+  process.env.HUBSPOT_REFERRAL_FORM_GUID || '98d9dea9-840e-42f5-864a-747f97456bb1';
+
 async function hs(path, options = {}) {
   const res = await fetch(HUBSPOT_BASE + path, {
     ...options,
@@ -54,14 +69,60 @@ async function findContactByEmail(email) {
   return (result.results && result.results[0]) || null;
 }
 
-async function upsertContact({ name, email, phone }) {
-  const existing = await findContactByEmail(email);
+// The duplicate-contact fix. `participant_contact` is a single field that
+// may hold either an email or a phone number. Looking up by email only means
+// findContactByEmail(undefined) returns null for every phone-only referral,
+// so a NEW contact was created on every submission — two referrals for the
+// same person produced two contacts and two deals.
+async function findContactByPhone(phone) {
+  if (!phone) return null;
+  const result = await hs('/crm/v3/objects/contacts/search', {
+    method: 'POST',
+    body: JSON.stringify({
+      filterGroups: [{ filters: [{ propertyName: 'phone', operator: 'EQ', value: phone }] }],
+      limit: 1,
+    }),
+  });
+  return (result.results && result.results[0]) || null;
+}
+
+// Dates are written twice, deliberately.
+//
+// `latest_referral_date` is a HubSpot date property, so HubSpot renders it
+// using the portal locale and the marketing email cannot override that —
+// the rich-text module strips HubL, so a date filter in the template is
+// removed rather than applied. It rendered as 08/18/2026 (US order), which
+// on a real referral is ambiguous: 05/08/2026 reads as 8 May here and
+// 5 August to HubSpot.
+//
+// So the date property keeps the machine-readable value for filtering and
+// reporting, and a separate text property carries the string the referrer
+// actually reads.
+function referralDateIso(d) {
+  return d.toLocaleDateString('en-CA', { timeZone: 'Australia/Brisbane' }); // YYYY-MM-DD
+}
+
+function referralDateDisplay(d) {
+  return d.toLocaleDateString('en-AU', {
+    timeZone: 'Australia/Brisbane',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }); // DD/MM/YYYY
+}
+
+async function upsertContact({ name, email, phone, company, extraProperties }) {
+  const existing = looksLikeEmail(email)
+    ? await findContactByEmail(email)
+    : await findContactByPhone(phone);
   const { firstname, lastname } = splitName(name);
   const properties = {};
   if (firstname) properties.firstname = firstname;
   if (lastname) properties.lastname = lastname;
   if (email) properties.email = email;
   if (phone) properties.phone = phone;
+  if (company) properties.company = company;
+  Object.assign(properties, extraProperties || {});
 
   if (existing) {
     if (Object.keys(properties).length) {
@@ -152,6 +213,42 @@ async function createFollowUpTask({ subject, contactId, dealId }) {
   return task.id;
 }
 
+// Registers a real form submission so the Starter simple workflow enrols the
+// referrer and sends the acknowledgement. Retried, because a transient
+// failure here means the CRM record exists and the referrer hears nothing —
+// which is invisible from our side and reads as being ignored from theirs.
+async function submitReferralToFormsApi({ email, firstname, lastname }) {
+  const url = `${FORMS_API_BASE}/submissions/v3/integration/submit/${HUBSPOT_PORTAL_ID}/${REFERRAL_FORM_GUID}`;
+  const fields = [{ name: 'email', value: email }];
+  if (firstname) fields.push({ name: 'firstname', value: firstname });
+  if (lastname) fields.push({ name: 'lastname', value: lastname });
+
+  const body = JSON.stringify({
+    fields,
+    context: {
+      pageUri: 'https://thehealthwellbeinghub.com/referrals/',
+      pageName: 'Refer a participant',
+    },
+  });
+
+  let lastErr = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      });
+      if (res.ok) return true;
+      lastErr = new Error(`Forms API ${res.status}: ${await res.text()}`);
+    } catch (err) {
+      lastErr = err;
+    }
+    if (attempt < 2) await new Promise((r) => setTimeout(r, 500 * 2 ** attempt));
+  }
+  throw lastErr || new Error('Forms API submission failed');
+}
+
 function buildEnquiryNote(f) {
   const lines = [
     `Website enquiry submitted ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}`,
@@ -203,13 +300,24 @@ module.exports = async (req, res) => {
       dealName = `${f.participant_name || 'Referral'} — referred by ${f.referrer_name || 'unknown'}`;
       noteBody = buildReferralNote(f);
 
-      // If the referrer's email matches an existing contact (e.g. a tracked
-      // referral partner), link this new lead's deal to them too, so
-      // "how many leads has this partner sent us" is a real, countable
-      // association instead of a guess.
+      // The referrer is UPSERTED every time, not merely looked up. Without
+      // this a referrer who is not already tracked disappears entirely, and
+      // "who refers us the most" stays unanswerable.
+      //
+      // This contact is also the one the acknowledgement is addressed to, so
+      // it is where the email's merge values must live. HubSpot resolves
+      // personalisation against the ENROLLED contact — values written to the
+      // participant render blank, and the email sends looking fine.
       if (looksLikeEmail(f.referrer_email)) {
-        const referrer = await findContactByEmail(f.referrer_email).catch(() => null);
-        if (referrer) referrerContactId = referrer.id;
+        referrerContactId = await upsertContact({
+          name: f.referrer_name,
+          email: f.referrer_email,
+          phone: f.referrer_phone,
+          company: f.referrer_organisation,
+        }).catch((err) => {
+          console.error('referrer upsert failed:', err.message);
+          return null;
+        });
       }
     } else {
       contactId = await upsertContact({ name: f.name, email: f.email, phone: f.phone });
@@ -234,7 +342,79 @@ module.exports = async (req, res) => {
       dealId,
     });
 
-    return res.status(200).json({ ok: true, contactId, dealId, isReturning });
+    // The reference needs the deal ID, so it cannot be minted any earlier.
+    const reference = `REF-${new Date().getFullYear()}-${dealId}`;
+
+    // Everything the acknowledgement email renders is written here, on the
+    // REFERRER — the contact the Forms API will enrol. These four properties
+    // are the only ones the email reads; see docs/hubspot-manual-setup.md.
+    let acknowledgementStatus = 'not_applicable';
+    if (formName === 'referral' && referrerContactId && looksLikeEmail(f.referrer_email)) {
+      const now = new Date();
+      const mergeProperties = {
+        latest_referral_participant_name: f.participant_name || '',
+        latest_referral_reference: reference,
+        latest_referral_date: referralDateIso(now),
+        latest_referral_service: f.service_needed || '',
+      };
+
+      const writeMergeProperties = (properties) =>
+        hs(`/crm/v3/objects/contacts/${referrerContactId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ properties }),
+        });
+
+      // HubSpot rejects the entire PATCH if any one property is unknown, so
+      // including the display field before it exists would silently blank all
+      // of them. Try with it, fall back without — this works either side of
+      // that property being created.
+      try {
+        await writeMergeProperties({
+          ...mergeProperties,
+          latest_referral_date_display: referralDateDisplay(now),
+        });
+      } catch (err) {
+        console.error(
+          'merge write with display date failed, retrying without it:',
+          err.message
+        );
+        await writeMergeProperties(mergeProperties).catch((retryErr) =>
+          console.error('referrer merge properties failed:', retryErr.message, retryErr.data || '')
+        );
+      }
+
+      // Last, and deliberately so. CRM writes first means a mid-sequence
+      // failure leaves "record exists, email missing" — recoverable by hand.
+      // The reverse order risks "email sent, no record", where a referrer is
+      // told we have their referral and nothing does.
+      //
+      // A failure here NEVER fails the request: the referrer submitted
+      // successfully and the record exists. A missing acknowledgement is our
+      // problem to fix, not an error to show them.
+      const { firstname, lastname } = splitName(f.referrer_name);
+      try {
+        await submitReferralToFormsApi({ email: f.referrer_email, firstname, lastname });
+        acknowledgementStatus = 'pending';
+      } catch (err) {
+        acknowledgementStatus = 'failed';
+        console.error('ACKNOWLEDGEMENT NOT SENT — Forms API failed:', err.message);
+        // Convert a silent system failure into a visible human one.
+        await createFollowUpTask({
+          subject: `ACKNOWLEDGE MANUALLY — automated email failed: ${f.referrer_name || f.referrer_email}`,
+          contactId: referrerContactId,
+          dealId,
+        }).catch((taskErr) => console.error('fallback task failed:', taskErr.message));
+      }
+    }
+
+    return res.status(200).json({
+      ok: true,
+      contactId,
+      dealId,
+      reference,
+      isReturning,
+      acknowledgementStatus,
+    });
   } catch (err) {
     console.error('hubspot-submit error:', err.message, err.data || '');
     return res.status(502).json({ ok: false, error: 'CRM submission failed' });
