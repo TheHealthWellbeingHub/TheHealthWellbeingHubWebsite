@@ -572,6 +572,80 @@ rebuilt without a code change.
 
 ---
 
+## Edge cases
+
+Ordered by how much damage they do, not how likely they are.
+
+### Identity
+
+**The referrer and the participant are the same person.** Someone self-referring through the
+referral form puts the same email in both roles. `upsertContact` returns the same ID twice,
+and the contact-to-contact association then tries to associate a record with itself, which
+errors and aborts the sequence. Detect matching email or normalised phone, skip the
+association, and treat the record as a participant.
+
+**The referrer is already a participant.** A current or former participant refers a friend —
+common in exactly the community networks this business is built on. Blindly setting
+`contact_type = "Referral partner"` **overwrites their participant status and silently
+corrupts the record.**
+
+This is the argument for making it a **boolean `is_referral_partner`** rather than a
+single-select `contact_type`. One person can be both, and a single-select cannot represent
+that. Worth settling before any of these properties are created, because changing it later
+means migrating live records.
+
+**The participant has no contact detail at all.** The field is optional. With no email and no
+phone there is no dedup key, so every submission creates a new contact — the same unbounded
+duplication as the phone bug, from a different direction. Do not silently create; flag for
+manual merge.
+
+**Phone formats vary.** `0433 604 507`, `0433604507` and `+61433604507` are the same number
+and three different search results. Normalise to E.164 before both searching and storing, or
+the dedup fix does not actually work.
+
+**Names are not all First Last.** `splitName` takes the first whitespace-delimited token as
+the given name and the rest as the family name. That mangles Arabic, Somali, Dari and Amharic
+naming conventions, single-token names, and names with particles. For a provider whose
+positioning is serving these communities, getting someone's name wrong in the first
+acknowledgement is worse than most technical failures. Store the name **exactly as entered**
+in its own property alongside whatever split is made for greeting purposes.
+
+### Delivery
+
+**Hard bounces.** A typo'd referrer address bounces, and HubSpot then suppresses that contact
+permanently. Same silent class as an unsubscribe, different cause. `acknowledgement_status`
+should carry `bounced` as a fifth state.
+
+**The 1,000 marketing-contact limit.** Once reached, new contacts cannot be set as marketing
+contacts, and a non-marketing contact **cannot receive marketing email**. Every referral would
+still be recorded correctly and no acknowledgement would ever send again. Monitor the count
+and alert at 80%, rather than discovering it from a referrer complaint.
+
+**Double submission.** A double-click sends two form submissions and the referrer receives two
+identical acknowledgements. Deal reuse absorbs the CRM side but not the email. Suppress
+repeat submissions for the same referrer and participant within a short window.
+
+### Correctness
+
+**The participant already has an open deal from service delivery.** Deal reuse looks for any
+deal not in a closed stage. An existing client being re-referred would have the referral
+attached to their live service deal, corrupting both. Restrict reuse to deals in the intake
+pipeline at pre-signed stages.
+
+**Service footprint contradictions.** A participant in VIC requesting Core Supports is asking
+for something only offered in South East Queensland. The form accepts it happily. Flag the
+contradiction at triage rather than discovering it on the call.
+
+**HTML in name fields.** The acknowledgement is an HTML email. Confirm HubSpot escapes
+personalisation tokens on render, and sanitise on the way in regardless — an unescaped token
+is both a broken email and an injection path.
+
+**Queensland public holidays.** The 2-business-hour calculation must skip them, not only
+weekends. Brisbane is UTC+10 year-round with no daylight saving, which removes the usual
+timezone trap but not this one.
+
+---
+
 ## Open questions
 
 ### 1. `first_response_at` cannot be driven by an email to the participant
