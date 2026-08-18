@@ -215,6 +215,22 @@ Two ways to fix, neither applied yet:
 Option 2 is the more robust and is the recommendation, but it is a schema change and has not
 been made without a decision.
 
+### Resolved 18 Aug 2026 — option 2 applied
+
+`latest_referral_date_display` was created as a single-line text contact property, and the
+*Date received* token in marketing email 02 was repointed to it.
+
+Both properties are now written on every referral, deliberately:
+
+| Property | Type | Value | Purpose |
+|---|---|---|---|
+| `latest_referral_date` | Date | `2026-08-19` | filtering, sorting, reporting |
+| `latest_referral_date_display` | Text | `19/08/2026` | what the referrer reads |
+
+Verified: the email renders `Date received: 19/08/2026`. Both values are computed in
+`Australia/Brisbane`, so a late-evening UTC submission carries the correct local date rather
+than the previous day's.
+
 ---
 
 ## Deliverability — resolved 18 Aug 2026
