@@ -146,9 +146,14 @@ Referral form submitted
  6 ── Note — referral_details narrative, kept as written
  7 ── Task — HIGH priority, due within 2 business hours
       │
- 8 ── Email → team       "New referral: {participant} from {organisation}"
- 9 ── Email → referrer   template 02, Referral received
-      ·   sets first_response_at
+ 8 ── POST to HubSpot Forms API (portalId / formGuid)
+      ·   registers a real form submission — the only enrolment
+      ·   trigger available on Starter
+      │
+ 9 ── HubSpot simple workflow fires (one per form, max 10 actions):
+      ·   → internal notification email to the team
+      ·   → marketing email to the referrer, template 02
+      ·   → endpoint stamps first_response_at
       │
 10 ── Branch on participant_consent_confirmed:
       ·   true  → contact the participant, by phone, by a person.
@@ -159,6 +164,72 @@ Referral form submitted
 11 ── SLA clock runs from enquiry_received_at. Alert at 90 minutes
       ·   if first_response_at is still empty.
 ```
+
+---
+
+## Sending email through HubSpot
+
+**[confirmed]** HubSpot is the sender. On **Starter** that constrains the design in four ways.
+
+### 1. The email must be triggered by a HubSpot form
+
+Starter's only enrolment trigger is a form submission, and the transactional Single-Send API
+needs Marketing Hub Professional plus a paid add-on. The site form is custom HTML posting to
+`/api/hubspot-submit`, so it creates CRM records but triggers **no** HubSpot automation.
+
+**Bridge:** after the CRM writes, the endpoint also POSTs to the HubSpot Forms API
+(`/submissions/v3/integration/submit/{portalId}/{formGuid}`). That registers a genuine form
+submission and enrols the contact, so the simple workflow fires.
+
+This keeps both halves: the endpoint retains the referrer upsert, deal reuse, server-side
+constants and consent handling; HubSpot gains a trigger it can act on. Replacing the site form
+with an embedded HubSpot form would also work, but would discard all of that logic — a bad
+trade for one email.
+
+*To verify once the connector is reachable:* that a Forms API submission does fire the
+follow-up email, not only the internal notification.
+
+### 2. Template tokens must be rewritten in HubSpot syntax
+
+Neither existing copy of template 02 will merge as written. The repo uses
+`{{referrer_first_name}}`; the uploaded version uses `{{Referrer First Name}}`. HubSpot uses
+its own personalisation tokens referencing real properties.
+
+Unconverted tokens do not error — they render as literal text. A Support Coordinator receives
+an email addressed to `{{Referrer First Name}}`.
+
+### 3. Merge values must live on the **Contact**
+
+HubSpot marketing email personalisation reads from the enrolled record. A contact-enrolled
+email cannot reach deal properties.
+
+So anything appearing in the email — referral reference, requested service, referral date —
+must be written to the **contact**, not only the deal. This is not duplication for its own
+sake; it is the only way the token resolves.
+
+### 4. These send as *marketing* email, not transactional
+
+Two consequences:
+
+- **`{{unsubscribe_url}}` now resolves.** The dead-link problem disappears.
+- **But subscription logic applies.** A referrer who unsubscribes stops receiving referral
+  acknowledgements — including for referrals they make later. They would get silence and no
+  indication why.
+
+That sits awkwardly beside `referrer_wants_updates = false`. Being sent marketing email means
+being subscribed to something. **Open for the user:** either treat the acknowledgement as a
+subscription the referrer is opted into, or accept that unsubscribes silently disable it.
+
+### 5. Domain authentication is still required
+
+HubSpot will not send from `@thehealthwellbeinghub.com` until the domain is connected and
+authenticated in HubSpot (SPF, DKIM, DMARC). Same work as before, different console.
+
+### What HubSpot cannot do here
+
+The **consent branch at step 10** stays in `api/hubspot-submit.js`. Simple workflows have no
+branching, so the `participant_consent_confirmed` decision cannot live in HubSpot on this
+tier. That is fine — as code it is testable and costs nothing.
 
 ---
 
@@ -192,14 +263,12 @@ household.
 **Recommendation:** first participant contact is a phone call by a person. Cheap, warmer, and
 it sidesteps the question. Revisit once a participant-facing consent flow exists.
 
-### 3. Sending domain — blocks steps 8 and 9
+### 3. Sending domain — still blocks steps 8 and 9
 
-Template 02 is branded HTML. Sent from `thehealthwellbeinghub@gmail.com` it will likely land
-in spam, and a Support Coordinator who gets silence does not refer again.
-
-`thehealthwellbeinghub.com` is confirmed, so the path is open: configure SPF, DKIM and DMARC
-and send through a transactional service. Until then the acknowledgement is unreliable in a
-way nobody will notice, because bounces and spam-filing are invisible from the sending side.
+Now HubSpot's domain authentication rather than a third-party service, but the requirement is
+unchanged: `thehealthwellbeinghub.com` must be connected and authenticated in HubSpot before
+branded mail can send from it. Until then the acknowledgement is unreliable in a way nobody
+notices, because spam-filing is invisible from the sending side.
 
 ### 4. Who receives the internal notification (step 8)?
 
@@ -226,5 +295,7 @@ Blocked until the blanks are filled:
 
 6. New form fields and their properties (language, suburb, region, interpreter,
    gender-matched worker, plan status, urgency, consent giver).
-7. Steps 8 and 9 — need the notification recipient and a configured sending domain.
+7. Steps 8 and 9 — need the notification recipient, HubSpot domain authentication, the
+   HubSpot form (portalId and formGuid), and template 02 rewritten in HubSpot token syntax
+   with its merge values written to the contact.
 8. The consent branch at step 10 — needs an agreed script for the referrer conversation.

@@ -27,6 +27,32 @@ be counted.
 
 ---
 
+## Tier — Starter Customer Platform
+
+Confirmed by the user. **Starter Customer Platform, A$16/seat/month** (discounted from A$31),
+with **500 HubSpot Credits** and **1,000 marketing contacts**.
+
+What that does and does not buy, because it decides where automation can live:
+
+| Capability | On Starter |
+|---|---|
+| Create contacts, deals, notes, tasks via REST API | ✅ already in use |
+| Custom properties | ✅ |
+| Ticket pipelines | ✅ |
+| **Simple workflows** — max 10 actions, **one per form**, form-triggered only | ✅ |
+| Simple-workflow actions: send marketing email · internal notification · create record or task · assign contact · add/remove from list · **send webhook** | ✅ |
+| Full workflow builder with branching, delays, enrolment triggers | ❌ Professional |
+| Transactional email Single-Send API | ❌ Professional **plus** a paid add-on |
+
+Two consequences run through every workflow spec in this repo:
+
+1. **Automated email must be triggered by a form submission.** There is no other enrolment
+   trigger on Starter, and the transactional API is two paid tiers away.
+2. **Simple workflows cannot branch.** Any conditional logic stays in
+   `api/hubspot-submit.js`, where it is code, testable, and free.
+
+---
+
 ## 0. What exists today, and two gaps
 
 `api/hubspot-submit.js` is a Vercel serverless function, live in production, wired to the
@@ -283,7 +309,6 @@ has spare time.
 
 Not yet answered, and each changes part of this spec:
 
-- HubSpot tier (free or Starter) — determines how much n8n must carry
 - Whether transactional email will send from the confirmed domain rather than the Gmail
   address; without SPF/DKIM/DMARC on `thehealthwellbeinghub.com`, acknowledgements can land in
   spam and the 2-hour promise breaks invisibly
