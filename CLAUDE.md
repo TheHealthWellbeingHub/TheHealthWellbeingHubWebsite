@@ -37,6 +37,9 @@ alter any of them, stop and confirm with the user rather than guessing.
 | Gender-matched workers | Available on request |
 | Enquiry response time | Within **2 business hours** |
 | Plan types accepted | Agency-managed · Plan-managed · Self-managed |
+| HubSpot portal ID | **443542186** |
+| HubSpot tier | Starter Customer Platform (A$16/seat/mo) |
+| GA4 Measurement ID | `G-66FG6SCSL0` |
 
 ### Two different service footprints
 
@@ -145,6 +148,5 @@ Still not verified — do not invent values for these:
   cleaned is known (see `README-SEO.md` / the load scripts), but the formal licence/terms
   under which it can be redistributed on this site has not been confirmed. Don't represent it
   as clear until someone checks.
-- **HubSpot portal ID.** GA4's Measurement ID (`G-66FG6SCSL0`) is documented in
-  `README-SEO.md`, but the HubSpot portal ID isn't recorded anywhere in this repo — check
-  the Vercel environment variables or HubSpot account settings before assuming a value.
+(HubSpot's portal ID is now confirmed as **443542186** and recorded in the canonical facts
+table above.)
