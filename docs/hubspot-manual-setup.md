@@ -288,3 +288,47 @@ Forms API POST  →  contact enrolled (recent_conversion_event_name set, marketa
 writes the `latest_referral_*` properties. Every test above was driven by hand. A real referral
 from the website still creates CRM records and triggers **nothing**. That endpoint work is the
 remaining gap between this and production.
+
+---
+
+## Endpoint verified against the live code path — 18 Aug 2026
+
+Tested on a Vercel preview deployment of `claude/hub-referral-workflow-rf1eff`, posting the
+real form field names to `/api/hubspot-submit`.
+
+```
+{"ok":true,"contactId":"346217563599","dealId":"287467383245",
+ "reference":"REF-2026-287467383245","isReturning":false,
+ "acknowledgementStatus":"pending"}
+```
+
+Verified on the referrer contact (`346162890207`), which is the record the acknowledgement
+merges from:
+
+| Property | Value |
+|---|---|
+| `firstname` / `lastname` | `Bambang` / `Durrani` — name split correct |
+| `company` | `Test Health Service` |
+| `latest_referral_participant_name` | `Test Participant Four` |
+| `latest_referral_reference` | `REF-2026-287467383245` |
+| `latest_referral_service` | `Support Coordination` |
+| `latest_referral_date` | `2026-08-19` — Brisbane date, not UTC |
+| `recent_conversion_event_name` | `Refer a participant: Referral — API target` |
+
+The last row is the important one: it proves the endpoint's Forms API call registered a genuine
+form conversion, which is the only workflow enrolment trigger Starter offers.
+
+### Duplicate-contact fix confirmed
+
+Submitting the identical payload twice returned the **same** contact and deal, with
+`isReturning` flipping to `true`. `participant_contact` held a phone number, which is the case
+that previously fell through to `findContactByEmail(undefined)` and created a new contact and
+deal on every submission.
+
+### Preview environment credential
+
+`HUBSPOT_TOKEN` was Production-scoped only, so every preview deployment had a non-functional
+form endpoint — no form change could be tested before going live. A Preview-scoped copy now
+exists. Note that Vercel will not let a **Sensitive** variable's environment scope be edited
+after creation; a second entry scoped to Preview is the way to do this without touching the
+working Production credential.
