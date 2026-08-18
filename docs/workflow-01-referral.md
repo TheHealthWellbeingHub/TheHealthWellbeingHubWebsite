@@ -396,12 +396,23 @@ That branch lives here because Starter's simple workflows cannot branch.
 #### 8. Trigger the email
 
 ```
-POST https://api.hsforms.com/submissions/v3/integration/submit/{portalId}/{formGuid}
+POST https://api-ap1.hsforms.com/submissions/v3/integration/submit/443542186/98d9dea9-840e-42f5-864a-747f97456bb1
 ```
 
 Different host, and **no Bearer token** — form submissions authenticate by portal and form ID
 alone. This registers a genuine form submission, which is the only enrolment trigger Starter
 offers.
+
+**The portal is in the `ap1` region**, confirmed by the embed code
+(`js-ap1.hsforms.net`, `data-region="ap1"`). HubSpot serves regional accounts from
+region-specific hosts — the EU equivalent is documented as `api-eu1.hsforms.com` — so the
+plain `api.hsforms.com` host used elsewhere in HubSpot's docs is **probably wrong for this
+account**.
+
+*Must be verified before go-live.* The failure mode is quiet: a submission to the wrong
+regional host returns an error the endpoint would log but nobody would read, the CRM record
+would still be created correctly, and no acknowledgement would ever send. Test both hosts and
+keep whichever returns `204`.
 
 **Ordering matters.** CRM writes happen first, the form submission last. If the sequence
 breaks midway the failure mode is *"record exists, email missing"* — recoverable by hand.
@@ -533,6 +544,31 @@ Both fallbacks route to the **task the workflow already creates**, rather than a
 channel. A referral where the acknowledgement failed still needs the same action as any other
 referral — contact the referrer within 2 business hours — just done by hand. Putting it in the
 queue a person already works means it cannot be missed separately from the work itself.
+
+---
+
+## Connection values
+
+Confirmed from the published form's embed code.
+
+| Value | |
+|---|---|
+| Portal ID | `443542186` |
+| Form GUID | `98d9dea9-840e-42f5-864a-747f97456bb1` |
+| Data region | `ap1` |
+| Form name | *Referral — API target* (published, deliberately not embedded) |
+| Subscription type | *Referral acknowledgements* (active) |
+
+Both IDs belong in Vercel environment variables rather than the source, so the form can be
+rebuilt without a code change.
+
+### Form settings that the design depends on
+
+| Setting | Value | Why |
+|---|---|---|
+| Create new contacts for email addresses | **On** | Belt and braces. The endpoint creates the contact first, so a submission normally matches an existing record — but if that write fails or the address differs, an off setting means the submission enrols nobody and the acknowledgement silently never sends. |
+| Set new contacts as marketing contacts | **On** | **Required.** A non-marketing contact cannot receive marketing email, and on Starter the acknowledgement *is* marketing email. Off means the workflow runs and sends nothing. Each referrer consumes one of the 1,000 marketing contacts. |
+| Form shortening (AI enrichment) | Off | The form is never displayed, so it does nothing useful, and it would route referrer details through a third-party enrichment service for no benefit. |
 
 ---
 

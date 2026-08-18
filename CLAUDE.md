@@ -39,6 +39,7 @@ alter any of them, stop and confirm with the user rather than guessing.
 | Plan types accepted | Agency-managed · Plan-managed · Self-managed |
 | HubSpot portal ID | **443542186** |
 | HubSpot tier | Starter Customer Platform (A$16/seat/mo) |
+| HubSpot data region | **ap1** (Asia-Pacific) — use region-specific API hosts |
 | GA4 Measurement ID | `G-66FG6SCSL0` |
 
 ### Two different service footprints
