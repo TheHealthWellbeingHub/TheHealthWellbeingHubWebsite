@@ -335,9 +335,21 @@ async function upsertContact({ name, email, phone, company, extraProperties }) {
     }
     return existing.id;
   }
+  // Lead Status is seeded ONLY here, on creation — never on the update branch
+  // above. Writing it on every submission would reset a contact the team has
+  // already moved to "In Progress" back to "New" on their next referral,
+  // quietly undoing real work.
+  //
+  // Note the option value is NEW, not the "New" label shown in the UI. Writing
+  // the label would be dropped by filterToWritable rather than saved.
+  const withDefaults = {
+    ...properties,
+    ...filterToWritable({ hs_lead_status: 'NEW' }, await getContactSchema()),
+  };
+
   const created = await hs('/crm/v3/objects/contacts', {
     method: 'POST',
-    body: JSON.stringify({ properties }),
+    body: JSON.stringify({ properties: withDefaults }),
   });
   return created.id;
 }
