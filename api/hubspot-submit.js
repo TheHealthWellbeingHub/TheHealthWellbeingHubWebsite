@@ -140,7 +140,11 @@ const PLAN_TYPE_MAP = {
 const ENQUIRER_ROLE_MAP = {
   'NDIS Participant': 'Participant themselves',
   'Support Coordinator': 'Support coordinator',
-  'Plan Manager': 'Plan nominee',
+  // A plan manager administers NDIS funds. A plan nominee is a legally
+  // appointed decision-maker. Mapping one to the other overstated a stranger's
+  // authority on the exact field used to decide who may receive participant
+  // information — so they are now distinct options.
+  'Plan Manager': 'Plan manager',
   'GP / Health professional': 'Health professional',
   'Other': 'Other',
   // "Parent / Family member / Carer" is deliberately absent. The form conflates
