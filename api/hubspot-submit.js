@@ -248,6 +248,20 @@ function buildTriageProperties(f, formName, receivedAt) {
     contact_type: isReferral
       ? 'Participant'
       : (CONTACT_TYPE_FROM_ENQUIRER_ROLE[f.enquirer_role] || null),
+    // Recorded because it was validated above, so by this point it is true.
+    privacy_consent: 'true',
+    // Deliberately NOT derived from the privacy checkbox. On the referral form
+    // that one checkbox conflates two things — "the participant consented" and
+    // "I have read the Privacy Policy" — and it is required, so it is always
+    // ticked. Populating this from it would produce a field that always claims
+    // the participant consented, regardless of whether anyone asked them.
+    // Someone would then trust it. It stays null until the form asks
+    // separately; see the drafted split in docs/hubspot-manual-setup.md.
+    participant_consent_confirmed: isReferral
+      ? (f.participant_consent_confirmed === undefined
+          ? null
+          : String(isAffirmative(f.participant_consent_confirmed)))
+      : null,
     enquiry_type: isReferral ? 'Referral' : 'New enquiry',
     enquiry_received_at: receivedAt,
     referral_source_detail: isReferral ? (f.referrer_name || null) : null,
@@ -257,6 +271,14 @@ function buildTriageProperties(f, formName, receivedAt) {
 function splitName(full) {
   const parts = (full || '').trim().split(/\s+/);
   return { firstname: parts[0] || '', lastname: parts.slice(1).join(' ') || '' };
+}
+
+// An HTML checkbox posts "on" when ticked and is simply absent when not, so a
+// truthiness check has to accept several shapes. Anything else is not consent.
+function isAffirmative(v) {
+  if (v === true) return true;
+  if (typeof v !== 'string') return false;
+  return ['on', 'true', 'yes', '1', 'checked'].includes(v.trim().toLowerCase());
 }
 
 function looksLikeEmail(s) {
@@ -477,6 +499,17 @@ async function submitReferralToFormsApi({ email, firstname, lastname }) {
   throw lastErr || new Error('Forms API submission failed');
 }
 
+function consentTaskSubject(f, formName, isReturning) {
+  const who = f.name || f.participant_name || 'lead';
+  if (formName !== 'referral') {
+    return `Contact ${isReturning ? 'returning' : 'new'} enquiry: ${who}`;
+  }
+  if (isAffirmative(f.participant_consent_confirmed)) {
+    return `Contact participant: ${who}`;
+  }
+  return `Contact REFERRER — participant consent not confirmed: ${who}`;
+}
+
 function buildEnquiryNote(f) {
   const lines = [
     `Website enquiry submitted ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}`,
@@ -548,6 +581,18 @@ module.exports = async (req, res) => {
 
     if (JSON.stringify(f).length > MAX_BODY_BYTES) {
       return res.status(413).json({ ok: false, error: 'Submission too large' });
+    }
+
+    // `required` on the checkbox is a client-side hint only. This endpoint is
+    // reachable directly, so without a server-side check a submission can
+    // create a CRM record carrying no consent at all — and the record would
+    // look identical to a consented one.
+    if (!isAffirmative(f.privacy_consent)) {
+      console.warn('rejected submission without privacy consent from', ip);
+      return res.status(400).json({
+        ok: false,
+        error: 'Please confirm you have read the Privacy Policy before submitting.',
+      });
     }
     const formName = f.form_name || (f.participant_name ? 'referral' : 'enquiry');
 
@@ -644,7 +689,13 @@ module.exports = async (req, res) => {
 
     await createNote({ body: noteBody, contactId, dealId });
     await createFollowUpTask({
-      subject: `Contact ${isReturning ? 'returning' : 'new'} ${formName === 'referral' ? 'referral' : 'enquiry'}: ${f.name || f.participant_name || 'lead'}`,
+      // Per workflow-01-referral.md §D, consent gates OUTREACH, not intake.
+      // Recording the flag achieves nothing unless it changes what happens
+      // next: without this branch someone eventually opens the deal, sees a
+      // name and a number, and phones a person who never agreed to hear from
+      // us. Until the form asks separately the flag is null, which is treated
+      // as "not confirmed" — the cautious reading, deliberately.
+      subject: consentTaskSubject(f, formName, isReturning),
       contactId,
       dealId,
     });

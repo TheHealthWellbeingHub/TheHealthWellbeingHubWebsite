@@ -70,6 +70,15 @@
       <label class="form-label" for="ef-info">Anything else we should know? (optional)</label>
       <textarea class="form-field" id="ef-info" name="additional_info" rows="3"></textarea>
     </div>
+    <!-- Honeypot. Hidden from people, harvested by naive bots. A submission
+         with this filled in is discarded server-side. aria-hidden and
+         tabindex=-1 keep it away from screen readers and keyboard users;
+         autocomplete=off stops browsers filling it in for real people. -->
+    <div class="hp-field" aria-hidden="true">
+      <label for="ef-company-website">Company website</label>
+      <input type="text" id="ef-company-website" name="company_website"
+             tabindex="-1" autocomplete="off">
+    </div>
     <label class="form-consent">
       <input type="checkbox" name="privacy_consent" required>
       <span>I agree to be contacted about my enquiry and have read the <a href="{{ url('/privacy-policy/') }}">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
