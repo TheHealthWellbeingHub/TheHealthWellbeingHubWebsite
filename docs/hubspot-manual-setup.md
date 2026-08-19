@@ -61,6 +61,26 @@ From `workflow-01-referral.md` §A. Object: **Contact**.
 |---|---|---|---|
 | `referrer_role` | Referrer role | Dropdown | Support Coordinator · Plan Manager · GP · Allied health professional · NDIA planner / LAC · Other |
 | `contact_type` | Contact type | Dropdown | Participant · Referral partner · Family or carer · Other |
+
+> **This is the one that answers "is this a participant or a referral partner?"** Both land in
+> the same Contacts object, so without it the two are indistinguishable — which makes "who
+> refers us the most" unanswerable and makes it easy to send participant information to a
+> professional contact, or a referral acknowledgement to a participant.
+>
+> The endpoint sets it automatically once the property exists:
+>
+> | Who | Value | Basis |
+> |---|---|---|
+> | Referral form submitter | `Referral partner` | constant — anyone submitting that form is one by definition |
+> | Person the referral is about | `Participant` | constant |
+> | Enquiry form, role = NDIS Participant | `Participant` | from `enquirer_role` |
+> | Enquiry form, role = Parent / Family member / Carer | `Family or carer` | from `enquirer_role` |
+> | Enquiry form, role = Support Coordinator / Plan Manager / GP | `Referral partner` | from `enquirer_role` |
+> | Enquiry form, role = Other or blank | *(left unset)* | the form cannot tell, and a wrong value here is worse than an empty one |
+>
+> **Interim, before the property exists:** referrers are the only contacts with
+> `latest_referral_reference` populated. Filtering on "Latest referral — reference *is known*"
+> gives you a working referral-partner list today.
 | `referrer_wants_updates` | Referrer wants updates | Single checkbox | — |
 
 ---

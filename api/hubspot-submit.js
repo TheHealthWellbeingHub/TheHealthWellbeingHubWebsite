@@ -150,6 +150,23 @@ const ENQUIRER_ROLE_MAP = {
   // participant information. Left unmapped so a person sets it.
 };
 
+// Who is this contact? Both the referrer and the participant land in the same
+// Contacts object with no way to tell them apart, which makes "who refers us
+// the most" unanswerable and makes it easy to email the wrong person.
+//
+// The referral form is unambiguous: whoever submits it is a referral partner
+// by definition, and whoever it is about is a participant. The enquiry form is
+// inferred from the role the enquirer picked, and left unset where the form
+// cannot tell — "Other" could be anyone, and a wrong value here is worse than
+// an empty one on a field used to decide how someone is contacted.
+const CONTACT_TYPE_FROM_ENQUIRER_ROLE = {
+  'NDIS Participant': 'Participant',
+  'Parent / Family member / Carer': 'Family or carer',
+  'Support Coordinator': 'Referral partner',
+  'Plan Manager': 'Referral partner',
+  'GP / Health professional': 'Referral partner',
+};
+
 const SERVICE_LINE_MAP = {
   'Support Coordination': 'Support Coordination',
   'Core Supports & Daily Living': 'Core Supports & Daily Living',
@@ -219,6 +236,9 @@ function buildTriageProperties(f, formName, receivedAt) {
     service_lines_required: serviceLine,
     service_suburb: f.suburb || null,
     enquirer_relationship: isReferral ? null : (ENQUIRER_ROLE_MAP[f.enquirer_role] || null),
+    contact_type: isReferral
+      ? 'Participant'
+      : (CONTACT_TYPE_FROM_ENQUIRER_ROLE[f.enquirer_role] || null),
     enquiry_type: isReferral ? 'Referral' : 'New enquiry',
     enquiry_received_at: receivedAt,
     referral_source_detail: isReferral ? (f.referrer_name || null) : null,
@@ -522,11 +542,27 @@ module.exports = async (req, res) => {
       // personalisation against the ENROLLED contact — values written to the
       // participant render blank, and the email sends looking fine.
       if (looksLikeEmail(f.referrer_email)) {
+        // Anyone submitting this form is a referral partner by definition, so
+        // this is a constant, not something read from the request body — a
+        // client cannot override it. Same schema guard as everything else, so
+        // it is inert until contact_type exists and starts populating the
+        // moment it does.
+        const referrerSchema = await getContactSchema();
+        const referrerExtras = filterToWritable(
+          {
+            contact_type: 'Referral partner',
+            referrer_role: f.referrer_role || null,
+            referrer_wants_updates: 'false',
+          },
+          referrerSchema
+        );
+
         referrerContactId = await upsertContact({
           name: f.referrer_name,
           email: f.referrer_email,
           phone: f.referrer_phone,
           company: f.referrer_organisation,
+          extraProperties: referrerExtras,
         }).catch((err) => {
           console.error('referrer upsert failed:', err.message);
           return null;
