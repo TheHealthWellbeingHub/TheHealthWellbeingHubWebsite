@@ -335,21 +335,15 @@ async function upsertContact({ name, email, phone, company, extraProperties }) {
     }
     return existing.id;
   }
-  // Lead Status is seeded ONLY here, on creation — never on the update branch
-  // above. Writing it on every submission would reset a contact the team has
-  // already moved to "In Progress" back to "New" on their next referral,
-  // quietly undoing real work.
-  //
-  // Note the option value is NEW, not the "New" label shown in the UI. Writing
-  // the label would be dropped by filterToWritable rather than saved.
-  const withDefaults = {
-    ...properties,
-    ...filterToWritable({ hs_lead_status: 'NEW' }, await getContactSchema()),
-  };
-
+  // Lead Status is deliberately NOT seeded here. Deal stage is the single
+  // source of truth for "where is this person up to" — participants in the
+  // Participant / Lead Pipeline, partners in the Referral Partner Pipeline.
+  // A contact-level status duplicates that, and duplicated state diverges:
+  // someone advances the deal, forgets the contact field, and neither can be
+  // trusted afterwards. One field, updated in one place.
   const created = await hs('/crm/v3/objects/contacts', {
     method: 'POST',
-    body: JSON.stringify({ properties: withDefaults }),
+    body: JSON.stringify({ properties }),
   });
   return created.id;
 }
