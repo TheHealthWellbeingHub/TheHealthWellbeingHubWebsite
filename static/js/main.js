@@ -99,6 +99,45 @@
   var FORM_ENDPOINT = '/api/hubspot-submit';
   var ENQUIRY_EMAIL = 'thehealthwellbeinghub@gmail.com';
 
+  /* Campaign attribution. A referrer clicks a link in the outreach email,
+     lands on /referrals/?utm_campaign=..., and may well read a page or two
+     before submitting — by which point the query string is long gone. So the
+     tags are captured on arrival and held for the browsing session.
+
+     FIRST touch wins, deliberately: the campaign is what brought them, and a
+     later click on an internal link with its own tags should not overwrite
+     that. sessionStorage rather than localStorage so an unrelated visit next
+     month is not still credited to this campaign. */
+  var UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'];
+  var UTM_STORE_KEY = 'hw_utm';
+
+  function captureUtms() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var found = {};
+      UTM_KEYS.forEach(function (k) {
+        var v = params.get(k);
+        if (v) found[k] = v;
+      });
+      if (!Object.keys(found).length) return;
+      if (window.sessionStorage.getItem(UTM_STORE_KEY)) return;
+      window.sessionStorage.setItem(UTM_STORE_KEY, JSON.stringify(found));
+    } catch (e) {
+      /* Private browsing blocks sessionStorage. Attribution is a nice-to-have;
+         never let it interfere with someone submitting an enquiry. */
+    }
+  }
+
+  function storedUtms() {
+    try {
+      return JSON.parse(window.sessionStorage.getItem(UTM_STORE_KEY) || '{}') || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  captureUtms();
+
   function formDataToJson(form) {
     var obj = {};
     new FormData(form).forEach(function (value, key) { obj[key] = value; });
@@ -181,6 +220,10 @@
         // server happens to assume. The server sanitises and caps it, and uses
         // the request's own Referer for the URL.
         payload.page_title = document.title;
+        var utms = storedUtms();
+        UTM_KEYS.forEach(function (k) {
+          if (utms[k]) payload[k] = utms[k];
+        });
         fetch(FORM_ENDPOINT, {
           method: 'POST',
           headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },

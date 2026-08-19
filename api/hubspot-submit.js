@@ -492,6 +492,38 @@ function submissionPageUri(req, fallback) {
   }
 }
 
+// Campaign tags, as sent by the browser. Client-supplied and therefore
+// sanitised the same way the page title is: control characters stripped,
+// whitespace collapsed, length capped. They are reporting dimensions — they
+// land in a note and in text properties, and nothing branches on them.
+const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'];
+
+function cleanTag(value) {
+  if (typeof value !== 'string') return null;
+  const cleaned = value.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim();
+  return cleaned ? cleaned.slice(0, 100) : null;
+}
+
+function collectUtms(f) {
+  const out = {};
+  for (const key of UTM_KEYS) {
+    const value = cleanTag(f[key]);
+    if (value) out[key] = value;
+  }
+  return out;
+}
+
+// "referrer-outreach-2026-08 (hubspot / email)" — one line, readable at a
+// glance on the record. Without this the campaign is only visible to whoever
+// remembers to open form analytics, which in practice is nobody.
+function campaignSummary(utms) {
+  if (!utms.utm_campaign && !utms.utm_source) return null;
+  const name = utms.utm_campaign || 'untitled campaign';
+  const via = [utms.utm_source, utms.utm_medium].filter(Boolean).join(' / ');
+  const detail = utms.utm_content ? `, ${utms.utm_content}` : '';
+  return via ? `${name} (${via}${detail})` : `${name}${detail}`;
+}
+
 // A readable name for the page the form was on. The browser sends the real
 // document title, which is the only source that stays correct when a form is
 // dropped onto a page nobody thought about here. It is client-supplied, so it
@@ -558,10 +590,11 @@ function consentTaskSubject(f, formName, isReturning) {
   return `Contact REFERRER — participant consent not confirmed: ${who}`;
 }
 
-function buildEnquiryNote(f, sourcePage) {
+function buildEnquiryNote(f, sourcePage, campaign) {
   const lines = [
     `Website enquiry submitted ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}`,
     sourcePage ? `Submitted from: ${sourcePage}` : null,
+    campaign ? `Campaign: ${campaign}` : null,
     f.enquirer_role ? `I am a: ${f.enquirer_role}` : null,
     f.service_needed ? `Service needed: ${f.service_needed}` : null,
     f.suburb ? `Suburb: ${f.suburb}` : null,
@@ -572,10 +605,11 @@ function buildEnquiryNote(f, sourcePage) {
   return lines.join('\n');
 }
 
-function buildReferralNote(f, sourcePage) {
+function buildReferralNote(f, sourcePage, campaign) {
   const lines = [
     `Website referral submitted ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}`,
     sourcePage ? `Submitted from: ${sourcePage}` : null,
+    campaign ? `Campaign: ${campaign}` : null,
     `Referred by: ${f.referrer_name || '(not given)'}${f.referrer_organisation ? ' — ' + f.referrer_organisation : ''}`,
     f.referrer_role ? `Referrer role: ${f.referrer_role}` : null,
     f.referrer_phone ? `Referrer phone: ${f.referrer_phone}` : null,
@@ -653,6 +687,8 @@ module.exports = async (req, res) => {
     // that page rather than inheriting whichever page was hardcoded here.
     const sourcePage = submissionPageName(f, req, '');
     const sourceUrl = submissionPageUri(req, '');
+    const utms = collectUtms(f);
+    const campaign = campaignSummary(utms);
 
     let referrerContactId = null;
     if (formName === 'referral') {
@@ -663,7 +699,7 @@ module.exports = async (req, res) => {
         phone: looksLikeEmail(contact) ? undefined : contact,
       });
       dealName = `${f.participant_name || 'Referral'} — referred by ${f.referrer_name || 'unknown'}`;
-      noteBody = buildReferralNote(f, sourcePage);
+      noteBody = buildReferralNote(f, sourcePage, campaign);
 
       // The referrer is UPSERTED every time, not merely looked up. Without
       // this a referrer who is not already tracked disappears entirely, and
@@ -728,7 +764,7 @@ module.exports = async (req, res) => {
         extraProperties: enquirerExtras,
       });
       dealName = `${f.name || 'Website enquiry'} — ${f.service_needed || 'General enquiry'}`;
-      noteBody = buildEnquiryNote(f, sourcePage);
+      noteBody = buildEnquiryNote(f, sourcePage, campaign);
     }
 
     // Write the triage values as PROPERTIES as well as into the note. Same
@@ -742,6 +778,10 @@ module.exports = async (req, res) => {
         // populating the moment they are — see docs/hubspot-manual-setup.md.
         source_page: sourcePage || null,
         source_page_url: sourceUrl || null,
+        latest_utm_source: utms.utm_source || null,
+        latest_utm_medium: utms.utm_medium || null,
+        latest_utm_campaign: utms.utm_campaign || null,
+        latest_utm_content: utms.utm_content || null,
       };
       const writable = filterToWritable(desired, schema);
       if (Object.keys(writable).length) {
