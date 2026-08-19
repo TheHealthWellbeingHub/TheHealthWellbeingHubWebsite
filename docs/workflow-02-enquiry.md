@@ -1,0 +1,305 @@
+# Workflow 02 — Website enquiry acknowledgement
+
+The enquiry equivalent of [`workflow-01-referral.md`](workflow-01-referral.md). Read that
+one first — the mechanism is identical and is explained there in full. This document covers
+only what is **different**, and what still has to be built.
+
+| | |
+|---|---|
+| Form on the site | `templates/partials/enquiry_form.html`, served on `/` and `/contact/` |
+| Endpoint | `api/hubspot-submit.js`, `form_name: "enquiry"` |
+| Enrolment trigger | HubSpot form submission via the Forms API |
+| Acknowledgement | Marketing email **03 — New enquiry acknowledgement** |
+| Reference format | `ENQ-<year>-<dealId>` |
+
+---
+
+## Why this is not just workflow 01 with different words
+
+Four differences, each of which changes behaviour rather than copy.
+
+### 1. The person who submits *is* the contact
+
+On a referral there are two people: the referrer submits, the participant is referred. The
+acknowledgement goes to the referrer, so the merge values have to be written to the
+**referrer's** record — writing them to the participant sends an email full of blanks that
+looks fine from our side.
+
+An enquiry has one person. Merge values are written to `contactId` directly. There is no
+second record to get wrong, and no equivalent of that bug to guard against.
+
+### 2. Email is optional, so "no acknowledgement" is a normal outcome
+
+The enquiry form requires **phone**, not email. That is deliberate — a participant without an
+email address must still be able to ask for help.
+
+So an enquiry with no email address cannot be acknowledged by email, and this is not a
+failure. The endpoint returns `acknowledgementStatus: "no_email"` and does **not** raise an
+alarm. The follow-up task created for every enquiry already tells the team to call them.
+
+Treating this as an error would train everyone to ignore the error.
+
+### 3. `contact_status` is set on every enquiry, not only on creation
+
+A new contact created by the endpoint defaults to `Needs_first_contact`. An enquirer is set to
+**`We_owe_a_reply`** on *every* submission, including a returning one.
+
+The reasoning is the same as for referrers: someone who has just enquired is waiting on us,
+and that is true whether or not we have spoken before. A participant marked *On hold* who
+sends a new website enquiry is pulled back to *We owe a reply* — which is the point of the
+field, not drift.
+
+This is a judgement call and it is reversible: the team can set the status back. The failure
+in the other direction is worse — an enquiry sitting behind an *On hold* status that nobody
+replies to, breaking the 2-business-hour promise.
+
+Note the contrast with the referral path, where the **participant** stays
+`Needs_first_contact`, because the participant has not asked us for anything.
+
+### 4. A separate form, because Starter allows one workflow per form
+
+Starter permits one workflow per form, so referrals and enquiries cannot share an enrolment
+trigger. Two forms, two GUIDs, two workflows. `submitToFormsApi()` is one helper taking a
+`formGuid` — everything else about the call is identical.
+
+---
+
+## Sequence
+
+Identical to workflow 01 §"Behind the scenes" up to the acknowledgement, with the enquiry
+branch substituted:
+
+1. Origin check, honeypot, payload size, **privacy consent** — a submission without consent is
+   rejected `400` before anything is written.
+2. Upsert the enquirer (by email if given, otherwise by phone), with
+   `contact_status: We_owe_a_reply`.
+3. Write triage properties, schema-filtered.
+4. Find or reuse an open deal; create one if there is none.
+5. Mint `ENQ-<year>-<dealId>`.
+6. Note and follow-up task.
+7. Write the four `latest_enquiry_*` merge properties on the enquirer.
+8. **Last** — submit to the Forms API, which enrols them and sends email 03.
+9. Respond `200`.
+
+Ordering is deliberate and matches workflow 01: CRM writes first, so a mid-sequence failure
+leaves *"record exists, email missing"* — recoverable by hand. The reverse risks *"email sent,
+no record"*, where someone is told we have their enquiry and nothing does.
+
+### `acknowledgementStatus` values
+
+The response field says what happened to the acknowledgement, and is the fastest way to
+diagnose a "they never heard back" report.
+
+| Value | Meaning | Action |
+|---|---|---|
+| `pending` | Handed to HubSpot; the workflow sends it | none |
+| `no_email` | Enquirer gave no email address | none — call them, as the task says |
+| `not_configured` | `HUBSPOT_ENQUIRY_FORM_GUID` is unset | **finish the setup below** |
+| `failed` | Forms API rejected three attempts | a HIGH task is raised; acknowledge by hand |
+| `not_applicable` | Not an enquiry | none |
+
+`not_configured` and `failed` both create a visible task rather than only logging. A log line
+nobody reads is the same as no alert at all.
+
+---
+
+## Still to build
+
+Everything in `api/hubspot-submit.js` is written and deployed. It is **inert** until the form
+exists: with no GUID the endpoint records the enquiry correctly and raises a manual-follow-up
+task instead of sending. Nothing is lost while the setup is incomplete.
+
+### 1. HubSpot form — *Enquiry — API target*
+
+Marketing → Forms → Create form → Embedded form → Blank template.
+
+- Name it **`Enquiry — API target`**, matching `Referral — API target`.
+- Fields: **Email** only. It is never rendered anywhere — it exists solely as an enrolment
+  trigger the Forms API can post to.
+- Publish it, then take the **GUID** from the form's URL or embed code.
+
+The GUID goes into `ENQUIRY_FORM_GUID` in `api/hubspot-submit.js` (alongside the referral one),
+or into a `HUBSPOT_ENQUIRY_FORM_GUID` environment variable in Vercel.
+
+### 2. Four contact properties
+
+Same pattern as `latest_referral_*`, and prefixed the same way for the same reason: they
+describe the **most recent** enquiry, not a permanent attribute of the person.
+
+| Internal name | Label | Type |
+|---|---|---|
+| `latest_enquiry_reference` | Latest enquiry — reference | Single-line text |
+| `latest_enquiry_date` | Latest enquiry — date received | Date picker |
+| `latest_enquiry_date_display` | Latest enquiry — date (display) | Single-line text |
+| `latest_enquiry_service` | Latest enquiry — service | Single-line text |
+
+Both date properties are written on every enquiry, deliberately — the date picker for
+filtering and reporting, the text one for what the enquirer actually reads. See
+`hubspot-manual-setup.md` §"Date format" for why: HubSpot renders a date property in the
+portal's locale, and `05/08/2026` means two different days depending on who is reading it.
+
+Both are computed in `Australia/Brisbane`, so a late-evening submission carries the correct
+local date rather than the previous day's.
+
+`latest_enquiry_service` is **text, not a dropdown**, so it can hold a readable phrase. Where
+the enquirer picks *"Not sure — please advise"* the form posts an empty string and the endpoint
+substitutes **`NDIS supports`** — otherwise the email reads *"your enquiry about ."*
+
+### 3. Subscription type — *Enquiry acknowledgements*
+
+Settings → Marketing → Email → Subscription types → Create.
+
+- Name: **Enquiry acknowledgements**
+- Description: *Confirmation that we have received an enquiry you sent us*
+
+Do **not** reuse *Referral acknowledgements*. It is the record of what a person has opted into,
+and it appears on the preference page they see. A participant who unsubscribes from
+"referral acknowledgements" they never asked for is a confusing and inaccurate record.
+
+### 4. Marketing email 03
+
+Blocked — see below. Copy is final and paste-ready.
+
+### 5. The workflow
+
+Marketing → Automation → Workflows → Create → **Form submission** → *Enquiry — API target*.
+
+Simple workflow, Starter limits apply: ten actions, no branching, no webhook action.
+
+1. **Send internal email** — notify the team.
+2. **Send email** → *03 — New enquiry acknowledgement*.
+
+Check action 2 sends to the **enrolled contact**, not "all associated contacts". On workflow 01
+that setting defaulted to all associated contacts, which would have emailed participants who
+had never consented to hear from us.
+
+---
+
+## Email 03 — copy and token decisions
+
+Structure mirrors email 02 exactly: logo band, hero band, body, footer. The fastest correct
+build is **clone 02 in the HubSpot UI**, then change the settings and replace two blocks of
+HTML.
+
+### Settings
+
+| Field | Value |
+|---|---|
+| Name | `03 — New enquiry acknowledgement` |
+| Subject | `We've received your enquiry` |
+| Preview text | `We'll be in touch within 2 business hours.` |
+| From name | `The Health & Well-being Hub` |
+| Reply-to | `hello@thehealthwellbeinghub.com` |
+| Subscription type | **Enquiry acknowledgements** (create it first) |
+| Email type | **AUTOMATED** — permanent, and required for workflow enrolment |
+
+### Token mapping
+
+| Uploaded template token | HubSpot token |
+|---|---|
+| `{{First Name}}` | `{{ contact.firstname }}` |
+| `{{Service or Support Type}}` | `{{ contact.latest_enquiry_service }}` |
+| `{{Enquiry Reference}}` | `{{ contact.latest_enquiry_reference }}` |
+| `{{Date}}` | `{{ personalization_token('contact.latest_enquiry_date_display', 'today') }}` |
+| `{{Expected Timeframe}}` | literal text — **2 business hours** |
+| `{{unsubscribe_url}}` | the footer module, which HubSpot renders |
+
+`{{Expected Timeframe}}` is written out rather than merged, for the reason recorded in
+workflow 01: the canonical promise is *within 2 business hours*, and rendering a bare
+"2 hours" would be a stronger claim than the facts table supports.
+
+### Hero band — replaces section 1
+
+```html
+<h1 style="margin:0;font-family:Georgia,serif;font-weight:700;font-size:29px;line-height:1.25;color:#273963;text-align:center;">Thanks for reaching out</h1>
+<p style="margin:10px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#5f6681;text-align:center;">We've got your enquiry and we'll be in touch soon.</p>
+```
+
+### Body — replaces section 2
+
+```html
+<p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.7;color:#434b66;">Hi {{ contact.firstname }},</p>
+<p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.7;color:#434b66;">We've received your enquiry about <strong>{{ contact.latest_enquiry_service }}</strong>. Someone from our team will contact you within <strong>2 business hours</strong> to talk about what you need.</p>
+<div style="background:#f8f1f8;border-radius:12px;padding:20px;margin:16px 0;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.8;color:#434b66;"><strong>Enquiry reference:</strong> {{ contact.latest_enquiry_reference }}<br><strong>Date received:</strong> {{ personalization_token('contact.latest_enquiry_date_display', 'today') }}</div>
+<p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.7;color:#434b66;">We speak English, Arabic, Somali, Dari and Amharic. If you would like an interpreter, or a support worker of a particular gender, just ask.</p>
+<p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.7;color:#434b66;">If there is anything else that would help us — how your NDIS plan is managed, or a good time to call — reply to this email and tell us.</p>
+<p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.7;color:#434b66;">For anything urgent, call <a href="tel:+61433604507" style="color:#81268a;">0433 604 507</a>. We are not an emergency service. If someone is in immediate danger, call 000.</p>
+<p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.7;color:#434b66;">Kind regards,<br><strong>The Health &amp; Well-being Hub</strong></p>
+```
+
+### Copy decisions
+
+**Plainer than email 02**, on purpose. Email 02 goes to Support Coordinators and GPs. This one
+goes to participants and families, often reading in a second language, so the sentences are
+shorter and the words more common — `CLAUDE.md`, "Write plainly".
+
+**The languages line leads with what makes the Hub different.** Languages spoken and
+gender-matched workers on request are both canonical facts. It is placed early rather than
+buried near the footer, because for the families this provider exists to serve it is the
+reason they chose to enquire.
+
+**The uploaded copy's "reply with your preferred contact time, suburb, plan-management type,
+and any language, cultural or support-worker preferences" was cut.** The form already asks for
+suburb, preferred language and preferred contact method. Asking again reads as though nobody
+looked at what they sent. The rewritten line asks only for what the form does *not* collect:
+plan management type and a good time to call.
+
+**The 000 sentence is kept verbatim.** It is a safety statement, not marketing copy.
+
+**Nothing here has been reviewed by a human yet.** It is participant-facing, so Kholoud should
+read it before it sends — see `CLAUDE.md`, "Compliance wording is reviewed, not generated."
+
+---
+
+## Blocked — marketing email writes through the connector
+
+**19 Aug 2026.** Email 03 could not be created from this session. Every marketing-email write
+through the HubSpot connector is refused with *"You need access to additional permissions to
+perform this action"*:
+
+| Attempt | Result |
+|---|---|
+| `CREATE` a new automated email | permission error |
+| `CLONE` email 02 | permission error |
+| `UPDATE` email 02's name to its existing value | permission error |
+
+Reads still work — `GET_EMAIL_DETAILS`, `GET_CONTENT`, `LIST_FROM_ADDRESSES` and
+`LIST_SUBSCRIPTION_TYPES` all returned normally, and CRM reads are unaffected. The connector's
+own capability table reports `MARKETING_EMAIL: write AVAILABLE`, which contradicts what the
+API actually does.
+
+This is a **change**, not a standing limitation: email 02 was created and repeatedly edited
+through this same connector on 18 Aug 2026. The write scope has been lost since.
+
+Two ways forward, in order of preference:
+
+1. **Reconnect the HubSpot connector** and re-authorise it. If the write scope returns, email
+   03 can be built from here in a few minutes, structurally identical to 02.
+2. **Clone 02 in the HubSpot UI** and paste the two HTML blocks above. Roughly ten minutes,
+   and it does not depend on the connector at all.
+
+---
+
+## Failure modes
+
+Those in workflow 01 §"Failure modes" apply unchanged. Two are specific to this workflow:
+
+| Failure | Consequence | Handling |
+|---|---|---|
+| Enquirer gave no email | No acknowledgement can send | Expected. Task says to call them |
+| Form GUID unset | **Nothing sends, silently** | `not_configured` + HIGH task per enquiry |
+
+The second is the one that would otherwise be invisible. An enquirer who is promised contact
+within 2 business hours and hears nothing has no way to tell whether they were ignored or the
+system failed — and neither would we, from a log line alone.
+
+---
+
+## Open
+
+- **Email 03 is not built.** Blocked on the connector, above.
+- **Form, properties, subscription type and workflow** are not created.
+- **Copy is unreviewed.** Participant-facing; needs Kholoud.
+- **`first_response_at`** is not stamped for enquiries any more than for referrals — the
+  webhook action that would report an actual send does not exist on Starter. Same accepted
+  consequence as workflow 01: the timestamp would evidence dispatch, not delivery.

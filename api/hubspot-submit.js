@@ -75,6 +75,11 @@ const FORMS_API_BASE = process.env.HUBSPOT_FORMS_BASE || 'https://api-ap1.hsform
 const HUBSPOT_PORTAL_ID = process.env.HUBSPOT_PORTAL_ID || '443542186';
 const REFERRAL_FORM_GUID =
   process.env.HUBSPOT_REFERRAL_FORM_GUID || '98d9dea9-840e-42f5-864a-747f97456bb1';
+// Enquiry acknowledgement (workflow 02). No default yet — the form has to be
+// created in HubSpot before a GUID exists. Left empty the endpoint still
+// records the enquiry correctly and raises a visible task instead of sending;
+// see the not_configured branch below. Guessing a GUID would fail silently.
+const ENQUIRY_FORM_GUID = process.env.HUBSPOT_ENQUIRY_FORM_GUID || '';
 
 async function hs(path, options = {}) {
   const res = await fetch(HUBSPOT_BASE + path, {
@@ -462,21 +467,38 @@ async function createFollowUpTask({ subject, contactId, dealId }) {
 }
 
 // Registers a real form submission so the Starter simple workflow enrols the
-// referrer and sends the acknowledgement. Retried, because a transient
-// failure here means the CRM record exists and the referrer hears nothing —
-// which is invisible from our side and reads as being ignored from theirs.
-async function submitReferralToFormsApi({ email, firstname, lastname }) {
-  const url = `${FORMS_API_BASE}/submissions/v3/integration/submit/${HUBSPOT_PORTAL_ID}/${REFERRAL_FORM_GUID}`;
+// contact and sends the acknowledgement. Retried, because a transient failure
+// here means the CRM record exists and the person hears nothing — which is
+// invisible from our side and reads as being ignored from theirs.
+//
+// One helper, two forms. Starter allows only one workflow per form, so
+// referrals and enquiries need separate forms and separate GUIDs; everything
+// else about the call is identical.
+// The enquiry form appears on two pages — the homepage and /contact/ — so a
+// hardcoded pageUri would file every homepage enquiry under /contact/ and make
+// the two indistinguishable in HubSpot's form analytics. The Referer is only
+// trusted when it is on an allowlisted origin, which is the same check the
+// request itself already had to pass; anything else falls back to the default.
+function submissionPageUri(req, fallback) {
+  const referer = req.headers.referer || req.headers.referrer;
+  if (typeof referer !== 'string') return fallback;
+  try {
+    const url = new URL(referer);
+    return ALLOWED_ORIGINS.includes(url.origin) ? url.origin + url.pathname : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function submitToFormsApi({ formGuid, email, firstname, lastname, pageUri, pageName }) {
+  const url = `${FORMS_API_BASE}/submissions/v3/integration/submit/${HUBSPOT_PORTAL_ID}/${formGuid}`;
   const fields = [{ name: 'email', value: email }];
   if (firstname) fields.push({ name: 'firstname', value: firstname });
   if (lastname) fields.push({ name: 'lastname', value: lastname });
 
   const body = JSON.stringify({
     fields,
-    context: {
-      pageUri: 'https://thehealthwellbeinghub.com/referrals/',
-      pageName: 'Refer a participant',
-    },
+    context: { pageUri, pageName },
   });
 
   let lastErr = null;
@@ -650,7 +672,25 @@ module.exports = async (req, res) => {
         });
       }
     } else {
-      contactId = await upsertContact({ name: f.name, email: f.email, phone: f.phone });
+      // Set on EVERY enquiry, not only on creation. Someone who enquires has
+      // asked us a question and is waiting — that is true whether or not we
+      // have spoken to them before, so a returning enquirer whose status had
+      // moved on is correctly pulled back to "We owe a reply".
+      //
+      // This differs from the referral path on purpose: there, the person who
+      // submits is the referrer and the participant has not asked us for
+      // anything yet, so the participant stays "Needs first contact". Here the
+      // person who submitted IS the contact.
+      const enquirerExtras = filterToWritable(
+        { contact_status: 'We_owe_a_reply' },
+        await getContactSchema()
+      );
+      contactId = await upsertContact({
+        name: f.name,
+        email: f.email,
+        phone: f.phone,
+        extraProperties: enquirerExtras,
+      });
       dealName = `${f.name || 'Website enquiry'} — ${f.service_needed || 'General enquiry'}`;
       noteBody = buildEnquiryNote(f);
     }
@@ -699,7 +739,10 @@ module.exports = async (req, res) => {
     });
 
     // The reference needs the deal ID, so it cannot be minted any earlier.
-    const reference = `REF-${new Date().getFullYear()}-${dealId}`;
+    // Distinct prefixes because both appear in emails people reply quoting:
+    // "REF-2026-…" on a referral acknowledgement, "ENQ-2026-…" on an enquiry
+    // one. A single prefix would make the two indistinguishable at a glance.
+    const reference = `${formName === 'referral' ? 'REF' : 'ENQ'}-${new Date().getFullYear()}-${dealId}`;
 
     // Everything the acknowledgement email renders is written here, on the
     // REFERRER — the contact the Forms API will enrol. These four properties
@@ -749,7 +792,14 @@ module.exports = async (req, res) => {
       // problem to fix, not an error to show them.
       const { firstname, lastname } = splitName(f.referrer_name);
       try {
-        await submitReferralToFormsApi({ email: f.referrer_email, firstname, lastname });
+        await submitToFormsApi({
+          formGuid: REFERRAL_FORM_GUID,
+          email: f.referrer_email,
+          firstname,
+          lastname,
+          pageUri: submissionPageUri(req, 'https://www.thehealthwellbeinghub.com/referrals/'),
+          pageName: 'Refer a participant',
+        });
         acknowledgementStatus = 'pending';
       } catch (err) {
         acknowledgementStatus = 'failed';
@@ -760,6 +810,82 @@ module.exports = async (req, res) => {
           contactId: referrerContactId,
           dealId,
         }).catch((taskErr) => console.error('fallback task failed:', taskErr.message));
+      }
+    }
+
+    // Enquiry acknowledgement — workflow 02. Same shape as the referral above,
+    // with one structural difference: on an enquiry the person who submitted
+    // IS the contact, so the merge values go on `contactId` directly. There is
+    // no second record to get wrong.
+    if (formName === 'enquiry') {
+      // Email is OPTIONAL on the enquiry form — phone is the required field,
+      // because a participant without an email address must still be able to
+      // ask for help. So "no acknowledgement" is a normal outcome here, not a
+      // failure, and it must not raise an alarm. The follow-up task created
+      // above already tells the team to call them.
+      if (!looksLikeEmail(f.email)) {
+        acknowledgementStatus = 'no_email';
+      } else if (!ENQUIRY_FORM_GUID) {
+        // Fail loudly rather than silently. Without the form there is no
+        // enrolment trigger, so nothing sends — and an enquirer who was
+        // promised a reply within 2 business hours hears nothing at all.
+        acknowledgementStatus = 'not_configured';
+        console.error('ENQUIRY FORM GUID NOT SET — no acknowledgement can send');
+        await createFollowUpTask({
+          subject: `ACKNOWLEDGE MANUALLY — enquiry form not configured: ${f.name || f.email}`,
+          contactId,
+          dealId,
+        }).catch((taskErr) => console.error('fallback task failed:', taskErr.message));
+      } else {
+        const now = new Date();
+        // "Not sure — please advise" is a real and common answer on this form,
+        // and it posts as an empty string. Left blank the email would read
+        // "your enquiry about ." — so it falls back to wording that is true
+        // whatever they picked.
+        const enquiryService = f.service_needed || 'NDIS supports';
+        const mergeProperties = filterToWritable(
+          {
+            latest_enquiry_reference: reference,
+            latest_enquiry_date: referralDateIso(now),
+            latest_enquiry_date_display: referralDateDisplay(now),
+            latest_enquiry_service: enquiryService,
+          },
+          await getContactSchema()
+        );
+
+        // Schema-filtered rather than sent blind: HubSpot rejects the WHOLE
+        // patch if one property does not exist, which would blank every merge
+        // value and send an email full of empty spaces.
+        if (Object.keys(mergeProperties).length) {
+          await hs(`/crm/v3/objects/contacts/${contactId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ properties: mergeProperties }),
+          }).catch((err) =>
+            console.error('enquiry merge properties failed:', err.message, err.data || '')
+          );
+        }
+
+        // Last, deliberately — same ordering argument as the referral path.
+        const { firstname, lastname } = splitName(f.name);
+        try {
+          await submitToFormsApi({
+            formGuid: ENQUIRY_FORM_GUID,
+            email: f.email,
+            firstname,
+            lastname,
+            pageUri: submissionPageUri(req, 'https://www.thehealthwellbeinghub.com/contact/'),
+            pageName: 'Make an NDIS enquiry',
+          });
+          acknowledgementStatus = 'pending';
+        } catch (err) {
+          acknowledgementStatus = 'failed';
+          console.error('ACKNOWLEDGEMENT NOT SENT — Forms API failed:', err.message);
+          await createFollowUpTask({
+            subject: `ACKNOWLEDGE MANUALLY — automated email failed: ${f.name || f.email}`,
+            contactId,
+            dealId,
+          }).catch((taskErr) => console.error('fallback task failed:', taskErr.message));
+        }
       }
     }
 
