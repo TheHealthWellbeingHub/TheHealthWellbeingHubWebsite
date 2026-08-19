@@ -75,11 +75,13 @@ const FORMS_API_BASE = process.env.HUBSPOT_FORMS_BASE || 'https://api-ap1.hsform
 const HUBSPOT_PORTAL_ID = process.env.HUBSPOT_PORTAL_ID || '443542186';
 const REFERRAL_FORM_GUID =
   process.env.HUBSPOT_REFERRAL_FORM_GUID || '98d9dea9-840e-42f5-864a-747f97456bb1';
-// Enquiry acknowledgement (workflow 02). No default yet — the form has to be
-// created in HubSpot before a GUID exists. Left empty the endpoint still
-// records the enquiry correctly and raises a visible task instead of sending;
-// see the not_configured branch below. Guessing a GUID would fail silently.
-const ENQUIRY_FORM_GUID = process.env.HUBSPOT_ENQUIRY_FORM_GUID || '';
+// Enquiry acknowledgement (workflow 02). Separate form from the referral one
+// because Starter allows a single workflow per form. If this is ever cleared,
+// the endpoint still records the enquiry correctly and raises a visible task
+// rather than skipping the acknowledgement silently — see the not_configured
+// branch below.
+const ENQUIRY_FORM_GUID =
+  process.env.HUBSPOT_ENQUIRY_FORM_GUID || '1d577457-30f7-4041-bcb4-4c996103b07a';
 
 async function hs(path, options = {}) {
   const res = await fetch(HUBSPOT_BASE + path, {
