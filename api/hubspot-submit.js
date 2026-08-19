@@ -351,8 +351,13 @@ async function upsertContact({ name, email, phone, company, extraProperties }) {
     method: 'POST',
     body: JSON.stringify({
       properties: {
-        ...properties,
+        // Default FIRST so an explicitly-passed value wins. Spread the other
+        // way round and this silently overwrites the caller — which is exactly
+        // what it did: a newly created referrer was passed "We owe a reply"
+        // and got "Needs first contact" instead. A default must lose to an
+        // explicit value, not beat it.
         ...filterToWritable({ contact_status: 'Needs_first_contact' }, await getContactSchema()),
+        ...properties,
       },
     }),
   });
