@@ -96,6 +96,135 @@ async function hs(path, options = {}) {
   return data;
 }
 
+// --- Triage properties ----------------------------------------------------
+//
+// Gap 1 in docs/hubspot-configuration.md: the forms already collect language,
+// plan type, suburb and role, but all of it went into free text on a Note.
+// Text inside a note cannot be filtered, counted, reported on, or mapped into
+// ShiftCare — so it gets re-typed by a person on the day someone becomes a
+// client. This writes the same values to properties as well. The note stays;
+// narrative context is still worth keeping.
+//
+// Two things make this safe to ship before the properties exist:
+//
+//   1. The live contact schema is read once per cold start. Only properties
+//      that actually exist are written, so each one starts populating the
+//      moment it is created in HubSpot — no redeploy needed.
+//   2. HubSpot rejects an ENTIRE patch if one enumeration value is not a
+//      valid option. The form's wording and the property options do not match
+//      (the form says "Agency managed", the property expects "Agency-managed";
+//      the language options carry a native-script suffix). So values are
+//      mapped below AND validated against the live options, and anything that
+//      still does not match is dropped rather than failing the whole write.
+//
+// The form wording is deliberately plain because participants and families
+// read it. The property vocabulary is deliberately the NDIS standard because
+// reporting uses it. This table is where those two meet, and it is the thing
+// to update if either side changes.
+const LANGUAGE_MAP = {
+  'English': 'English',
+  'Arabic': 'Arabic',
+  'Somali': 'Somali',
+  'Dari': 'Dari',
+  'Amharic': 'Amharic',
+  'Other': 'Other',
+};
+
+const PLAN_TYPE_MAP = {
+  'Agency managed': 'Agency-managed',
+  'Plan managed': 'Plan-managed',
+  'Self managed': 'Self-managed',
+  'Not sure': 'Unknown',
+};
+
+const ENQUIRER_ROLE_MAP = {
+  'NDIS Participant': 'Participant themselves',
+  'Support Coordinator': 'Support coordinator',
+  'Plan Manager': 'Plan nominee',
+  'GP / Health professional': 'Health professional',
+  'Other': 'Other',
+  // "Parent / Family member / Carer" is deliberately absent. The form conflates
+  // two distinct property options with different privacy weight — a parent and
+  // a paid carer are not the same relationship, and authority to act differs.
+  // Guessing would put wrong data in a field used to decide who may receive
+  // participant information. Left unmapped so a person sets it.
+};
+
+const SERVICE_LINE_MAP = {
+  'Support Coordination': 'Support Coordination',
+  'Core Supports & Daily Living': 'Core Supports & Daily Living',
+  'Community Participation': 'Community Participation',
+  'Therapy Services': 'Therapy Services',
+  // "Multiple / not sure" and "Not sure — please advise" have no target option;
+  // they mean the question is still open, which is not the same as any value.
+};
+
+// The form appends native script, e.g. "Arabic — العربية". Take what precedes
+// the em dash so the option matches.
+function normaliseLanguage(value) {
+  if (!value) return null;
+  const base = String(value).split('—')[0].trim();
+  return LANGUAGE_MAP[base] || null;
+}
+
+let contactSchemaCache = null;
+async function getContactSchema() {
+  if (contactSchemaCache) return contactSchemaCache;
+  try {
+    const data = await hs('/crm/v3/properties/contacts');
+    const byName = new Map();
+    for (const prop of data.results || []) {
+      byName.set(prop.name, {
+        type: prop.type,
+        options: (prop.options || []).map((o) => o.value),
+      });
+    }
+    contactSchemaCache = byName;
+  } catch (err) {
+    console.error('could not read contact schema, skipping triage properties:', err.message);
+    contactSchemaCache = new Map();
+  }
+  return contactSchemaCache;
+}
+
+// Drop anything the portal does not have, and any enumeration value that is
+// not a valid option. A dropped value is logged, never fatal.
+function filterToWritable(desired, schema) {
+  const writable = {};
+  for (const [name, value] of Object.entries(desired)) {
+    if (value === null || value === undefined || value === '') continue;
+    const prop = schema.get(name);
+    if (!prop) continue; // property not created yet
+    if (prop.type === 'enumeration' && prop.options.length) {
+      const parts = String(value).split(';').filter((v) => prop.options.includes(v));
+      if (!parts.length) {
+        console.warn(`dropped ${name}: "${value}" is not a valid option`);
+        continue;
+      }
+      writable[name] = parts.join(';');
+    } else {
+      writable[name] = value;
+    }
+  }
+  return writable;
+}
+
+function buildTriageProperties(f, formName, receivedAt) {
+  const isReferral = formName === 'referral';
+  const serviceLine = SERVICE_LINE_MAP[(f.service_needed || '').replace('&amp;', '&')] || null;
+
+  return {
+    primary_language: normaliseLanguage(f.preferred_language),
+    plan_management_type: PLAN_TYPE_MAP[f.plan_type] || null,
+    service_lines_required: serviceLine,
+    service_suburb: f.suburb || null,
+    enquirer_relationship: isReferral ? null : (ENQUIRER_ROLE_MAP[f.enquirer_role] || null),
+    enquiry_type: isReferral ? 'Referral' : 'New enquiry',
+    enquiry_received_at: receivedAt,
+    referral_source_detail: isReferral ? (f.referrer_name || null) : null,
+  };
+}
+
 function splitName(full) {
   const parts = (full || '').trim().split(/\s+/);
   return { firstname: parts[0] || '', lastname: parts.slice(1).join(' ') || '' };
@@ -354,6 +483,9 @@ module.exports = async (req, res) => {
 
   try {
     const f = req.body || {};
+    // Server time, never the client's. A submitted timestamp is
+    // attacker-controlled and would corrupt the SLA measurement.
+    const receivedAt = new Date().toISOString();
 
     // Honeypot: a hidden field no human fills in. Respond 200 and discard —
     // never tell a bot it failed, or it just adapts. Inert until the form
@@ -404,6 +536,26 @@ module.exports = async (req, res) => {
       contactId = await upsertContact({ name: f.name, email: f.email, phone: f.phone });
       dealName = `${f.name || 'Website enquiry'} — ${f.service_needed || 'General enquiry'}`;
       noteBody = buildEnquiryNote(f);
+    }
+
+    // Write the triage values as PROPERTIES as well as into the note. Same
+    // submission, both destinations — see buildTriageProperties above for why.
+    try {
+      const schema = await getContactSchema();
+      const desired = buildTriageProperties(f, formName, receivedAt);
+      const writable = filterToWritable(desired, schema);
+      if (Object.keys(writable).length) {
+        await hs(`/crm/v3/objects/contacts/${contactId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ properties: writable }),
+        });
+      } else {
+        console.info('no triage properties written — none of the target properties exist yet');
+      }
+    } catch (err) {
+      // Never fail a referral over reporting metadata. The note still holds
+      // the narrative and the record still exists.
+      console.error('triage property write failed:', err.message, err.data || '');
     }
 
     const existingOpenDealId = await findOpenDealForContact(contactId);

@@ -65,6 +65,53 @@ From `workflow-01-referral.md` §A. Object: **Contact**.
 
 ---
 
+## ⚠️ Before creating Tier 3 — the form and the spec use different words
+
+The option values in `hubspot-configuration.md` §1 do **not** match what the live forms send.
+Creating the properties exactly as specified and pointing the endpoint at them would fail:
+HubSpot rejects an **entire** property write if one enumeration value is not a valid option, so
+a single mismatch blanks every field in that write.
+
+| Form sends | §1 option | Difference |
+|---|---|---|
+| `Agency managed` | `Agency-managed` | hyphen |
+| `Plan managed` / `Self managed` | `Plan-managed` / `Self-managed` | hyphen |
+| `Not sure` | `Unknown` | different word |
+| `Arabic — العربية` | `Arabic` | native-script suffix |
+| `NDIS Participant` | `Participant themselves` | different phrasing |
+| `GP / Health professional` | `Health professional` | different phrasing |
+| `Parent / Family member / Carer` | `Family member` **or** `Carer` | one field, two options |
+| `Multiple / not sure` | *(no option)* | means "still open", not a value |
+
+**Resolved in code, not by changing the forms.** `api/hubspot-submit.js` holds an explicit
+mapping table. The form wording stays plain because participants and families read it; the
+property vocabulary stays NDIS-standard because reporting uses it. The table is where the two
+meet — update it if either side changes.
+
+Two deliberate non-mappings:
+
+- **`Parent / Family member / Carer` is left unmapped.** The form conflates two options that
+  carry different privacy weight — a parent and a paid carer are not the same relationship, and
+  authority to act differs. Guessing would put wrong data in a field used to decide who may
+  receive participant information. A person sets it.
+- **`Multiple / not sure` is left unmapped.** "The question is still open" is not the same as
+  any particular value, and recording it as one would hide that a conversation still needs to
+  happen.
+
+### These properties populate themselves once created
+
+The endpoint reads the live contact schema once per cold start and writes only properties that
+exist, dropping any enumeration value that is not a valid option. So:
+
+- It is safe to run **before** any Tier 3 property exists — nothing is written, nothing fails.
+- Each property **starts populating the moment you create it in HubSpot**. No redeploy.
+- A renamed option or edited form value causes that one field to be skipped and logged, not a
+  failed submission.
+
+Create them in any order, at whatever pace suits.
+
+---
+
 ## Tier 3 — the full `hubspot-configuration.md` §1 spec (16 properties)
 
 Not blocking anything today. Worth doing while the portal is near-empty — retrofitting these
