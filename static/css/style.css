@@ -451,18 +451,3 @@ footer{background:var(--nd);padding:64px 32px 28px}
   height: 1px;
   overflow: hidden;
 }
-
-/* Optional-field marker and helper text on forms. Kept visually quieter than
-   the label so the eye still reads the question first. */
-.form-optional {
-  font-weight: 400;
-  opacity: .65;
-  font-size: .9em;
-}
-
-.form-hint {
-  margin: .4rem 0 0;
-  font-size: .875rem;
-  line-height: 1.5;
-  opacity: .75;
-}
