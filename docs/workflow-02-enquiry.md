@@ -103,13 +103,33 @@ nobody reads is the same as no alert at all.
 
 ---
 
-## Still to build
+## Build status
 
-Everything in `api/hubspot-submit.js` is written and deployed. It is **inert** until the form
-exists: with no GUID the endpoint records the enquiry correctly and raises a manual-follow-up
-task instead of sending. Nothing is lost while the setup is incomplete.
+| Step | State |
+|---|---|
+| Endpoint (`api/hubspot-submit.js`) | **done**, deployed, verified live |
+| HubSpot form *Enquiry — API target* | **done** — `1d577457-30f7-4041-bcb4-4c996103b07a` |
+| Four `latest_enquiry_*` properties | **done**, verified writing |
+| Subscription type *Enquiry acknowledgements* | **done** |
+| Marketing email 03 | **not built** — connector blocked, see below |
+| The workflow | **not built** |
 
-### 1. HubSpot form — *Enquiry — API target*
+Verified against production on 19 Aug 2026, `ENQ-2026-287456717249`:
+
+| Property | Value |
+|---|---|
+| `latest_enquiry_reference` | `ENQ-2026-287456717249` |
+| `latest_enquiry_date` | `2026-08-19` |
+| `latest_enquiry_date_display` | `19/08/2026` |
+| `latest_enquiry_service` | `Support Coordination` |
+
+`acknowledgementStatus` returned `pending`, so the Forms API accepted the submission. Nothing
+sends yet because no workflow is listening to the form.
+
+The *"Not sure — please advise"* fallback was tested separately and wrote
+`latest_enquiry_service = NDIS supports`, as intended.
+
+### 1. HubSpot form — *Enquiry — API target* — done
 
 Marketing → Forms → Create form → Embedded form → Blank template.
 
@@ -121,7 +141,10 @@ Marketing → Forms → Create form → Embedded form → Blank template.
 The GUID goes into `ENQUIRY_FORM_GUID` in `api/hubspot-submit.js` (alongside the referral one),
 or into a `HUBSPOT_ENQUIRY_FORM_GUID` environment variable in Vercel.
 
-### 2. Four contact properties
+**Created 19 Aug 2026** — `1d577457-30f7-4041-bcb4-4c996103b07a`, now the default in the
+endpoint.
+
+### 2. Four contact properties — done
 
 Same pattern as `latest_referral_*`, and prefixed the same way for the same reason: they
 describe the **most recent** enquiry, not a permanent attribute of the person.
@@ -145,12 +168,15 @@ local date rather than the previous day's.
 the enquirer picks *"Not sure — please advise"* the form posts an empty string and the endpoint
 substitutes **`NDIS supports`** — otherwise the email reads *"your enquiry about ."*
 
-### 3. Subscription type — *Enquiry acknowledgements*
+### 3. Subscription type — *Enquiry acknowledgements* — done
 
 Settings → Marketing → Email → Subscription types → Create.
 
 - Name: **Enquiry acknowledgements**
 - Description: *Confirmation that we have received an enquiry you sent us*
+
+The description is not internal wording — it is the line a participant reads on the
+communication preferences page when deciding what to unsubscribe from.
 
 Do **not** reuse *Referral acknowledgements*. It is the record of what a person has opted into,
 and it appears on the preference page they see. A participant who unsubscribes from
@@ -298,7 +324,7 @@ system failed — and neither would we, from a log line alone.
 ## Open
 
 - **Email 03 is not built.** Blocked on the connector, above.
-- **Form, properties, subscription type and workflow** are not created.
+- **The workflow is not built.** Needs email 03 first.
 - **Copy is unreviewed.** Participant-facing; needs Kholoud.
 - **`first_response_at`** is not stamped for enquiries any more than for referrals — the
   webhook action that would report an actual send does not exist on Starter. Same accepted
