@@ -232,6 +232,11 @@ function buildTriageProperties(f, formName, receivedAt) {
 
   return {
     primary_language: normaliseLanguage(f.preferred_language),
+    // The referral form's option values are already the property's option
+    // values, so these pass straight through. filterToWritable still validates
+    // them, so a future wording change on the form fails safe.
+    interpreter_required: f.interpreter_required || null,
+    gender_matched_worker: f.gender_matched_worker || null,
     plan_management_type: PLAN_TYPE_MAP[f.plan_type] || null,
     service_lines_required: serviceLine,
     service_suburb: f.suburb || null,
