@@ -244,11 +244,40 @@ Both were wrong or missing and have been corrected. Neither is obvious from the 
 
 ### Still outstanding for this email
 
-- **From address is `@gmail.com`.** The sending domain is authenticated, but a gmail.com from
-  address cannot be DKIM-aligned to `thehealthwellbeinghub.com`, so the authentication does not
-  apply to what actually sends. Needs a branded address — which needs a mailbox, which needs an
-  **MX record** the domain does not currently have.
+- ~~**From address is `@gmail.com`.**~~ **[resolved 19 Aug 2026]** Reply-to now reads
+  `hello@thehealthwellbeinghub.com`, verified via `GET_EMAIL_DETAILS`. The mailbox and MX
+  record exist, so the authenticated domain now applies to what actually sends.
 - Currency is still `USD`; should be `AUD`. Affects deal reporting, not this workflow.
+
+---
+
+## Workflow 02 — enquiries (19 Aug 2026)
+
+The same chain for website enquiries is documented in full in
+[`workflow-02-enquiry.md`](workflow-02-enquiry.md), including the four ways it deliberately
+differs from workflow 01. The endpoint work is done and deployed; the HubSpot side is not
+built. What is needed there:
+
+1. A form, **`Enquiry — API target`** — Starter allows one workflow per form, so referrals and
+   enquiries cannot share a trigger.
+2. Four `latest_enquiry_*` contact properties.
+3. A subscription type, **Enquiry acknowledgements** — not the referral one.
+4. Marketing email **03**, which is currently blocked (below).
+5. The workflow itself.
+
+Until the form GUID is set, the endpoint records enquiries correctly and raises a HIGH
+*ACKNOWLEDGE MANUALLY* task per enquiry rather than skipping the acknowledgement silently.
+
+### Blocked — marketing email writes through the connector
+
+**19 Aug 2026.** `CREATE`, `CLONE` and even a no-op `UPDATE` on marketing emails all return
+*"You need access to additional permissions to perform this action"*. Reads are unaffected. The
+connector's own capability table still reports `MARKETING_EMAIL: write AVAILABLE`, which does
+not match what the API does.
+
+This changed — email 02 was created and edited through this same connector on 18 Aug 2026. Fix
+by reconnecting the HubSpot connector; failing that, email 03 can be cloned from 02 in the UI
+using the paste-ready HTML in `workflow-02-enquiry.md`.
 
 ---
 
