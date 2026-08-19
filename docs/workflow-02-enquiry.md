@@ -111,8 +111,8 @@ nobody reads is the same as no alert at all.
 | HubSpot form *Enquiry — API target* | **done** — `1d577457-30f7-4041-bcb4-4c996103b07a` |
 | Four `latest_enquiry_*` properties | **done**, verified writing |
 | Subscription type *Enquiry acknowledgements* | **done** |
-| Marketing email 03 | **not built** — connector blocked, see below |
-| The workflow | **not built** |
+| Marketing email 03 | **built** — object `709156560372`, verified rendering |
+| The workflow | **not built** — the only step left |
 
 Verified against production on 19 Aug 2026, `ENQ-2026-287456717249`:
 
@@ -182,9 +182,57 @@ Do **not** reuse *Referral acknowledgements*. It is the record of what a person 
 and it appears on the preference page they see. A participant who unsubscribes from
 "referral acknowledgements" they never asked for is a confusing and inaccurate record.
 
-### 4. Marketing email 03
+### 4. Marketing email 03 — done
 
-Blocked — see below. Copy is final and paste-ready.
+Built 19 Aug 2026 by cloning email 02 in the HubSpot UI, because the connector could not write
+(see below).
+
+| | |
+|---|---|
+| Name | `03 — New enquiry acknowledgement` |
+| Marketing email object ID | `709156560372` |
+| Content ID (editor URL) | `367577414094` |
+| Type | **AUTOMATED** |
+| Subscription type | Enquiry acknowledgements (`3430045004`) |
+| Reply-to | `hello@thehealthwellbeinghub.com` |
+
+Verified by rendering the saved email against contact `346310074863`:
+
+```
+Hi Enquiry,
+We've received your enquiry about Support Coordination. Someone from our team
+will contact you within 2 business hours to talk about what you need.
+Enquiry reference: ENQ-2026-287456717249
+Date received: 19/08/2026
+```
+
+All four tokens resolve. Date is day-first and Brisbane-computed.
+
+#### Defaults are inline, not set through the UI
+
+Each enquiry token is wrapped in `personalization_token(...)` with its default as the second
+argument, rather than relying on a default configured per-token in the editor:
+
+```
+{{ personalization_token('contact.latest_enquiry_service', 'NDIS supports') }}
+{{ personalization_token('contact.latest_enquiry_reference', 'to be confirmed') }}
+{{ personalization_token('contact.latest_enquiry_date_display', 'today') }}
+```
+
+A bare `{{ contact.latest_enquiry_service }}` with no default does not render blank when the
+property is empty — HubSpot renders the property name in capitals,
+`CONTACT.LATEST_ENQUIRY_SERVICE`, in the middle of the sentence. Inline defaults keep the
+fallback in the same place as the token, so it cannot be lost by editing the copy.
+
+#### The editor canvas is not evidence
+
+Worth recording, because it cost two rounds. The email editor previews the **unsaved editor
+session**. It twice showed a completely correct email while the *saved* version still held the
+referral body — *"Thank you for referring your participant…"* — addressed to someone who had
+made an enquiry.
+
+Check with `PREVIEW_CONTENT` against a real contact ID, or `GET_CONTENT`, both of which read
+the saved record. A screenshot of the canvas does not tell you what would send.
 
 ### 5. The workflow
 
@@ -297,12 +345,14 @@ API actually does.
 This is a **change**, not a standing limitation: email 02 was created and repeatedly edited
 through this same connector on 18 Aug 2026. The write scope has been lost since.
 
-Two ways forward, in order of preference:
+Route 2 was taken — email 03 was cloned from 02 in the HubSpot UI by hand. Reconnecting the MCP
+server did **not** restore the scope; `CLONE` and `EDIT_CONTENT` were both retried afterwards
+and both still failed. It needs a full re-authorisation of the HubSpot connector, not a
+reconnect.
 
-1. **Reconnect the HubSpot connector** and re-authorise it. If the write scope returns, email
-   03 can be built from here in a few minutes, structurally identical to 02.
-2. **Clone 02 in the HubSpot UI** and paste the two HTML blocks above. Roughly ten minutes,
-   and it does not depend on the connector at all.
+Reads are unaffected, which is what made verification possible: `GET_CONTENT`,
+`PREVIEW_CONTENT` and `GET_EMAIL_DETAILS` all worked throughout and were how the unsaved-canvas
+problem above was caught.
 
 ---
 
@@ -323,8 +373,7 @@ system failed — and neither would we, from a log line alone.
 
 ## Open
 
-- **Email 03 is not built.** Blocked on the connector, above.
-- **The workflow is not built.** Needs email 03 first.
+- **The workflow is not built.** The only remaining step.
 - **Copy is unreviewed.** Participant-facing; needs Kholoud.
 - **`first_response_at`** is not stamped for enquiries any more than for referrals — the
   webhook action that would report an actual send does not exist on Starter. Same accepted
