@@ -341,9 +341,20 @@ async function upsertContact({ name, email, phone, company, extraProperties }) {
   // A contact-level status duplicates that, and duplicated state diverges:
   // someone advances the deal, forgets the contact field, and neither can be
   // trusted afterwards. One field, updated in one place.
+  // Contact status is seeded on CREATION only. It answers "whose move is it
+  // next", so overwriting it on every submission would stomp a status the team
+  // has deliberately set — someone marked "On hold" should stay on hold.
+  //
+  // Note the option VALUES are underscore-separated (Needs_first_contact), not
+  // the labels shown in the UI. Writing the label would be dropped.
   const created = await hs('/crm/v3/objects/contacts', {
     method: 'POST',
-    body: JSON.stringify({ properties }),
+    body: JSON.stringify({
+      properties: {
+        ...properties,
+        ...filterToWritable({ contact_status: 'Needs_first_contact' }, await getContactSchema()),
+      },
+    }),
   });
   return created.id;
 }
@@ -559,11 +570,18 @@ module.exports = async (req, res) => {
         // it is inert until contact_type exists and starts populating the
         // moment it does.
         const referrerSchema = await getContactSchema();
+        // contact_status here is set on EVERY referral, not just creation —
+        // unlike the participant. A returning referrer who sends a new referral
+        // has created a fresh obligation on us regardless of what their status
+        // was before, so "We owe a reply" is correct even if they were
+        // previously Closed or Waiting on them. That is the field working, not
+        // drifting.
         const referrerExtras = filterToWritable(
           {
             contact_type: 'Referral partner',
             referrer_role: f.referrer_role || null,
             referrer_wants_updates: 'false',
+            contact_status: 'We_owe_a_reply',
           },
           referrerSchema
         );
