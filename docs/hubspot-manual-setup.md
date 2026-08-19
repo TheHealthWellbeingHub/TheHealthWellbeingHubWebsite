@@ -453,3 +453,63 @@ only). None stops a determined attacker.
 If real abuse appears, the fix is a shared store — Vercel KV or Upstash — keyed by IP, plus
 Cloudflare Turnstile on the form. Both were considered out of scope for this change; neither is
 warranted before abuse is actually observed.
+
+---
+
+## Contact capture — complete and verified 19 Aug 2026
+
+All properties below exist and populate automatically. Verified with live submissions through
+the production endpoint, checking the resulting records rather than reading the diff.
+
+### Referral form → two contacts
+
+| Property | Participant | Referrer |
+|---|---|---|
+| `firstname` / `lastname` | ✅ | ✅ |
+| `email` / `phone` | one of, type-detected | ✅ |
+| `company` | — | ✅ |
+| `contact_type` | `Participant` | `Referral partner` |
+| `contact_status` | `Needs first contact` | `We owe a reply` |
+| `referrer_role` | — | ✅ |
+| `plan_management_type` | ✅ mapped | — |
+| `service_lines_required` | ✅ | — |
+| `enquiry_type` | `Referral` | — |
+| `enquiry_received_at` | server time | — |
+| `referral_source_detail` | referrer's name | — |
+| `latest_referral_*` (5) | — | ✅ |
+
+### Enquiry form → one contact
+
+`enquirer_relationship`, `service_suburb`, `primary_language`, `service_lines_required`,
+`enquiry_type` = `New enquiry`, `enquiry_received_at`, `contact_type`, `contact_status`.
+
+`plan_management_type` stays empty — the enquiry form does not ask.
+
+### Decisions worth not re-litigating
+
+**A plan manager is not a plan nominee.** `enquirer_relationship` originally mapped the form's
+"Plan Manager" to `Plan nominee`. A plan manager administers funds under a service agreement; a
+nominee is a legally appointed decision-maker. Conflating them overstates a third party's
+authority on the field used to judge who may lawfully receive participant information. They are
+separate options.
+
+**Professionals enquiring are `contact_type` = `Referral partner`.** [decided 19 Aug 2026] A
+plan manager or GP who uses the *enquiry* form is recorded as a referral partner even though
+they have not referred anyone yet. `contact_type` answers "what kind of contact is this",
+and the answer is "a professional, not a participant" — which is the distinction the field was
+created for. For "has actually sent us a referral", filter on `latest_referral_reference is
+known` instead; that is precise and needs no extra field.
+
+**`contact_status` defaults must lose to explicit values.** The creation default was once
+spread after the caller's properties and silently overwrote them, so newly created referrers
+were saved as `Needs first contact` instead of `We owe a reply`. The participant side looked
+correct and masked it. Defaults are spread first.
+
+### Still not captured
+
+- `privacy_consent` and `participant_consent_confirmed` are validated but not stored — there is
+  no property for either. `workflow-01-referral.md` §D makes consent a behavioural gate, so
+  this is a real gap, not a cosmetic one.
+- `ndis_plan_status`, `authority_to_act`, `service_region`, `first_response_at`,
+  `ndis_plan_end_date`, `primary_language_other` — not created, not written.
+- The **enquiry form has no honeypot**. The referral form does. Same exposure.
