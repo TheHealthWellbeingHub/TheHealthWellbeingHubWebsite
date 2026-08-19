@@ -492,6 +492,32 @@ function submissionPageUri(req, fallback) {
   }
 }
 
+// A readable name for the page the form was on. The browser sends the real
+// document title, which is the only source that stays correct when a form is
+// dropped onto a page nobody thought about here. It is client-supplied, so it
+// is trimmed, stripped of control characters and capped before it goes
+// anywhere — it lands in HubSpot's form analytics and in a note, never in a
+// field anything branches on.
+function submissionPageName(f, req, fallback) {
+  const raw = typeof f.page_title === 'string' ? f.page_title : '';
+  const cleaned = raw.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (cleaned) return cleaned.slice(0, 120);
+
+  // No title (an old cached page, or a client that stripped it) — derive
+  // something honest from the path rather than claiming a page it wasn't on.
+  const uri = submissionPageUri(req, '');
+  if (uri) {
+    try {
+      const path = new URL(uri).pathname.replace(/^\/|\/$/g, '');
+      if (!path) return 'Home';
+      return path.split('/').join(' — ').replace(/-/g, ' ');
+    } catch {
+      /* fall through */
+    }
+  }
+  return fallback;
+}
+
 async function submitToFormsApi({ formGuid, email, firstname, lastname, pageUri, pageName }) {
   const url = `${FORMS_API_BASE}/submissions/v3/integration/submit/${HUBSPOT_PORTAL_ID}/${formGuid}`;
   const fields = [{ name: 'email', value: email }];
@@ -532,9 +558,10 @@ function consentTaskSubject(f, formName, isReturning) {
   return `Contact REFERRER — participant consent not confirmed: ${who}`;
 }
 
-function buildEnquiryNote(f) {
+function buildEnquiryNote(f, sourcePage) {
   const lines = [
     `Website enquiry submitted ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}`,
+    sourcePage ? `Submitted from: ${sourcePage}` : null,
     f.enquirer_role ? `I am a: ${f.enquirer_role}` : null,
     f.service_needed ? `Service needed: ${f.service_needed}` : null,
     f.suburb ? `Suburb: ${f.suburb}` : null,
@@ -545,9 +572,10 @@ function buildEnquiryNote(f) {
   return lines.join('\n');
 }
 
-function buildReferralNote(f) {
+function buildReferralNote(f, sourcePage) {
   const lines = [
     `Website referral submitted ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}`,
+    sourcePage ? `Submitted from: ${sourcePage}` : null,
     `Referred by: ${f.referrer_name || '(not given)'}${f.referrer_organisation ? ' — ' + f.referrer_organisation : ''}`,
     f.referrer_role ? `Referrer role: ${f.referrer_role}` : null,
     f.referrer_phone ? `Referrer phone: ${f.referrer_phone}` : null,
@@ -620,6 +648,12 @@ module.exports = async (req, res) => {
 
     let contactId, dealId, noteBody, dealName;
 
+    // Which page the form was actually on. Computed once and used everywhere,
+    // so a form dropped onto a service or location page later is attributed to
+    // that page rather than inheriting whichever page was hardcoded here.
+    const sourcePage = submissionPageName(f, req, '');
+    const sourceUrl = submissionPageUri(req, '');
+
     let referrerContactId = null;
     if (formName === 'referral') {
       const contact = f.participant_contact || '';
@@ -629,7 +663,7 @@ module.exports = async (req, res) => {
         phone: looksLikeEmail(contact) ? undefined : contact,
       });
       dealName = `${f.participant_name || 'Referral'} — referred by ${f.referrer_name || 'unknown'}`;
-      noteBody = buildReferralNote(f);
+      noteBody = buildReferralNote(f, sourcePage);
 
       // The referrer is UPSERTED every time, not merely looked up. Without
       // this a referrer who is not already tracked disappears entirely, and
@@ -694,14 +728,21 @@ module.exports = async (req, res) => {
         extraProperties: enquirerExtras,
       });
       dealName = `${f.name || 'Website enquiry'} — ${f.service_needed || 'General enquiry'}`;
-      noteBody = buildEnquiryNote(f);
+      noteBody = buildEnquiryNote(f, sourcePage);
     }
 
     // Write the triage values as PROPERTIES as well as into the note. Same
     // submission, both destinations — see buildTriageProperties above for why.
     try {
       const schema = await getContactSchema();
-      const desired = buildTriageProperties(f, formName, receivedAt);
+      const desired = {
+        ...buildTriageProperties(f, formName, receivedAt),
+        // Which page converted them. Schema-filtered like everything else, so
+        // these stay inert until the properties are created and start
+        // populating the moment they are — see docs/hubspot-manual-setup.md.
+        source_page: sourcePage || null,
+        source_page_url: sourceUrl || null,
+      };
       const writable = filterToWritable(desired, schema);
       if (Object.keys(writable).length) {
         await hs(`/crm/v3/objects/contacts/${contactId}`, {
@@ -800,7 +841,7 @@ module.exports = async (req, res) => {
           firstname,
           lastname,
           pageUri: submissionPageUri(req, 'https://www.thehealthwellbeinghub.com/referrals/'),
-          pageName: 'Refer a participant',
+          pageName: submissionPageName(f, req, 'Refer a participant'),
         });
         acknowledgementStatus = 'pending';
       } catch (err) {
@@ -876,7 +917,7 @@ module.exports = async (req, res) => {
             firstname,
             lastname,
             pageUri: submissionPageUri(req, 'https://www.thehealthwellbeinghub.com/contact/'),
-            pageName: 'Make an NDIS enquiry',
+            pageName: submissionPageName(f, req, 'Make an NDIS enquiry'),
           });
           acknowledgementStatus = 'pending';
         } catch (err) {

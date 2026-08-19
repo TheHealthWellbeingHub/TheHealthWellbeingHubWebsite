@@ -175,6 +175,12 @@
       if (FORM_ENDPOINT) {
         var payload = formDataToJson(form);
         payload.form_name = formName;
+        // Which page this form was actually on. Sent so the same partial can be
+        // dropped onto any page — a service page, a location page — and the
+        // enquiry is attributed to that page rather than to whichever page the
+        // server happens to assume. The server sanitises and caps it, and uses
+        // the request's own Referer for the URL.
+        payload.page_title = document.title;
         fetch(FORM_ENDPOINT, {
           method: 'POST',
           headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
