@@ -109,11 +109,18 @@
     var data = new FormData(form);
     var lines = [];
     data.forEach(function (value, key) {
-      if (key === 'privacy_consent') return;
+      if (key === 'privacy_consent' || key === 'participant_consent_confirmed') return;
       if (!value) return;
       var label = key.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
       lines.push(label + ': ' + value);
     });
+    // Consent is a checkbox, so an unticked box is simply absent from the
+    // FormData. State it either way — "not confirmed" is the case the team
+    // has to act on, and silence would read as an oversight.
+    if (form.querySelector('[name="participant_consent_confirmed"]')) {
+      lines.push('Participant consent confirmed: ' +
+        (data.get('participant_consent_confirmed') ? 'Yes' : 'No — contact the referrer first'));
+    }
     var subject = encodeURIComponent(subjectPrefix + ' — ' + (data.get('name') || 'Website enquiry'));
     var body = encodeURIComponent(lines.join('\n'));
     return 'mailto:' + ENQUIRY_EMAIL + '?subject=' + subject + '&body=' + body;

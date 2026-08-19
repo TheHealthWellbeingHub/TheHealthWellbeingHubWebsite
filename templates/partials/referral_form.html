@@ -78,9 +78,17 @@
       <input type="text" id="rf-company-website" name="company_website"
              tabindex="-1" autocomplete="off">
     </div>
-    <label class="form-consent">
+    <!-- Two separate consents. The first is about the referrer's own details and
+         is required. The second records whether the participant has agreed — it is
+         optional on purpose, so a referrer who has not had that conversation yet can
+         still refer; we contact the referrer first in that case. -->
+    <label class="form-consent form-consent-tight">
       <input type="checkbox" name="privacy_consent" required>
-      <span>I confirm the participant (or their nominee) has consented to this referral, and I've read the <a href="{{ url('/privacy-policy/') }}">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
+      <span>I have read the <a href="{{ url('/privacy-policy/') }}">Privacy Policy</a> and consent to my own details being held. <span aria-hidden="true">*</span></span>
+    </label>
+    <label class="form-consent">
+      <input type="checkbox" name="participant_consent_confirmed">
+      <span>The participant, or their nominee, has agreed to this referral. <span class="form-consent-opt">Optional — if not, we'll contact you first.</span></span>
     </label>
     <button class="form-submit" type="submit">Submit referral</button>
     <div class="form-status" role="status" aria-live="polite"></div>

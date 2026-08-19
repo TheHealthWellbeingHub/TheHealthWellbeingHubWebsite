@@ -505,11 +505,43 @@ spread after the caller's properties and silently overwrote them, so newly creat
 were saved as `Needs first contact` instead of `We owe a reply`. The participant side looked
 correct and masked it. Defaults are spread first.
 
+### Consent — split, shipped
+
+The referral form previously had **one** required checkbox covering two different things:
+"the participant consented" and "I have read the Privacy Policy". Because it was required it
+was always ticked, so any field derived from it would have claimed participant consent on
+every referral, whether or not anyone had asked the participant. Someone would eventually
+have trusted that field.
+
+It is now two checkboxes:
+
+| Field | Required? | Wording | Written as |
+|---|---|---|---|
+| `privacy_consent` | Yes | "I have read the Privacy Policy and consent to my own details being held." | always `true` (submission is rejected with `400` otherwise) |
+| `participant_consent_confirmed` | No | "The participant, or their nominee, has agreed to this referral." | `true` when ticked, `false` when not |
+
+The second is optional and unticked by default on purpose. `workflow-01-referral.md` §D says
+consent is *recorded, never a barrier to submitting* — a GP who thinks a family could use
+support before that conversation has happened should still be able to refer. An absent value
+is written as `false`, not left blank: "not confirmed" is the state the team has to act on,
+and a stale cached page that predates the split also lands on `false`, which is the safe
+direction to be wrong in.
+
+The follow-up task subject changes with it, so the difference is visible without opening the
+contact record:
+
+- consent confirmed → `Contact participant: <name>`
+- not confirmed → `Contact REFERRER — participant consent not confirmed: <name>`
+
+**Still to do in the HubSpot UI:** create both properties as **Single checkbox** on the
+Contact object (`privacy_consent`, `participant_consent_confirmed`). Until they exist,
+`filterToWritable` silently drops both — the task subject still branches correctly, but the
+values are not stored on the record.
+
+**Wording is participant-facing compliance language.** Kholoud should read it. It is the
+sentence a referrer relies on when deciding whether they have done right by the participant.
+
 ### Still not captured
 
-- `privacy_consent` and `participant_consent_confirmed` are validated but not stored — there is
-  no property for either. `workflow-01-referral.md` §D makes consent a behavioural gate, so
-  this is a real gap, not a cosmetic one.
 - `ndis_plan_status`, `authority_to_act`, `service_region`, `first_response_at`,
   `ndis_plan_end_date`, `primary_language_other` — not created, not written.
-- The **enquiry form has no honeypot**. The referral form does. Same exposure.

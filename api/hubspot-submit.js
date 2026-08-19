@@ -250,17 +250,15 @@ function buildTriageProperties(f, formName, receivedAt) {
       : (CONTACT_TYPE_FROM_ENQUIRER_ROLE[f.enquirer_role] || null),
     // Recorded because it was validated above, so by this point it is true.
     privacy_consent: 'true',
-    // Deliberately NOT derived from the privacy checkbox. On the referral form
-    // that one checkbox conflates two things — "the participant consented" and
-    // "I have read the Privacy Policy" — and it is required, so it is always
-    // ticked. Populating this from it would produce a field that always claims
-    // the participant consented, regardless of whether anyone asked them.
-    // Someone would then trust it. It stays null until the form asks
-    // separately; see the drafted split in docs/hubspot-manual-setup.md.
+    // Its own checkbox on the referral form — deliberately separate from the
+    // privacy consent, which is required and so would always read "ticked".
+    // This one is optional and unticked by default, so an absent value means
+    // the referrer did not confirm it, which is recorded as false rather than
+    // left blank: "not confirmed" is the state the team has to act on. A stale
+    // cached page that predates the split also lands here, and false is the
+    // safe direction to be wrong in — it never claims a consent nobody gave.
     participant_consent_confirmed: isReferral
-      ? (f.participant_consent_confirmed === undefined
-          ? null
-          : String(isAffirmative(f.participant_consent_confirmed)))
+      ? String(isAffirmative(f.participant_consent_confirmed))
       : null,
     enquiry_type: isReferral ? 'Referral' : 'New enquiry',
     enquiry_received_at: receivedAt,
