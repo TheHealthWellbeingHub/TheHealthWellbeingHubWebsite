@@ -112,7 +112,7 @@ nobody reads is the same as no alert at all.
 | Four `latest_enquiry_*` properties | **done**, verified writing |
 | Subscription type *Enquiry acknowledgements* | **done** |
 | Marketing email 03 | **built** — object `709156560372`, verified rendering |
-| The workflow | **not built** — the only step left |
+| The workflow | **live** — verified sending 19 Aug 2026 |
 
 Verified against production on 19 Aug 2026, `ENQ-2026-287456717249`:
 
@@ -356,6 +356,48 @@ problem above was caught.
 
 ---
 
+## Verified end to end — 19 Aug 2026
+
+One real submission through the live site, `ENQ-2026-287449341380`, contact `346322043349`:
+
+```
+recipient:      true
+deliveryStatus: DELIVERED
+SENT      1787113320662
+DELIVERED 1787113323808
+```
+
+Every stage confirmed: endpoint → contact, deal, note, task → merge properties → Forms API
+enrolment (`hs_marketable_reason_type: FORM_SUBMISSION`) → workflow → email sent and delivered.
+
+### Diagnosing "it enrolled but nothing sent"
+
+Three earlier runs produced a correct CRM record and no email, because **the workflow had not
+been switched on**. Worth recording how that was told apart from the analytics lag that made
+workflow 01 look broken when it was fine:
+
+- **Per-recipient, not aggregate.** `RECIPIENTS` mode for the email + contact returns
+  `recipient: false` versus a full `SENT`/`DELIVERED` timeline. Aggregate counters lag; this
+  is a direct read.
+- **Compare against a known-good email in the same window.** Email 02 reported
+  `totalScheduled: 12` for the same day while email 03 had *no analytics row at all*. That
+  rules out the reporting pipeline being behind — one email had data, the other had none.
+- **Check the enrolment trigger separately from the send.** `hs_marketable_reason_type:
+  FORM_SUBMISSION` on the contact proves the Forms API submission arrived and matched. With
+  that confirmed, everything before HubSpot is exonerated and the fault is downstream.
+
+Also note: **re-testing with the same contact proves nothing.** Simple workflows do not
+re-enrol a contact who has already been through, so a second submission on the same email
+address is silently a no-op. Use a fresh address — a Gmail `+tag` address is a distinct
+contact in HubSpot but the same inbox, so it enrols cleanly and still delivers somewhere
+readable.
+
+**The form panel's "Update" button updates the form, not the workflow.** The workflow's own
+switch lives in the workflow editor. The form's review panel does show workflow state — it
+read `● Off` throughout the three failed runs.
+
+---
+
 ## Failure modes
 
 Those in workflow 01 §"Failure modes" apply unchanged. Two are specific to this workflow:
@@ -373,8 +415,10 @@ system failed — and neither would we, from a log line alone.
 
 ## Open
 
-- **The workflow is not built.** The only remaining step.
 - **Copy is unreviewed.** Participant-facing; needs Kholoud.
+- **Inbox placement unconfirmed.** The delivery record proves the receiving server accepted
+  it, not that it landed outside spam. Email 03 has its own sending reputation to build even
+  though the domain is authenticated.
 - **`first_response_at`** is not stamped for enquiries any more than for referrals — the
   webhook action that would report an actual send does not exist on Starter. Same accepted
   consequence as workflow 01: the timestamp would evidence dispatch, not delivery.
