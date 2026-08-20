@@ -93,37 +93,66 @@ belong to the account, not to the address.
 second route to password reset. Consolidation is about which address is *primary*, not about
 deleting every other one.
 
-### Worth knowing: the repo is on one personal account
+> **This step spends the office@ address.** GitHub verifies any given email address on exactly
+> one account. Once `officethehealthwellbeinghub@gmail.com` is verified here, it cannot be used
+> to create or sign in as any *other* GitHub account — including the org's second Owner below.
+> That step needs a different address; see "The second Owner cannot use the consolidation
+> address".
 
-Because this is a personal account rather than an organisation, the repository — the entire
-website and its deployment source — depends on one individual login. An organisation can have
-several owners; a personal account cannot.
+### The repo now lives in an organisation — **done 20 Aug 2026**
 
-That is the same single-point-of-failure pattern as the GTM container, and it is not solved by
-changing the email on it.
+Because the account above is a personal one rather than an organisation, the repository — the
+entire website and its deployment source — depended on a single individual login. An organisation
+can have several owners; a personal account cannot.
 
 **GitHub does not allow converting a personal account into an organisation** — its own settings
 page states this plainly. The only route is to create an organisation and transfer the
-repositories into it.
+repositories into it. The organisation **`TheHealthWellbeingHub`** (no hyphens) already existed,
+with the personal account as Owner, so the move was a transfer rather than a conversion.
 
-An organisation already exists: **`TheHealthWellbeingHub`** (no hyphens), with the personal
-account listed as Owner. So the move is a repository transfer, not a conversion:
+What was done, and confirmed:
 
 1. Repo → **Settings → General → Danger Zone → Transfer ownership** → `TheHealthWellbeingHub`.
-2. The URL changes from `github.com/The-Health-Wellbeing-Hub/…` to
-   `github.com/TheHealthWellbeingHub/…`. GitHub redirects the old paths, but two things point at
-   this repo and should be re-checked afterwards: **Vercel's Git integration** (which deploys the
-   site) and this session's repo scope.
-3. GitHub also supports renaming both the personal account and the organisation afterwards if
-   the org should end up with the current hyphenated name.
+   The URL is now `github.com/TheHealthWellbeingHub/TheHealthWellbeingHubWebsite`; GitHub
+   redirects the old `The-Health-Wellbeing-Hub/…` paths.
+2. **Vercel's Git integration broke on the transfer, and has been reconnected.** This was not
+   optional housekeeping — the deploy pipeline follows the repo through its GitHub connection,
+   and transferring ownership severs it. Until it was relinked, pushes deployed nothing.
+3. **Production branch re-verified** as `claude/health-wellbeing-hub-site-f84rj6` after the
+   reconnect. Relinking a Git integration can reset this to the repo's default branch, which
+   would quietly start publishing the wrong branch to the live domain. Check it; do not assume
+   it survived.
+4. **A second Owner was added, and both Owners have 2FA enabled.**
 
-**The transfer alone does not create redundancy.** An organisation only helps if it has more
-than one Owner — otherwise it is the same single login wearing a different hat. Add a second
-Owner as part of doing this, or the exercise is cosmetic.
+**The transfer on its own creates no redundancy.** An organisation only helps if it has more than
+one Owner — otherwise it is the same single login wearing a different hat. That is why step 4 is
+part of the work rather than a nicety.
 
-**Timing: after the campaign.** It changes the repository URL that the deployment pipeline
-depends on, which is not a thing to do in the same fortnight as a campaign send and a
-seven-platform login migration.
+#### The second Owner cannot use the consolidation address
+
+This is the one trap in working through both halves of this page, and it is easy to walk into:
+
+- Section 2 above makes `officethehealthwellbeinghub@gmail.com` the **primary address of the
+  personal account**.
+- GitHub verifies an email address on **exactly one account**, and refuses it on a second.
+
+So the org's second Owner is necessarily a **different GitHub account with a different verified
+email address**. There is no arrangement in which the consolidation address holds both. This does
+not conflict with the goal of this page: consolidation is about collapsing *one person's* seven
+logins onto one address, whereas a second Owner exists precisely so that it is not that person.
+
+**Do not work around it with a `+` alias on the same mailbox** (`office+github@gmail.com` and
+similar). GitHub accepts it, and it defeats the entire point: both accounts would then be
+recoverable only through the office@ inbox, so losing that inbox loses both Owners at once. The
+second Owner needs a mailbox that fails independently of the first — ideally belonging to a
+second person.
+
+> **Still to record:** which address the second Owner actually uses. Two Owners only help if
+> someone can say whose they are a year from now, and it is not recoverable from this document.
+
+Sequencing note, kept as a record: this was deliberately held until after the campaign send,
+because it changes the repository URL the deployment pipeline depends on — not something to do in
+the same fortnight as a campaign and a seven-platform login migration.
 
 ---
 
@@ -232,7 +261,8 @@ the one where creating a fresh account loses things silently.
 Least dangerous first, so a mistake is cheap:
 
 1. **Wix** — lowest stakes, and it exercises the process
-2. **GitHub** — org invite, easy to verify and easy to undo
+2. **GitHub** — email change on the personal account, easy to verify and easy to undo
+   (the org transfer and its second Owner are a separate piece of work — see section 2)
 3. **Vercel** — verify by watching a deploy complete
 4. **Supabase** — verify by loading the provider directory, which reads from it
 5. **Google** — GA4 first, then GTM if the container owner can be found
