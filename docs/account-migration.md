@@ -34,25 +34,162 @@ owned by an account nobody available can sign into — see "What this does not f
 
 ---
 
-## Per service
+## Step 0 — before touching any platform
 
-| Service | Can the login email change? | What to actually do |
-|---|---|---|
-| **GitHub** | Yes | The repo lives in the `The-Health-Wellbeing-Hub` **org**, so org ownership matters more than any personal login. Invite the new account as an org **Owner**, verify, then remove the old |
-| **Vercel** | No — team-based | Project is on the **TheHealthWellnessBeingHub** team. Invite the new address as **Owner**, verify a deploy, remove the old member. Env vars and deployments belong to the project, not to a person |
-| **Supabase** | No — org-based | Invite the new address to the org as **Owner**, verify, remove the old |
-| **Wix** | Yes | Account email is changeable in account settings; Wix also supports transferring a site between accounts |
-| **Google** (GTM + GA4) | **No** | Account emails cannot be changed. Add the new address as a user: GTM → Admin → User Management (**Publish**); GA4 → Admin → Property access management (**Administrator**) |
-| **HubSpot** | **No** | A HubSpot user's email cannot be changed. Invite a **new user**, give them **Super Admin**, verify, then deactivate the old one |
-| **Claude** | Probably not self-serve | Check Settings → Account first. If there is no option it is a support request. The Claude Code subscription and history are tied to the account — confirm before doing anything irreversible |
+1. Create `officethehealthwellbeinghub@gmail.com`.
+2. Turn on **2FA with an authenticator app**, not SMS.
+3. Set a recovery phone and recovery email.
+4. Save the backup codes somewhere that is **not** that inbox.
+5. Set forwarding to `hello@thehealthwellbeinghub.com` and **send a test to confirm it
+   delivers**.
 
-### HubSpot — two things to check first
+Keep direct sign-in to the office@ inbox working throughout. Password resets, verification links
+and 2FA codes all land there, and being unable to read it after adding the new account but
+before removing the old one is the one genuinely bad failure in this process.
 
-- The portal is **Starter Customer Platform at A$16/seat/month**. A second user may add cost
-  while both exist.
-- The **private app token** used by `api/hubspot-submit.js` belongs to the portal, not to a user,
-  so it should survive. Confirm it before removing the old user by putting a real enquiry through
-  the live form and checking the record appears.
+---
+
+## Two different mechanisms
+
+Worth understanding before starting, because it decides what each step looks like:
+
+- **Change the email on the existing account.** Keeps all history, permissions and settings —
+  it is the same account with a new address. Simplest where available.
+- **Add a new account, then remove the old.** Required where the platform refuses email changes.
+  Permissions have to be granted to the new account explicitly.
+
+---
+
+## 1. Wix — change the email
+
+Lowest stakes, do it first to feel out the process.
+
+1. Sign in at **manage.wix.com** as the current owner.
+2. Top-right avatar → **Account Settings** (or go to `manage.wix.com/account/account-settings`).
+3. Find **Account email** → **Change email**.
+4. Enter `officethehealthwellbeinghub@gmail.com`, confirm with your password.
+5. Open the verification email **in the office@ inbox** and click the link.
+6. **Verify:** sign out entirely, sign back in with the new address, and confirm the site is
+   still listed and editable.
+
+---
+
+## 2. GitHub — change the email, then check the org
+
+The repo lives in the **`The-Health-Wellbeing-Hub`** organisation, which is separate from your
+personal login. Changing your email does not affect org membership.
+
+1. Sign in to GitHub as the current account.
+2. **Settings → Emails → Add email address** → `officethehealthwellbeinghub@gmail.com`.
+3. Verify it from the office@ inbox.
+4. Back on the same page, set it as **Primary email**.
+5. Optionally remove the old address once the new one is primary.
+6. **Check the org:** github.com/orgs/The-Health-Wellbeing-Hub/people — confirm your account is
+   still listed as **Owner**.
+7. **Verify:** push a commit, or open the repo and confirm you can still edit a file.
+
+Your username, commit history, and the GitHub App that Claude Code uses are all unaffected —
+they belong to the account and the org, not to the address.
+
+---
+
+## 3. Vercel — change the email
+
+The project sits on the **TheHealthWellnessBeingHub** team. Team membership follows the user, so
+changing your account email carries it across.
+
+1. Sign in at **vercel.com**.
+2. Avatar top-right → **Account Settings**.
+3. Under **General**, find **Email** → change to the new address.
+4. Verify from the office@ inbox.
+5. **Verify:** open the `health-wellbeing-hub` project and confirm you can see Deployments and
+   **Settings → Environment Variables**. The `HUBSPOT_TOKEN` and related variables belong to the
+   project, not to you, so they should be untouched — but confirm they are still listed.
+6. **Real check:** trigger a deploy (push any commit) and watch it complete.
+
+---
+
+## 4. Supabase — check how you sign in first
+
+**If you sign in to Supabase with GitHub**, there is nothing to do here — step 2 already handled
+it, because Supabase reads the address from GitHub. Confirm by signing out and back in.
+
+If you sign in with an email and password:
+
+1. Sign in at **supabase.com/dashboard**.
+2. Account preferences → **Account Settings** → change the email, verify from office@.
+
+If the email cannot be changed on your plan, use the org route instead:
+
+1. **Organization → Team → Invite member** → `officethehealthwellbeinghub@gmail.com` → role
+   **Owner**.
+2. Accept from the new account, confirm it can see the project.
+3. Remove the old member.
+
+**Verify:** load `https://www.thehealthwellbeinghub.com/provider-directory/` and confirm
+provider listings render. That page reads directly from Supabase, so listings appearing means
+the project and its API keys are intact.
+
+---
+
+## 5. Google — cannot be changed, add a user instead
+
+Google account emails cannot be changed, so the new address is **added** as a user.
+
+### GA4
+
+1. **analytics.google.com** → **Admin** (cog, bottom-left).
+2. Under *Property settings* → **Property access management**.
+3. **+** (top right) → **Add users** → `officethehealthwellbeinghub@gmail.com`.
+4. Role: **Administrator**. Send.
+5. Accept from the new account.
+6. **Verify:** sign in as the new account and confirm you can open
+   *Admin → Custom definitions*.
+
+### GTM — currently blocked
+
+`GTM-NKMLMGDT` is owned by an account that neither `hello@` nor the personal Gmail can see. Adding
+a new identity does not grant access it was never given. See "What this does not fix" below.
+
+Once someone with access is found: **GTM → Admin → User Management → +** →
+`officethehealthwellbeinghub@gmail.com` → **Publish**.
+
+---
+
+## 6. HubSpot — cannot be changed, new user required
+
+Leave a clear day for this one. It is the most consequential and it holds participant data.
+
+**Before starting:** the portal is **Starter Customer Platform at A$16/seat/month**. Adding a
+second user may add cost while both exist. Check the billing screen first.
+
+1. Sign in to HubSpot as the current Super Admin.
+2. ⚙ **Settings → Users & Teams**.
+3. **Create user** → `officethehealthwellbeinghub@gmail.com`.
+4. Permissions: **Super Admin**.
+5. Send the invite; accept it from the office@ inbox and set a password.
+6. **Verify, thoroughly, before removing anything.** Signed in as the new user, confirm you can
+   reach: Contacts, Deals, Marketing → Forms, Marketing → Marketing Email, Automation →
+   Workflows, and ⚙ Settings → Properties.
+7. **Then run the real check** — submit the live enquiry form at
+   `https://www.thehealthwellbeinghub.com/contact/` and confirm the contact, deal, note,
+   follow-up task **and the acknowledgement email** all appear. This proves the private app
+   token behind `api/hubspot-submit.js` still works, which is the thing most likely to be
+   disturbed.
+8. Only once all of that passes: **Settings → Users & Teams → the old user → Deactivate**.
+
+Do not delete the old user until at least a week has passed without problems.
+
+---
+
+## 7. Claude — check what is transferable first
+
+1. **claude.ai → Settings → Account** and look for an email change option.
+2. If there is none, it is a support request rather than a self-serve change.
+
+Your Claude Code subscription, conversation history and published artifacts are tied to the
+account. Confirm what does and does not move **before** doing anything irreversible — this is
+the one where creating a fresh account loses things silently.
 
 ---
 
