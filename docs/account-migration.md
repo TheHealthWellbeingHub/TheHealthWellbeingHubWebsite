@@ -295,6 +295,34 @@ authenticated as the current identity. All will need reconnecting after the migr
 rather than being surprised by it, and note that the HubSpot connector's marketing-email write
 scope was already lost on 20 Aug 2026 and needs a full re-authorisation regardless.
 
+### The org transfer severs integrations — silently
+
+Confirmed 20 Aug 2026, and worth generalising: **transferring the repo to the organisation broke
+every integration holding a token scoped to the old personal account.** Two were found, and only
+one announced itself:
+
+- **Vercel's Git integration** — broke visibly, and was reconnected. Deploys stopped until it was.
+- **Claude Code's GitHub write access** — broke *silently*. Reads kept working, so nothing looked
+  wrong until a push returned `403`, and the API returned
+  `Resource not accessible by integration`. The GitHub App was installed on the old personal
+  account; a repository transfer does not carry the installation across to the organisation.
+
+The lesson is the failure mode, not the list: **read access surviving is not evidence that write
+access survived.** After any transfer, exercise a *write* against every integration — a push, a
+deploy, a form submission — rather than checking that things still load.
+
+Assume anything else authenticated against the old owner is in the same state until a write
+proves otherwise.
+
+**Reconnecting it (personal account):** claude.ai → **Settings → Connectors → GitHub** →
+reconnect. On GitHub's authorise screen, grant the app access to the **`TheHealthWellbeingHub`
+organisation**, not only the personal account, and include the `TheHealthWellbeingHubWebsite`
+repository. An org Owner can install it on the org themselves.
+
+> **Not the admin route.** `claude.ai/admin-settings/claude-tag` is for Claude **Team or
+> Enterprise** workspaces and returns a "Set up Claude Tag" prompt on a personal account. It is
+> not the fix here, and following it wastes a sitting.
+
 ---
 
 ## What this does **not** fix
