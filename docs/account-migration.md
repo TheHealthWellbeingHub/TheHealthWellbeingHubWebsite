@@ -100,9 +100,30 @@ website and its deployment source — depends on one individual login. An organi
 several owners; a personal account cannot.
 
 That is the same single-point-of-failure pattern as the GTM container, and it is not solved by
-changing the email on it. Converting the account to an organisation, or transferring the repo
-into one, is the durable fix. Not urgent, but worth doing before the business depends on this
-any more heavily than it already does.
+changing the email on it.
+
+**GitHub does not allow converting a personal account into an organisation** — its own settings
+page states this plainly. The only route is to create an organisation and transfer the
+repositories into it.
+
+An organisation already exists: **`TheHealthWellbeingHub`** (no hyphens), with the personal
+account listed as Owner. So the move is a repository transfer, not a conversion:
+
+1. Repo → **Settings → General → Danger Zone → Transfer ownership** → `TheHealthWellbeingHub`.
+2. The URL changes from `github.com/The-Health-Wellbeing-Hub/…` to
+   `github.com/TheHealthWellbeingHub/…`. GitHub redirects the old paths, but two things point at
+   this repo and should be re-checked afterwards: **Vercel's Git integration** (which deploys the
+   site) and this session's repo scope.
+3. GitHub also supports renaming both the personal account and the organisation afterwards if
+   the org should end up with the current hyphenated name.
+
+**The transfer alone does not create redundancy.** An organisation only helps if it has more
+than one Owner — otherwise it is the same single login wearing a different hat. Add a second
+Owner as part of doing this, or the exercise is cosmetic.
+
+**Timing: after the campaign.** It changes the repository URL that the deployment pipeline
+depends on, which is not a thing to do in the same fortnight as a campaign send and a
+seven-platform login migration.
 
 ---
 
