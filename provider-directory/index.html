@@ -859,6 +859,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // The first page is rendered immediately via onFirstPage so the user sees
   // results right away instead of waiting for the whole table; remaining
   // pages stream in afterwards via onNextPage without disrupting the view.
+  // Set once the first page has landed; calling it starts the remaining pages.
+  // Null until then, so `backgroundWanted` records an early request (a visitor
+  // who types before page one has arrived) and it fires as soon as it can.
+  var beginBackgroundFetch = null;
+  var backgroundWanted = false;
+
+  function loadFullTable() {
+    if (beginBackgroundFetch) beginBackgroundFetch();
+    else backgroundWanted = true;
+  }
+
   function streamAllProviders(onFirstPage, onNextPage, onError, onComplete) {
     var BATCH = 1000;
     var CONCURRENCY = 4;
@@ -915,6 +926,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       var nextFetchOffset = BATCH;
       var inFlight = 0;
       var stopped = false;
+      var backgroundStarted = false;
 
       function launchNext() {
         if (stopped) return;
@@ -937,7 +949,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           if (inFlight === 0) onComplete();
         });
       }
-      for (var i = 0; i < CONCURRENCY; i++) launchNext();
+      // The remaining ~47 pages are NOT fetched on load. Pulling the whole
+      // table eagerly cost every visitor ~24 MB (48 pages x ~535 KB) whether
+      // or not they ever searched — slow and expensive on a phone on mobile
+      // data, which is how most people arriving from an email will see this.
+      //
+      // Someone who lands, looks at the first screen and leaves now costs one
+      // page. The rest load the moment they do something that needs them:
+      // search, filter, or scroll past what is already rendered. Filtering is
+      // client-side, so a filter genuinely does need the full table — it just
+      // no longer loads before anyone has asked for anything.
+      beginBackgroundFetch = function () {
+        if (backgroundStarted || stopped) return;
+        backgroundStarted = true;
+        for (var i = 0; i < CONCURRENCY; i++) launchNext();
+      };
+      if (backgroundWanted) beginBackgroundFetch();
     }).catch(onError);
   }
 
@@ -1322,6 +1349,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // added up to real, repeated cost during sustained fast scrolling.
   var sentinelNearViewport = false;
   function maybeLoadMore() {
+    // Scrolling toward the end of what is loaded is the third thing that means
+    // "this visitor needs more than page one" — alongside searching and
+    // filtering. Requested well before the last card so the next pages are in
+    // flight by the time they are reached, rather than stalling at row 1,000.
+    if (sentinelNearViewport && renderedCount > 120) loadFullTable();
     if (loadScheduled || renderedCount >= currentFiltered.length) return;
     if (!sentinelNearViewport) return;
     loadScheduled = true;
@@ -1476,12 +1508,81 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     appendNextBatch();
   }
 
-  searchInput.addEventListener('input', applyFilters);
-  document.getElementById('dirSearchBtn').addEventListener('click', applyFilters);
-  locationFilter.addEventListener('change', applyFilters);
-  stateFilter.addEventListener('change', applyFilters);
-  serviceFilter.addEventListener('change', applyFilters);
-  ndisFilter.addEventListener('change', applyFilters);
+  // ── Analytics ──────────────────────────────────────────────────────────
+  // The directory is the strategic play — the reason to be the helpful hub
+  // rather than only a seller — and until now nothing on this page reported
+  // anything, so "did anyone actually use it" was unanswerable.
+  //
+  // Deliberately NOT sent: the raw search term. README-SEO records a verified
+  // property that no dataLayer payload carries visitor-entered text, and a
+  // search box is visitor-entered. The filters below are dropdowns with fixed
+  // values, so they give structured intent without breaking that. Provider
+  // names are public business records, not visitor data.
+  function dirTrack(event, params) {
+    window.dataLayer = window.dataLayer || [];
+    var payload = { event: event };
+    for (var k in params) { if (params[k] !== '' && params[k] != null) payload[k] = params[k]; }
+    window.dataLayer.push(payload);
+  }
+
+  // One event per search, not one per keystroke.
+  var searchTrackTimer;
+  function trackSearch() {
+    clearTimeout(searchTrackTimer);
+    searchTrackTimer = setTimeout(function () {
+      if (!searchInput.value.trim()) return;
+      dirTrack('directory_search', {
+        result_count: currentFiltered.length,
+        has_results: currentFiltered.length > 0
+      });
+    }, 900);
+  }
+
+  function trackFilter(name, value) {
+    if (!value && value !== true) return;
+    dirTrack('directory_filter', {
+      filter_name: name,
+      filter_value: String(value),
+      result_count: currentFiltered.length
+    });
+  }
+
+  // Clicking a provider's own website is the clearest signal the directory did
+  // its job — someone came here and left for a provider they found.
+  grid.addEventListener('click', function (e) {
+    var link = e.target.closest ? e.target.closest('a[href^="http"]') : null;
+    if (!link) return;
+    var card = link.closest('.dir-card');
+    var heading = card && card.querySelector('h3');
+    dirTrack('directory_result_click', {
+      provider_name: heading ? heading.textContent.trim().slice(0, 120) : '',
+      link_url: link.getAttribute('href')
+    });
+  });
+
+  // ── Filter handlers ───────────────────────────────────────────────────────
+  // Each one also asks for the rest of the table: filtering is client-side, so
+  // a search across only the first 1,000 rows would quietly under-report.
+  function onSearch() {
+    loadFullTable();
+    applyFilters();
+    trackSearch();
+  }
+  searchInput.addEventListener('input', onSearch);
+  document.getElementById('dirSearchBtn').addEventListener('click', onSearch);
+
+  function onFilterChange(select, name) {
+    return function () {
+      loadFullTable();
+      applyFilters();
+      trackFilter(name, select === ndisFilter ? select.checked : select.value);
+    };
+  }
+  locationFilter.addEventListener('change', onFilterChange(locationFilter, 'location'));
+  stateFilter.addEventListener('change', onFilterChange(stateFilter, 'state'));
+  serviceFilter.addEventListener('change', onFilterChange(serviceFilter, 'service'));
+  ndisFilter.addEventListener('change', onFilterChange(ndisFilter, 'ndis_approved_only'));
+
   document.getElementById('dirClearFilters').addEventListener('click', function () {
     searchInput.value = ''; locationFilter.value = ''; stateFilter.value = ''; serviceFilter.value = ''; ndisFilter.checked = false;
     applyFilters();
