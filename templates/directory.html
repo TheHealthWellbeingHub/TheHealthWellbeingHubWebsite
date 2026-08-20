@@ -1060,11 +1060,13 @@
   // rather than only a seller — and until now nothing on this page reported
   // anything, so "did anyone actually use it" was unanswerable.
   //
-  // Deliberately NOT sent: the raw search term. README-SEO records a verified
-  // property that no dataLayer payload carries visitor-entered text, and a
-  // search box is visitor-entered. The filters below are dropdowns with fixed
-  // values, so they give structured intent without breaking that. Provider
-  // names are public business records, not visitor data.
+  // The search term IS sent — knowing what people look for is the point of
+  // instrumenting a directory. It is the only visitor-entered text this site
+  // reports anywhere, so it is normalised and guarded first, and README-SEO
+  // has been updated to say so rather than left claiming otherwise.
+  //
+  // Provider names in directory_result_click are public business records, not
+  // visitor data. The filters are fixed-value dropdowns.
   function dirTrack(event, params) {
     window.dataLayer = window.dataLayer || [];
     var payload = { event: event };
@@ -1072,13 +1074,32 @@
     window.dataLayer.push(payload);
   }
 
+  // Lower-cased so "Occupational Therapy" and "occupational therapy" aggregate
+  // as one term rather than two rows in a report.
+  //
+  // This box is for provider names and service types. An email address or a
+  // long run of digits is far likelier to be someone mistakenly typing their
+  // own details — a phone number, an NDIS number — than a search, and this
+  // site's one hard rule is that participant details do not leave it. Those
+  // are replaced rather than sent. Four digits stays intact so postcodes,
+  // which are a legitimate and useful search, still report.
+  function safeSearchTerm(raw) {
+    var t = String(raw || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    if (!t) return '';
+    if (t.indexOf('@') !== -1) return '[redacted]';
+    if (/\d{6,}/.test(t)) return '[redacted]';
+    return t.slice(0, 80);
+  }
+
   // One event per search, not one per keystroke.
   var searchTrackTimer;
   function trackSearch() {
     clearTimeout(searchTrackTimer);
     searchTrackTimer = setTimeout(function () {
-      if (!searchInput.value.trim()) return;
+      var term = safeSearchTerm(searchInput.value);
+      if (!term) return;
       dirTrack('directory_search', {
+        search_term: term,
         result_count: currentFiltered.length,
         has_results: currentFiltered.length > 0
       });

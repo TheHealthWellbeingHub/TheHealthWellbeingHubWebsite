@@ -52,14 +52,30 @@ for every trackable interaction (see `static/js/main.js`):
 | `enquiry_submitted` | successful enquiry form submit only (never on click/validation-fail) |
 | `referral_submitted` | successful referral form submit only |
 | `generate_lead` | pushed alongside enquiry/referral submit, with `lead_type` — not yet wired to a GTM trigger, reserved for a future Google Ads "import from GA4" conversion |
+| `directory_search` | provider directory search, debounced — carries `search_term`, `result_count`, `has_results` |
+| `directory_filter` | provider directory location/state/service/NDIS filter change — carries `filter_name`, `filter_value`, `result_count` |
+| `directory_result_click` | click through to a provider's own website from a directory card — carries `provider_name`, `link_url` |
+
+The three `directory_*` events were added 20 Aug 2026 and **still need GTM
+triggers**; until those exist they fire into the dataLayer and go nowhere.
 
 Every trackable element also carries `data-track-location` (e.g.
 `nav`, `sticky_mobile_bar`, `service_hero`) so GA4 can show which part of
-the site is driving conversions. None of these payloads ever include
-visitor-entered form data (name/phone/email/message) — verified by
-submitting the enquiry form with realistic PII and confirming the
-dataLayer payload only ever contains `event`/`form_name`/
-`delivery_method`/`lead_type`/`link_location`/`link_url`.
+the site is driving conversions. **No form payload ever includes
+visitor-entered data** (name/phone/email/message) — verified by submitting
+the enquiry form with realistic PII and confirming the dataLayer payload
+only ever contains `event`/`form_name`/`delivery_method`/`lead_type`/
+`link_location`/`link_url`.
+
+**One deliberate exception, added 20 Aug 2026:** `directory_search` carries
+the visitor's `search_term`, because what people look for in the provider
+directory is the whole point of instrumenting it. It is the only
+visitor-entered text this site reports anywhere. It is lower-cased so terms
+aggregate, capped at 80 characters, and replaced with `[redacted]` if it
+contains an `@` or a run of six or more digits — an email address, a phone
+number or an NDIS number is far likelier to be someone mistyping their own
+details into the search box than a genuine search. Four-digit runs pass
+through so postcode searches still report.
 
 GTM triggers are Custom Event triggers matching the event names above
 exactly (case-sensitive). GA4 Event tags map `enquiry_submitted` and
