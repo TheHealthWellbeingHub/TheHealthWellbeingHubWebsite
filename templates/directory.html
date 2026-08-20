@@ -351,26 +351,30 @@
     select.value = current;
   }
 
-  // Source rows carry plenty of blanks, and a few profession values arrive with
-  // stray leading or trailing commas (", Cleaner, Gardener"). Tidy once here so
-  // every consumer sees either a real value or an empty string, rather than
-  // each render site guessing.
-  function clean(value) {
-    if (value == null) return '';
-    return String(value).replace(/\s+/g, ' ').replace(/^[\s,]+|[\s,]+$/g, '').trim();
-  }
-
+  // mapRow runs on EVERY row — all ~47,848 of them, in pages, on the main
+  // thread while the user is already scrolling. Anything done here is paid
+  // ~48,000 times, so it stays a plain field copy. Tidying values (trimming
+  // blanks, stripping the stray commas some profession values carry) happens
+  // at render time instead, where it is paid only for the cards actually in
+  // the DOM — capped at MAX_RENDERED, currently 60.
   function mapRow(row) {
     return {
-      name: clean(row.name), service: clean(row.service), suburb: clean(row.suburb),
-      state: clean(row.state), postcode: clean(row.postcode),
-      ndis: row.ndis, rating: Number(row.rating), reviews: row.reviews,
-      phone: clean(row.phone), email: clean(row.email),
-      website: clean(row.website), abn: clean(row.abn), hours: row.hours || [],
-      profession: clean(row.profession),
-      regGroups: (row.reg_groups || []).map(clean).filter(Boolean),
-      status: clean(row.status), desc: clean(row.description)
+      name: row.name, service: row.service, suburb: row.suburb, state: row.state, postcode: row.postcode,
+      ndis: row.ndis, rating: Number(row.rating), reviews: row.reviews, phone: row.phone, email: row.email,
+      website: row.website, abn: row.abn, hours: row.hours || [], profession: row.profession,
+      regGroups: row.reg_groups || [], status: row.status, desc: row.description
     };
+  }
+
+  // Render-time tidying. Cheap here: at most MAX_RENDERED cards exist at once.
+  function text(value) {
+    return value == null ? '' : String(value).trim();
+  }
+
+  // Some profession values arrive as ", Cleaner, Gardener" — a leading or
+  // trailing separator from the source export.
+  function tidyList(value) {
+    return text(value).replace(/^[\s,]+|[\s,]+$/g, '');
   }
 
   function refreshFilterOptions() {
@@ -560,7 +564,14 @@
   // on first click instead, reading straight from currentFiltered (safe:
   // rows only ever append, and a filter change clears and re-renders the
   // grid before idx could point at a different item).
-  function renderRegGroups(groups, idx) {
+  // Blank entries are dropped here rather than in mapRow — same reason as the
+  // rest of the tidying: mapRow is on the ~48,000-row path, this is not.
+  function cleanGroups(groups) {
+    return (groups || []).map(text).filter(Boolean);
+  }
+
+  function renderRegGroups(rawGroups, idx) {
+    var groups = cleanGroups(rawGroups);
     // An empty registration group is a gap in the source data, not a statement
     // that the provider holds none. Omit it, as the rating and hours rows do.
     if (!groups.length) return '';
@@ -583,7 +594,7 @@
     var full = document.getElementById('dir-reg-' + idx + '-full');
     var showingFull = full.style.display !== 'none';
     if (!showingFull && !full.dataset.built) {
-      full.innerHTML = currentFiltered[idx].regGroups.join(', ') +
+      full.innerHTML = cleanGroups(currentFiltered[idx].regGroups).join(', ') +
         ' <button class="show-toggle" onclick="dirToggleReg(' + idx + ')">show less</button>';
       full.dataset.built = '1';
     }
@@ -632,24 +643,27 @@
     // has nothing, show nothing. Rendering the label alone produced cards
     // reading "ABN:" and "Profession:" with empty space after them, which reads
     // as a broken page rather than as missing data.
-    var locationBits = [p.suburb, p.state, p.postcode].filter(Boolean);
+    var locationBits = [text(p.suburb), text(p.state), text(p.postcode)].filter(Boolean);
     var locationRow = locationBits.length
       ? '<div class="dir-info-row">' + ICONS.pin + '<div class="lines">' + locationBits.join(', ') + '</div></div>'
       : '';
 
-    var phoneRow = p.phone
-      ? '<div class="dir-info-row">' + ICONS.phone + '<div class="lines">' + p.phone + '</div></div>'
+    var phone = text(p.phone);
+    var phoneRow = phone
+      ? '<div class="dir-info-row">' + ICONS.phone + '<div class="lines">' + phone + '</div></div>'
       : '';
 
-    var abnRow = p.abn
-      ? '<div class="dir-info-row">' + ICONS.bank + '<div class="lines">ABN: ' + p.abn + '</div></div>'
+    var abn = text(p.abn);
+    var abnRow = abn
+      ? '<div class="dir-info-row">' + ICONS.bank + '<div class="lines">ABN: ' + abn + '</div></div>'
       : '';
 
     // The wrapper is guarded too, not just the row — an empty .dir-info-list
     // still draws its border and padding, leaving a stray rule across the card.
-    var professionBlock = p.profession
+    var profession = tidyList(p.profession);
+    var professionBlock = profession
       ? '<div class="dir-info-list" style="border-top:none;padding-top:0;">' +
-          '<div class="dir-info-row">' + ICONS.briefcase + '<div class="lines">Profession: ' + p.profession + '</div></div>' +
+          '<div class="dir-info-row">' + ICONS.briefcase + '<div class="lines">Profession: ' + profession + '</div></div>' +
         '</div>'
       : '';
 
@@ -657,7 +671,8 @@
       ? '<div class="dir-info-list">' + locationRow + phoneRow + abnRow + '</div>'
       : '';
 
-    var descBlock = p.desc ? '<div class="dir-card-desc">' + p.desc + '</div>' : '';
+    var desc = text(p.desc);
+    var descBlock = desc ? '<div class="dir-card-desc">' + desc + '</div>' : '';
 
     return (
       '<div class="dir-card" onclick="dirHandleCardClick(event, ' + idx + ')">' +
