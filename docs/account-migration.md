@@ -74,22 +74,35 @@ Lowest stakes, do it first to feel out the process.
 
 ---
 
-## 2. GitHub — change the email, then check the org
+## 2. GitHub — change the email — **done 20 Aug 2026**
 
-The repo lives in the **`The-Health-Wellbeing-Hub`** organisation, which is separate from your
-personal login. Changing your email does not affect org membership.
+**Correction to an earlier assumption:** `The-Health-Wellbeing-Hub` is a **personal account**,
+not an organisation. GitHub's own settings header confirms it — *"Your personal account"*. So
+there is no org membership to check, and no invite step.
 
 1. Sign in to GitHub as the current account.
 2. **Settings → Emails → Add email address** → `officethehealthwellbeinghub@gmail.com`.
 3. Verify it from the office@ inbox.
 4. Back on the same page, set it as **Primary email**.
-5. Optionally remove the old address once the new one is primary.
-6. **Check the org:** github.com/orgs/The-Health-Wellbeing-Hub/people — confirm your account is
-   still listed as **Owner**.
-7. **Verify:** push a commit, or open the repo and confirm you can still edit a file.
+5. **Verify:** push a commit, or open the repo and confirm you can still edit a file.
 
-Your username, commit history, and the GitHub App that Claude Code uses are all unaffected —
-they belong to the account and the org, not to the address.
+Username, commit history and the GitHub App that Claude Code uses are all unaffected — they
+belong to the account, not to the address.
+
+**Keep the old address listed as a secondary verified email.** It costs nothing and gives a
+second route to password reset. Consolidation is about which address is *primary*, not about
+deleting every other one.
+
+### Worth knowing: the repo is on one personal account
+
+Because this is a personal account rather than an organisation, the repository — the entire
+website and its deployment source — depends on one individual login. An organisation can have
+several owners; a personal account cannot.
+
+That is the same single-point-of-failure pattern as the GTM container, and it is not solved by
+changing the email on it. Converting the account to an organisation, or transferring the repo
+into one, is the durable fix. Not urgent, but worth doing before the business depends on this
+any more heavily than it already does.
 
 ---
 
