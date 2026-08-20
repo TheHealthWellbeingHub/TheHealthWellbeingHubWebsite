@@ -79,10 +79,9 @@ Campaign: referrer-outreach-2026-08 (hubspot / email, cta-refer)
 
 That works today with no further setup. It is readable, not filterable.
 
-### 3. Four properties to make it filterable — **not yet created**
+### 3. Four properties to make it filterable — done
 
-Until these exist the endpoint writes them and `filterToWritable` silently drops them. Contact
-object, all four **Single-line text**:
+Created 20 Aug 2026 and verified populating. Contact object, all four **Single-line text**:
 
 | Internal name | Label |
 |---|---|
@@ -95,9 +94,16 @@ Internal names must match exactly. Same caveat as every property added so far: t
 caches the contact schema per serverless cold start, so values may be dropped for a minute or
 two after creation before the next cold start picks them up.
 
+Two more are written alongside them and were created at the same time — `source_page` and
+`source_page_url`, which record the page the form was submitted from.
+
+Verified on `ENQ-2026-287668890085`: `latest_utm_campaign = referrer-outreach-2026-08`,
+`latest_utm_content = cta-refer`, `source_page = Contact Us — NDIS Enquiry | The Health &
+Well-being Hub`.
+
 ### 4. The list that answers the actual question
 
-Once the properties exist — Contacts → Lists → Create **active list**:
+In this portal, Lists are called **Segments** in the left navigation. Contacts → Lists → Create **active list**:
 
 ```
 Latest UTM — campaign  is equal to  referrer-outreach-2026-08
@@ -144,3 +150,82 @@ understates the campaign's real influence.
 
 There is no fix for this on Starter that is worth the complexity. Worth knowing when reading the
 numbers: the campaign's measured contribution is a floor, not a total.
+
+---
+
+## Deliverability — the real constraint, and it is not a build problem
+
+**Tested 20 Aug 2026.** An enquiry acknowledgement sent to an `outlook.com` address landed in
+**Junk**. This is the finding that should govern how the campaign is sent, so the reasoning is
+recorded here rather than left as a conversation.
+
+### What was ruled out
+
+Authentication is correct. Checked live over DNS:
+
+```
+SPF    v=spf1 include:_spf.google.com include:443542186.spf03.hubspotemail.net -all
+DKIM   hs1-443542186._domainkey  → valid key, aligned to the From domain
+DKIM   hs2-443542186._domainkey  → valid key
+MX     smtp.google.com
+DMARC  v=DMARC1; p=none;
+```
+
+One SPF record, hard fail, both senders included. DKIM aligned to `thehealthwellbeinghub.com`,
+which is the From domain. Nothing is misconfigured, so there is no setting that fixes this.
+
+### What actually happened
+
+HubSpot's delivery data for the same window:
+
+| Destination | Sent | Delivered | Bounced |
+|---|---|---|---|
+| google.com | 16 | 16 | 0 |
+| outlook.com | 2 | 2 | 0 |
+
+**Microsoft accepted the mail.** It was delivered and then filed in Junk — a placement
+decision, not a block. That distinction matters: placement is recoverable, a block is not.
+
+The cause is reputation. The domain has had **18 sends in its entire life**, and the mail is
+marketing-classified — tracking pixel, wrapped links, unsubscribe footer — because on Starter
+the workflow-triggered send *is* a marketing email. Microsoft is the strictest major filter on
+unknown senders. Reputation is earned by sending mail people engage with, over weeks.
+
+### Why this changes the campaign plan
+
+Sending hundreds now, to an audience that is heavily Outlook — Support Coordinators, plan
+managers, GPs — would mostly land in Junk. Two consequences, the second worse than the first:
+
+1. Near-zero response, and the campaign reads as a failure when it was never delivered.
+2. A burst of unengaged mail from a cold domain is exactly what teaches Microsoft to keep
+   junking it — which then also hits the **acknowledgement emails**, the ones participants and
+   referrers depend on.
+
+There is also a live problem independent of the campaign: **a real enquirer on Outlook will not
+see their acknowledgement today.** That undermines the 2-business-hour promise for the people
+the promise is made to.
+
+### The order to do things in
+
+1. **Add DMARC reporting.** Currently `p=none` with no `rua`, so there is no visibility at all
+   into what receivers see. `v=DMARC1; p=none; rua=mailto:dmarc@thehealthwellbeinghub.com;`
+   costs nothing and starts the feedback loop.
+2. **Build reputation on the acknowledgements.** Low volume, expected by the recipient, and
+   actually opened — the best reputation-builder available. Two to four weeks of real enquiry
+   traffic is worth more than any DNS change.
+3. **Start the campaign at 20–30**, to whoever is most likely to reply, and watch. Not 300.
+4. **Move DMARC to `p=quarantine`** once the reports look clean. A modest trust signal, but
+   only after the reports can be read.
+
+### Worth pricing
+
+The acknowledgements are genuinely **transactional** — someone asked, we replied — but they are
+sent through HubSpot's *marketing* email system, because that is the only enrolment mechanism
+Starter offers. Transactional mail is filtered far more leniently. HubSpot sells a transactional
+email add-on; that is the real fix for the acknowledgement placement problem, separate from
+anything to do with the campaign.
+
+### Not a fix
+
+Marking a message *Not junk* teaches that one mailbox. It does nothing for the next recipient,
+and should not be mistaken for having resolved the problem.
