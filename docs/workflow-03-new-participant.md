@@ -35,7 +35,7 @@ and show a rendered preview of the email itself (subject, body, both attachments
 
 1. Fill the Consent email (`04-participant-welcome-onboarding.html`) with the participant
    and staff details.
-2. Attach both PDFs — **always both, never one**:
+2. Attach both PDFs from `participant-documents/` — **always both, never one**:
    - `The Health & Well-being Hub - Referral Form (Fillable).pdf` (53 fields)
    - `NDIS Consent for Your Information (Fillable).pdf` (20 fields, overlaid on the
      NDIA's own unaltered form — nothing in its content is ours to edit)
@@ -75,9 +75,9 @@ happens when only one has. One event, three things happen:
    anything on the forms concerns the referrer specifically, it goes as a note on the
    referrer's contact instead, not the participant's.
 2. **Send the Welcome email** (`12-welcome-pack.html`), attaching the four easy-read
-   guides — Privacy & Confidentiality, Feedback & Complaints, Rights & Responsibilities,
-   Incident Management — unchanged from what was supplied, because they were already
-   on-brand and plain-language as received.
+   guides from `participant-documents/` — Privacy & Confidentiality, Feedback &
+   Complaints, Rights & Responsibilities, Incident Management — unchanged from what was
+   supplied, because they were already on-brand and plain-language as received.
 3. **Move the deal to `Participant Onboarded`.**
 
 Confirm before sending, same as every other step here — read back who, which deal, and
