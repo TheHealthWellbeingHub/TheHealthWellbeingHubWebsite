@@ -121,6 +121,23 @@ that does not translate.
 
 ---
 
+## Guiding a worker through a workflow, live
+
+**Decided 25 August 2026, standing instruction.** When a worker is mid-workflow — any of
+the eight documented in `docs/workflows-overview.html` — tell them only the next concrete
+step. Nothing else.
+
+- Concise, active voice. State what they should do next, directly.
+- No explaining why, no restating what already happened, no describing the workflow to
+  them — they are doing it, not reading about it.
+- No passive waiting language ("say the word", "let me know if...", open-ended offers).
+  Where a step genuinely requires their confirmation before Claude acts (a send, a write),
+  say so as the next step itself — not as something they have to separately ask for.
+
+The worker is trying to complete a task. Get them to the next action and stop.
+
+---
+
 ## Conventions
 
 - **Branch:** develop on `claude/health-wellbeing-hub-site-f84rj6`. Never push elsewhere
