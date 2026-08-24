@@ -334,6 +334,101 @@
 
   .flag span:last-child { color: var(--ink); }
 
+  /* ---------- intake channels ---------- */
+
+  .subhead {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: -4px;
+  }
+
+  .channels {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .channel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 14px;
+    align-items: center;
+    padding: 12px 15px;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    font-size: 14.5px;
+  }
+
+  .channel-name { color: var(--ink); font-weight: 700; }
+  .channel-note { color: var(--ink-soft); }
+
+  /* ---------- staged sequence ---------- */
+
+  .stages {
+    display: flex;
+    flex-direction: column;
+    padding-left: 16px;
+    border-left: 2px solid var(--rule-firm);
+  }
+
+  .stage {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 4px 14px;
+    padding: 13px 0;
+    border-bottom: 1px dashed var(--rule);
+  }
+
+  .stage:last-child { border-bottom: none; }
+
+  .actor {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding-top: 4px;
+  }
+
+  .actor.is-auto { color: var(--live); }
+  .actor.is-person { color: var(--navy); }
+  .actor.is-claude { color: var(--brand); }
+
+  .stage-text { font-size: 15px; color: var(--ink-soft); min-width: 0; }
+  .stage-text strong { color: var(--ink); font-weight: 700; }
+
+  .gap-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--partial);
+    background: var(--partial-bg);
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-left: 7px;
+    vertical-align: 1.5px;
+  }
+
+  .outcomes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 9px;
+  }
+
+  .outcome {
+    font-size: 13px;
+    padding: 5px 11px;
+    background: var(--surface);
+    border: 1px solid var(--rule-firm);
+    border-radius: 3px;
+    color: var(--ink-soft);
+  }
+
   /* ---------- closing ---------- */
 
   .closing {
@@ -448,24 +543,73 @@
       <div class="body-col">
         <h3>Referral received</h3>
         <dl class="facts">
-          <dt>Trigger</dt>
-          <dd>Referral form at <code>/referrals/</code></dd>
+          <dt>Channels</dt>
+          <dd>Website form · direct email · phone, text and in person</dd>
           <dt>Email</dt>
-          <dd><code>02-referral-received.html</code></dd>
+          <dd><code>02-referral-received.html</code> — sending</dd>
           <dt>Reference</dt>
           <dd><code>REF-&lt;year&gt;-&lt;dealId&gt;</code></dd>
           <dt>Spec</dt>
           <dd><code>docs/workflow-01-referral.md</code></dd>
         </dl>
-        <p>The endpoint half is done and deployed: validation, consent recording, referrer and participant upsert, association, deal, note, and a high-priority task due within two business hours. <strong>Steps 8 and 9 do not exist</strong> — the HubSpot form, the marketing email, and the workflow that sends it. So a referral is captured correctly and the referrer hears nothing back.</p>
-        <p>Two items from its own build order are also still open: the endpoint hardening (CORS allowlist, honeypot, rate limiting), and the duplicate-contact bug — <code>upsertContact</code> dedupes on email only, so a participant referred with a phone number and no email creates a brand new contact on every single submission.</p>
+        <p>Referrals arrive through <strong>three channels</strong>, and only one of them is automated. The other two reach the team as ordinary messages, so nothing enters the CRM unless a person puts it there.</p>
+
+        <div class="channels">
+          <div class="channel">
+            <div><span class="channel-name">Website form</span> <span class="channel-note">— endpoint captures it, both emails fire</span></div>
+            <span class="chip is-live">Running</span>
+          </div>
+          <div class="channel">
+            <div><span class="channel-name">Direct email</span> <span class="channel-note">— arrives in the inbox, no capture path</span></div>
+            <span class="chip is-idle">Manual</span>
+          </div>
+          <div class="channel">
+            <div><span class="channel-name">Phone, text and in person</span> <span class="channel-note">— no capture path</span></div>
+            <span class="chip is-idle">Manual</span>
+          </div>
+        </div>
+
+        <div class="subhead">The website path, stage by stage</div>
+        <div class="stages">
+          <div class="stage">
+            <span class="actor is-auto">Automated</span>
+            <span class="stage-text">Referral form submitted. The endpoint validates it, records consent, upserts the referrer and the participant, associates them, and creates the deal, the note and a high-priority task due within two business hours.</span>
+          </div>
+          <div class="stage">
+            <span class="actor is-auto">Automated</span>
+            <span class="stage-text"><strong>Two emails fire</strong> — an acknowledgement to the referrer, and a notification to the H&amp;W team. Both confirmed reaching the right addresses.</span>
+          </div>
+          <div class="stage">
+            <span class="actor is-person">Person</span>
+            <span class="stage-text">A worker picks the referral up from the team email and <strong>contacts the participant</strong>. This step is human by design and should stay that way.</span>
+          </div>
+          <div class="stage">
+            <span class="actor is-claude">Claude</span>
+            <span class="stage-text">The worker tells Claude what happened. Claude <strong>updates the connected systems</strong> with the outcome and the latest information from that conversation. <span class="gap-tag">Not built</span></span>
+          </div>
+          <div class="stage">
+            <span class="actor is-claude">Claude</span>
+            <span class="stage-text">Claude <strong>closes the loop back to the referrer</strong>, telling them where their referral landed. <span class="gap-tag">Not built</span>
+              <span class="outcomes">
+                <span class="outcome">Went ahead with us</span>
+                <span class="outcome">Wants time to consider</span>
+                <span class="outcome">Chose not to proceed</span>
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <p>The automated front half works. <strong>The back half — stages four and five — does not exist yet</strong>, and it is the more valuable half: a referrer who never hears what became of their referral stops referring. It is also the first piece of real Claude-in-the-loop work in the whole register, rather than a HubSpot workflow.</p>
+
+        <p>Two older items are still open regardless: the endpoint hardening (CORS allowlist, honeypot, rate limiting), and the duplicate-contact bug — <code>upsertContact</code> dedupes on email only, so a participant referred with a phone number and no email creates a brand new contact on every single submission.</p>
+
         <div class="next">
           <span class="next-label">Next</span>
-          <span>Confirm the sending domain is authenticated, then build the form, email and workflow — the same three pieces already proven on 02.</span>
+          <span>Define the outcome step: which three outcomes get recorded, where they are written, and what the referrer is told in each case.</span>
         </div>
         <div class="flag">
-          <span class="flag-label">Note</span>
-          <span>The spec still lists domain authentication as a blocker, but workflow 02's notes say the domain <em>is</em> authenticated. If that is right, this is unblocked and buildable today.</span>
+          <span class="flag-label">Watch</span>
+          <span>Telling a referrer that someone declined services shares a participant's decision with a third party. What can be said, and with whose consent, needs settling before this is automated.</span>
         </div>
       </div>
     </article>
@@ -674,6 +818,6 @@
     </div>
   </section>
 
-  <p class="colophon">Status recorded 24 August 2026, from the specs, endpoint and templates committed in this repository. Business facts and guardrails: <code>CLAUDE.md</code>. Platform limits: <code>docs/hubspot-configuration.md</code>.</p>
+  <p class="colophon">Status recorded 24 August 2026, from the specs, endpoint and templates committed in this repository, with the referral intake channels and live email behaviour confirmed directly by the team on the same date. Note that <code>docs/workflow-01-referral.md</code> still describes the referral emails as unbuilt and is now out of date — this register is the current position. Business facts and guardrails: <code>CLAUDE.md</code>. Platform limits: <code>docs/hubspot-configuration.md</code>.</p>
 
 </div>
