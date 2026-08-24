@@ -55,10 +55,19 @@ actual send does not exist on Starter.
 
 ## 03 — New participant
 
-Email `04-participant-welcome-onboarding.html`. No trigger. A participant becomes a
-participant when a service agreement is signed, which is a **deal stage change**, and
-Starter cannot trigger on those. Whatever is decided here sets the pattern for 04, 05
-and 08.
+Two emails now, not one:
+
+| | |
+|---|---|
+| Stage 1 | `04-participant-welcome-onboarding.html` — attaches `The Health & Well-being Hub - Referral Form (Fillable).pdf` (53 fields) and `NDIS Consent for Your Information (Fillable).pdf` (20 fields, overlaid on the NDIA's own unaltered form) |
+| Stage 2 | `12-welcome-pack.html` — attaches the four easy-read policy guides (privacy, feedback, rights, incident management), unchanged from what was supplied |
+
+No trigger for either. A participant becomes a participant when a service agreement is
+signed, which is a **deal stage change**, and Starter cannot trigger on those; stage 2
+starts when the forms come back, which isn't a HubSpot event at all. Both can run the
+way workflow 01's outcome step does — sent from the H&W mailbox on request rather than
+through a HubSpot workflow — but neither has been sent to a real participant yet.
+Whatever is decided on the trigger mechanism sets the pattern for 04, 05 and 08.
 
 **Next:** decide the trigger mechanism once, for all four. Then write the spec.
 
