@@ -55,12 +55,12 @@ actual send does not exist on Starter.
 
 ## 03 — New participant
 
-Two emails now, not one:
+Two emails now, not one — named for what each one does, not for the order they fire in:
 
 | | |
 |---|---|
-| Stage 1 | `04-participant-welcome-onboarding.html` — attaches `The Health & Well-being Hub - Referral Form (Fillable).pdf` (53 fields) and `NDIS Consent for Your Information (Fillable).pdf` (20 fields, overlaid on the NDIA's own unaltered form) |
-| Stage 2 | `12-welcome-pack.html` — attaches the four easy-read policy guides (privacy, feedback, rights, incident management), unchanged from what was supplied |
+| The Consent email | `04-participant-welcome-onboarding.html` — attaches `The Health & Well-being Hub - Referral Form (Fillable).pdf` (53 fields) and `NDIS Consent for Your Information (Fillable).pdf` (20 fields, overlaid on the NDIA's own unaltered form) |
+| The Welcome email | `12-welcome-pack.html` — attaches the four easy-read policy guides (privacy, feedback, rights, incident management), unchanged from what was supplied |
 
 No trigger for either. A participant becomes a participant when a service agreement is
 signed, which is a **deal stage change**, and Starter cannot trigger on those; stage 2

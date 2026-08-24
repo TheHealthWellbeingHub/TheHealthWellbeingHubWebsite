@@ -33,7 +33,7 @@ LABELS = {
     "01-referrer-introduction.html": "Referrer introduction",
     "02-referral-received.html": "Referral received",
     "03-new-enquiry-acknowledgement.html": "New enquiry acknowledgement",
-    "04-participant-welcome-onboarding.html": "Participant welcome and onboarding",
+    "04-participant-welcome-onboarding.html": "Consent email",
     "05-appointment-confirmation.html": "Appointment confirmation",
     "06-support-worker-introduction.html": "Support worker introduction",
     "07-feedback-acknowledgement.html": "Feedback acknowledgement",
@@ -41,7 +41,7 @@ LABELS = {
     "09-service-cancellation-exit.html": "Service cancellation and exit",
     "10-referral-outcome-considering.html": "Referral outcome — still deciding",
     "11-referral-outcome-declined.html": "Referral outcome — not proceeding",
-    "12-welcome-pack.html": "Welcome pack",
+    "12-welcome-pack.html": "Welcome email",
 }
 
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.S | re.I)
