@@ -178,12 +178,45 @@ update have not been exercised for real yet.
 
 ## 05 — Support worker introduction
 
-Email `06-support-worker-introduction.html`, which expects a worker's name and
-details. **There are no support worker records in the CRM**, so the merge fields have
-nothing to read. The trigger question is settled (see workflow 03) — once support
-workers are represented in HubSpot, this fires the same way 03's two emails do.
+**Redefined 24 August 2026 — asked fresh each time, not stored.** The original blocker
+was "no support worker records in the CRM." Rather than deciding how to model support
+workers in HubSpot, that question is dropped: nothing is stored, and nothing needs to
+be. Email `06-support-worker-introduction.html` is filled from what the worker tells
+Claude in the moment, the same "tell Claude" pattern as 03 and 04.
 
-**Next:** decide how support workers are represented in HubSpot first.
+**Trigger:** *"Send the support worker introduction email to [Participant]."*
+
+**Step 1 — Claude asks for exactly what the template needs, nothing more.** Of the
+template's merge fields, `{{Participant First Name}}` is already known from the trigger
+itself, and `{{Phone Number}}` / `{{unsubscribe_url}}` are constants, not questions. What
+actually gets asked:
+
+| Asked | Template token |
+|---|---|
+| Worker's first name | `{{Worker First Name}}` |
+| Worker's full name | `{{Worker Full Name}}` |
+| Support type | `{{Support Type}}` |
+| Role | `{{Role}}` |
+| Relevant experience | `{{Experience}}` |
+| Languages | `{{Languages}}` |
+| Interests or skills | `{{Interests or Skills}}` |
+| First scheduled support — date | `{{Date}}` |
+| First scheduled support — start / end time | `{{Start Time}}` / `{{End Time}}` |
+| First scheduled support — location | `{{Location}}` |
+| Planned support details | `{{Support Details}}` |
+| Coordinator or manager to contact | `{{Coordinator or Manager}}` |
+
+**Step 2 — confirm, then send.** Same habit as every other trigger in this document:
+Claude reads back what it collected — worker, participant, first appointment — before
+the email leaves the building.
+
+**Step 3 — a note on the participant's contact**, recording who was introduced and
+when, the same reasoning as workflow 03's forms-back note: nothing here is stored as
+structured data, so the note is the only record that this introduction happened at
+all. Proposed, not yet confirmed with the user — flag if a different record is wanted.
+
+**Next:** none, design-wise, pending confirmation of the step 3 note. Build status:
+content exists (email 06), nothing else to build — same shape as workflow 04.
 
 ## 06 — Appointment confirmation
 
