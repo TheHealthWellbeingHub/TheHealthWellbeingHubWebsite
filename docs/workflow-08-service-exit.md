@@ -35,15 +35,18 @@ once, nothing inferred from a data source that doesn't exist.
 
 **Not asked: which service.** Corrected 25 August 2026 — it is not a question, because
 every exit through this workflow is a full one. `{{Service Name}}` is fixed text —
-**"your services with The Health &amp; Well-being Hub"** — the same wording on every
-send, never a specific service line the worker names. Asking "which service" would
-imply a partial cancellation exists here, and per the decision above it doesn't.
+**"your services"** — the same wording on every send, never a specific service line
+the worker names. Asking "which service" would imply a partial cancellation exists
+here, and per the decision above it doesn't.
 
 ### Reason options, and why the wording is derived, not asked twice
 
-The template's sentence is *"{{Service Name}} will {{end / be cancelled}} effective
-{{Final Service Date}}"* — a second, redundant question ("is this ending or being
-cancelled?") is not asked. The reason the worker picks decides it, so the form asks
+The template's full sentence is *"This confirms that {{Service Name}} with The Health
+&amp; Well-being Hub will {{end / be cancelled}} effective {{Final Service Date}}"* —
+`{{Service Name}}` sits right before a hardcoded "with The Health & Well-being Hub",
+which is why its fixed value is the bare "your services", not a repeat of the provider
+name. A second, redundant question ("is this ending or being cancelled?") is not
+asked. The reason the worker picks decides it, so the form asks
 one thing, not two:
 
 | Reason (shown to the worker) | Written into `{{Neutral Reason...}}` | Wording used |
