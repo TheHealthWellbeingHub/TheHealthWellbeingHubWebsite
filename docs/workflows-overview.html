@@ -587,21 +587,21 @@
           </div>
           <div class="stage">
             <span class="actor is-claude">Claude</span>
-            <span class="stage-text">The worker tells Claude what happened. Claude <strong>updates the connected systems</strong> with the outcome and the latest information from that conversation. <span class="gap-tag">Not built</span></span>
+            <span class="stage-text">The worker tells Claude how the call went. Claude <strong>records the outcome</strong> — deal stage, <code>referral_outcome</code>, the date of the conversation, and a note in the worker's own words.</span>
           </div>
           <div class="stage">
             <span class="actor is-claude">Claude</span>
-            <span class="stage-text">Claude <strong>closes the loop back to the referrer</strong>, telling them where their referral landed. <span class="gap-tag">Not built</span>
+            <span class="stage-text">Claude reads the details back, then <strong>emails the referrer</strong> the outcome. Sent through the H&amp;W mailbox, not HubSpot — Starter cannot trigger a workflow on a deal stage.
               <span class="outcomes">
-                <span class="outcome">Went ahead with us</span>
-                <span class="outcome">Wants time to consider</span>
-                <span class="outcome">Chose not to proceed</span>
+                <span class="outcome">Went ahead — opens onboarding</span>
+                <span class="outcome">Wants time — email 10</span>
+                <span class="outcome">Chose not to proceed — email 11</span>
               </span>
             </span>
           </div>
         </div>
 
-        <p>The automated front half works. <strong>The back half — stages four and five — does not exist yet</strong>, and it is the more valuable half: a referrer who never hears what became of their referral stops referring. It is also the first piece of real Claude-in-the-loop work in the whole register, rather than a HubSpot workflow.</p>
+        <p>The loop now closes end to end. The one piece still missing is what happens when someone <em>does</em> go ahead — that opens onboarding, which is workflow 03 and still to be designed. So today a referrer is told when a participant declines and not told when one signs up, which is backwards and worth fixing there.</p>
 
         <p>Two older items are still open regardless: the endpoint hardening (CORS allowlist, honeypot, rate limiting), and the duplicate-contact bug — <code>upsertContact</code> dedupes on email only, so a participant referred with a phone number and no email creates a brand new contact on every single submission.</p>
 
