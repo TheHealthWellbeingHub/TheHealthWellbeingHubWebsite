@@ -315,6 +315,23 @@ function isAffirmative(v) {
   return ['on', 'true', 'yes', '1', 'checked'].includes(v.trim().toLowerCase());
 }
 
+// Compares two contact details for "is this the same person's detail". Emails
+// compare case-insensitively; phones compare on digits alone, treating +61…
+// and 0… as the same Australian number, because a worker typing a referrer's
+// mobile twice will rarely type it the same way twice.
+function normaliseDetail(s) {
+  const t = String(s || '').trim().toLowerCase();
+  if (!t) return '';
+  if (t.includes('@')) return t;
+  const digits = t.replace(/\D/g, '');
+  return digits.length > 9 && digits.startsWith('61') ? '0' + digits.slice(2) : digits;
+}
+
+function sameContactDetail(a, b) {
+  const x = normaliseDetail(a);
+  return !!x && x === normaliseDetail(b);
+}
+
 function looksLikeEmail(s) {
   return !!s && /\S+@\S+\.\S+/.test(s);
 }
@@ -634,7 +651,7 @@ function buildEnquiryNote(f, sourcePage, campaign) {
   return lines.join('\n');
 }
 
-function buildReferralNote(f, sourcePage, campaign, isStaffEntry = false) {
+function buildReferralNote(f, sourcePage, campaign, isStaffEntry = false, contactWasReferrers = false) {
   const stamp = new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' });
   const lines = [
     isStaffEntry
@@ -653,6 +670,12 @@ function buildReferralNote(f, sourcePage, campaign, isStaffEntry = false) {
     f.service_needed ? `Service(s) required: ${f.service_needed}` : null,
     f.plan_type ? `Plan management type: ${f.plan_type}` : null,
     f.referral_details ? `Referral details: ${f.referral_details}` : null,
+    // The task says "contact participant", so the worker has to be told when
+    // there is no way to reach them directly — otherwise they ring the number
+    // on the record and get the referrer.
+    contactWasReferrers
+      ? 'NOTE: no contact detail for the participant — the one given belongs to the referrer. Reach them through the referrer.'
+      : null,
   ].filter(Boolean);
   return lines.join('\n');
 }
@@ -748,14 +771,35 @@ module.exports = async (req, res) => {
 
     let referrerContactId = null;
     if (formName === 'referral') {
-      const contact = f.participant_contact || '';
+      // A contact detail belonging to the REFERRER must never be written onto
+      // the participant. upsertContact dedupes on email or phone, so when a
+      // worker enters the referrer's own email as the participant's contact —
+      // which happens whenever the participant has no email of their own — the
+      // referrer upsert that follows finds the record just created for the
+      // participant and overwrites its name. Two people collapse into one, the
+      // deal ends up with a single associated contact, and the participant is
+      // the one destroyed. Verified happening on REF-2026-287797535216.
+      //
+      // Recording no contact detail is the honest outcome: the participant does
+      // not have one. The referrer's details stay on the referrer's record, and
+      // the note tells the worker to reach the participant through them.
+      const givenContact = (f.participant_contact || '').trim();
+      const contactBelongsToReferrer =
+        sameContactDetail(givenContact, f.referrer_email) ||
+        sameContactDetail(givenContact, f.referrer_phone);
+      if (contactBelongsToReferrer) {
+        console.warn(
+          'participant contact matches the referrer — not written to the participant record'
+        );
+      }
+      const contact = contactBelongsToReferrer ? '' : givenContact;
       contactId = await upsertContact({
         name: f.participant_name,
         email: looksLikeEmail(contact) ? contact : undefined,
         phone: looksLikeEmail(contact) ? undefined : contact,
       });
       dealName = `${f.participant_name || 'Referral'} — referred by ${f.referrer_name || 'unknown'}`;
-      noteBody = buildReferralNote(f, sourcePage, campaign, isStaffEntry);
+      noteBody = buildReferralNote(f, sourcePage, campaign, isStaffEntry, contactBelongsToReferrer);
 
       // The referrer is UPSERTED every time, not merely looked up. Without
       // this a referrer who is not already tracked disappears entirely, and
