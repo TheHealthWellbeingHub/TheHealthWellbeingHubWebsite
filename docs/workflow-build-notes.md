@@ -71,10 +71,29 @@ No trigger for either. A participant becomes a participant when a service agreem
 signed, which is a **deal stage change**, and Starter cannot trigger on those; stage 2
 starts when the forms come back, which isn't a HubSpot event at all. Both can run the
 way workflow 01's outcome step does — sent from the H&W mailbox on request rather than
-through a HubSpot workflow — but neither has been sent to a real participant yet.
-Whatever is decided on the trigger mechanism sets the pattern for 04, 05 and 08.
+through a HubSpot workflow.
 
-**Next:** decide the trigger mechanism once, for all four. Then write the spec.
+**Dry-run walkthrough, 24 August 2026.** A fictional referral (Jacob, a GP, referring a
+participant by text) run end to end: staff intake link → outcome step (confirm, then
+write) → Consent email (confirm, then send, both attachments) → forms marked back →
+Welcome email (confirm, then send). No HubSpot writes and no real email sent — Sabrina
+was never a CRM record — but the mechanics match workflow 01's proven pattern exactly,
+so the confirm-before-send behaviour is not new code, just the existing pattern reused.
+
+**Two things this surfaced, not yet resolved:**
+
+1. **No referrer notification for "going ahead."** Confirmed again against the actual
+   template library: 10 and 11 exist, there is no third. A referrer whose participant
+   signs up hears nothing — the exact gap workflow 01 already recorded.
+2. **The deal-stage question.** `docs/workflow-01-referral-journey.html` states the deal
+   moves to *Lost / Not Suitable* for all three outcomes, including "going ahead." If
+   that is accurate it is a bug — a participant who said yes should not land in a losing
+   stage — and if it is a documentation error it should be corrected. Either way, unsafe
+   to run for real until someone who can see the actual HubSpot workflow confirms which.
+
+**Next:** decide the trigger mechanism once, for all four. Resolve the deal-stage
+question and build the missing referrer notification before this runs for a real
+participant. Then write the spec.
 
 ## 04 — Maintaining participants
 

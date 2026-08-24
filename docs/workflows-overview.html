@@ -771,7 +771,14 @@
         <div class="starts"><span class="starts-label">Starts when</span><span>A participant agrees to come on board.</span></div>
         <p>The <strong>Consent email</strong> is written and ready, and now has both documents a participant needs attached — a fillable referral form and the NDIA's own consent form, with real interactive fields rather than a flat PDF to print and post back.</p>
         <p>Once the forms come back, the <strong>Welcome email</strong> hands over the welcome pack — four easy-read guides on privacy, feedback, rights and incident management. Built as template 12, ready the same way.</p>
-        <p>Neither is wired to a trigger, because signing an agreement is not something our email system can react to. Both can run the way workflow 01's outcome step does — tell Claude, and it sends from the H&amp;W mailbox — but neither has actually gone to a participant yet.</p>
+        <p>Neither is wired to a trigger, because signing an agreement is not something our email system can react to. Both can run the way workflow 01's outcome step does — tell Claude, and it sends from the H&amp;W mailbox.</p>
+        <p>Walked through end to end as a dry run on 24 August 2026 — a fictional referral, through the staff intake link, to the outcome step, to both emails — and the mechanics hold: same confirm-before-send pattern as workflow 01, same mailbox send, the Consent email's two attachments fixed on every send. Nothing has gone to a real participant yet.</p>
+
+        <div class="flag">
+          <span class="flag-label">Important</span>
+          <span>Two things the dry run surfaced that need deciding before this touches a real participant. First, there is still no message telling the referrer their referral said yes — today only &ldquo;declined&rdquo; and &ldquo;wants time&rdquo; reach the referrer at all, which is the exact gap workflow 01 already flags. Second, the outcome step as documented moves the deal to <em>Lost / Not Suitable</em> for all three outcomes, &ldquo;going ahead&rdquo; included — that reads like an error and needs confirming against the real HubSpot workflow before anyone relies on it.</span>
+        </div>
+
         <p><strong>This is the one to settle first.</strong> Whatever we decide here decides workflows 04, 05 and 08 too.</p>
 
       </div>
