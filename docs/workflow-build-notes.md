@@ -37,9 +37,9 @@ Statuses live on the register, not here — one source, so they cannot disagree.
 `Lost / Not Suitable` is reserved for that one outcome and for a service being
 cancelled later (workflow 08) — never for a yes. Replaces an earlier version of this
 spec that moved every outcome to `Lost / Not Suitable`, going ahead included; that was
-wrong and is corrected here and in `docs/workflow-01-referral-journey.html`. Nothing
-currently writes `Participant Onboarded` (`3607504325`) — the natural candidate is when
-the Welcome email sends, once workflow 03's trigger question is settled.
+wrong and is corrected here and in `docs/workflow-01-referral-journey.html`. The deal
+stays at `Service Agreement Sent` until the forms come back — see workflow 03 for the
+next stage, `Participant Onboarded`.
 
 **Still open:**
 
@@ -105,9 +105,14 @@ so the confirm-before-send behaviour is not new code, just the existing pattern 
    01's deal-stage table above. A yes now moves the deal to *Service Agreement Sent*;
    *Lost / Not Suitable* is reserved for a no or a later cancellation.
 
-**Next:** decide the trigger mechanism once, for all four. Then write the spec. Once the
-trigger question is settled, decide what moves the deal to `Participant Onboarded` —
-the natural point is the Welcome email actually sending.
+**The rest of the deal-stage path, decided 24 August 2026:** `Service Agreement Sent`
+holds for as long as the forms are outstanding. The moment they come back — the same
+moment that triggers the Welcome email — the deal moves to `Participant Onboarded`
+(`3607504325`). One event, two things happen: the email sends and the stage advances.
+Not automatic yet, same as everything else in this workflow — whoever tells Claude the
+forms are back is telling it both things at once.
+
+**Next:** decide the trigger mechanism once, for all four. Then write the spec.
 
 ## 04 — Maintaining participants
 
