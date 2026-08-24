@@ -134,9 +134,16 @@ that does not translate.
   supplied as finished HTML, because a generator holding a superseded design silently overwrites
   approved work the next time anyone runs it. `build_index.py` only reads the templates and
   rebuilds `index.html` from them.
-- **Merge fields:** the email templates use `{{double brackets}}`. HubSpot uses its own
-  token syntax. Anything intended to sync into HubSpot needs deliberate conversion — do not
-  assume the two are interchangeable.
+- **Merge fields:** the email templates use `{{Double Brackets}}` in Title Case. HubSpot uses
+  its own token syntax bound to contact properties, so the repo's style never survives the
+  build — converting is a manual step per email, verified live 24 Aug 2026 and recorded in
+  `docs/hubspot-manual-setup.md`. Repo templates are **design source, not send-ready**: several
+  still carry editorial notes inside token braces (e.g. `{{Neutral Reason / At your request}}`)
+  that would render literally. Resolve them by hand, as was done for live emails 02 and 03.
+- **Git hooks:** `.githooks/pre-commit` blocks commits authored on the production branch,
+  which is also the default branch, so a push to it is a live release. Claude Code enables it
+  automatically via `SessionStart` in `.claude/settings.json`; otherwise run
+  `git config core.hooksPath .githooks` once. Deploys pass `ALLOW_PROD_COMMIT=1`.
 - **Stack:** static Python + Jinja2 site generator (`build.py` renders `templates/` using
   content from `content.py`/`pages.py` into committed static HTML — no build step at serve
   time, no framework). Deployed on Vercel. Don't introduce a different framework or build
