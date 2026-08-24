@@ -301,6 +301,19 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .form-consent-tight{margin-bottom:10px}
 .form-consent-opt{display:block;opacity:.75}
 .form-hint{font-size:12px;color:var(--tm);margin-top:5px;line-height:1.45}
+
+/* ── STAFF INTAKE (standalone, no site chrome) ──
+   A tool, not a page: a worker opens this mid-phone-call, so there is no nav,
+   no hero and no marketing copy to scroll past — just the form. */
+.staff-shell{min-height:100vh;background:var(--ow);padding:28px 20px 64px}
+.staff-inner{max-width:840px;margin:0 auto}
+.staff-mark{display:flex;align-items:center;gap:11px;margin-bottom:20px}
+.staff-mark-badge{width:36px;height:36px;border-radius:50%;background:var(--pt);border:2px solid var(--p);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.staff-mark-badge .icon{font-size:17px;color:var(--p)}
+.staff-mark-name{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--n);line-height:1.15}
+.staff-mark-sub{font-size:10px;color:var(--tm);letter-spacing:.05em;text-transform:uppercase}
+.staff-foot{margin-top:18px;font-size:12px;color:var(--tm);text-align:center}
+@media(max-width:640px){.staff-shell{padding:18px 12px 48px}}
 .form-submit{width:100%;background:var(--g);color:#fff;font-size:15px;font-weight:700;padding:15px;border-radius:30px;border:none;cursor:pointer;font-family:var(--fb);transition:all .2s}
 .form-submit:hover{background:#3a6232;transform:translateY(-1px)}
 .form-submit:disabled{opacity:.6;cursor:wait}
