@@ -1,0 +1,442 @@
+<title>Referral Received</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Playfair+Display:wght@700;900&display=swap">
+
+<style>
+  :root {
+    --ground: #FBFAFC;
+    --surface: #FFFFFF;
+    --sunk: #F4F0F7;
+    --ink: #1A1A2E;
+    --ink-soft: #5A5A7A;
+    --ink-faint: #8A85A0;
+    --rule: #E8E0ED;
+    --rule-firm: #D6C9DE;
+    --brand: #7B2D8B;
+    --brand-bg: #F5EDF8;
+    --navy: #1D3461;
+    --navy-bg: #E7EDF7;
+    --live: #3F7135;
+    --live-bg: #EAF3DE;
+    --partial: #94590A;
+    --partial-bg: #FBF0DC;
+
+    --fd: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --fb: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #141019;
+      --surface: #1C1726;
+      --sunk: #241D30;
+      --ink: #EFEAF3;
+      --ink-soft: #A79FB5;
+      --ink-faint: #837A96;
+      --rule: #2E2739;
+      --rule-firm: #423853;
+      --brand: #C77BD4;
+      --brand-bg: #2A1B33;
+      --navy: #9DB4E0;
+      --navy-bg: #1A2438;
+      --live: #8CC47B;
+      --live-bg: #21301C;
+      --partial: #E3A951;
+      --partial-bg: #33260F;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #141019;
+    --surface: #1C1726;
+    --sunk: #241D30;
+    --ink: #EFEAF3;
+    --ink-soft: #A79FB5;
+    --ink-faint: #837A96;
+    --rule: #2E2739;
+    --rule-firm: #423853;
+    --brand: #C77BD4;
+    --brand-bg: #2A1B33;
+    --navy: #9DB4E0;
+    --navy-bg: #1A2438;
+    --live: #8CC47B;
+    --live-bg: #21301C;
+    --partial: #E3A951;
+    --partial-bg: #33260F;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--fb);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: clamp(32px, 6vw, 68px) clamp(18px, 4vw, 40px) 96px;
+  }
+
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    padding-bottom: 26px;
+    border-bottom: 2px solid var(--rule-firm);
+  }
+
+  .eyebrow {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+
+  h1 {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: clamp(34px, 5.4vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    color: var(--navy);
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 62ch;
+  }
+
+  /* ---------- legend ---------- */
+
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px 22px;
+    margin: 30px 0 8px;
+    padding: 18px 20px;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+  }
+
+  .key {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  .swatch {
+    width: 26px;
+    height: 17px;
+    border-radius: 4px;
+    flex: none;
+    border: 1.5px solid;
+  }
+
+  .swatch.auto   { background: var(--live-bg);  border-color: var(--live); }
+  .swatch.team   { background: var(--navy-bg);  border-color: var(--navy); }
+  .swatch.claude { background: var(--brand-bg); border-color: var(--brand); }
+  .swatch.todo   { background: transparent;     border-color: var(--ink-faint); border-style: dashed; }
+
+  /* ---------- figure ---------- */
+
+  figure { margin: 26px 0 0; }
+
+  .canvas {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    padding: 22px 20px;
+  }
+
+  .flow {
+    display: block;
+    width: 100%;
+    min-width: 720px;
+    height: auto;
+  }
+
+  figcaption {
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--ink-faint);
+    max-width: 68ch;
+  }
+
+  /* svg nodes */
+  .node-auto   { fill: var(--live-bg);  stroke: var(--live);      stroke-width: 1.6; }
+  .node-team   { fill: var(--navy-bg);  stroke: var(--navy);      stroke-width: 1.6; }
+  .node-claude { fill: var(--brand-bg); stroke: var(--brand);     stroke-width: 1.6; }
+  .node-entry  { fill: var(--surface);  stroke: var(--rule-firm); stroke-width: 1.6; }
+  .node-branch { fill: var(--surface);  stroke: var(--rule-firm); stroke-width: 1.6; }
+  .is-todo     { stroke-dasharray: 7 5; }
+
+  .n-title  { fill: var(--ink); font-family: var(--fb); font-size: 15px; font-weight: 700; }
+  .n-sub    { fill: var(--ink-soft); font-family: var(--fb); font-size: 12.5px; }
+  .n-branch { fill: var(--ink); font-family: var(--fb); font-size: 13.5px; font-weight: 700; }
+  .n-tag    { font-family: var(--fb); font-size: 10.5px; font-weight: 700; letter-spacing: .09em; }
+  .tag-meet  { fill: var(--ink-faint); }
+  .tag-todo  { fill: var(--brand); }
+
+  .edge      { stroke: var(--ink-faint); stroke-width: 1.7; fill: none; }
+  .edge-todo { stroke: var(--ink-faint); stroke-width: 1.7; fill: none; stroke-dasharray: 7 5; }
+  .edge-label { fill: var(--ink-faint); font-family: var(--fb); font-size: 11.5px; }
+  .a-flow    { fill: var(--ink-faint); }
+
+  /* ---------- prose ---------- */
+
+  .notes {
+    margin-top: 52px;
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+  }
+
+  .note h2 {
+    font-family: var(--fd);
+    font-size: 25px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 10px;
+    text-wrap: balance;
+  }
+
+  .note p {
+    font-size: 15.5px;
+    color: var(--ink-soft);
+    max-width: 66ch;
+  }
+
+  .note p + p { margin-top: 11px; }
+  .note p strong { color: var(--ink); font-weight: 700; }
+
+  .decisions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .decision {
+    border-left: 3px solid var(--partial);
+    background: var(--partial-bg);
+    padding: 15px 19px;
+    max-width: 68ch;
+  }
+
+  .decision h3 {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 5px;
+  }
+
+  .decision p { color: var(--ink); font-size: 15px; }
+
+  .colophon {
+    margin-top: 46px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    max-width: 66ch;
+  }
+
+  @media (max-width: 640px) {
+    .canvas { padding: 14px 12px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">Workflow 1 of 8</div>
+    <h1>Referral Received</h1>
+    <p class="standfirst">What happens from the moment someone refers a participant to us, through to the referrer hearing how it went. However the referral arrives, it ends up in the same place.</p>
+  </header>
+
+  <div class="legend">
+    <div class="key"><span class="swatch auto"></span><span>Happens automatically</span></div>
+    <div class="key"><span class="swatch team"></span><span>Your team does this</span></div>
+    <div class="key"><span class="swatch claude"></span><span>Claude does this</span></div>
+    <div class="key"><span class="swatch todo"></span><span>Dashed = not built yet</span></div>
+  </div>
+
+  <figure>
+    <div class="canvas">
+      <svg class="flow" viewBox="0 0 1000 1290" role="img"
+           aria-label="A tree showing the referral journey. Referrals arrive three ways. A website referral is filled in by the referrer with no effort from the team. A referral by direct email, phone, text or in person takes three extra steps: the worker tells Claude there is a new referral, Claude sends back the same referral form used on the website, and the worker fills it in. All three channels then meet at the same point, where the system saves the records, creates a job due within two business hours and starts the reply clock, then sends one email to the referrer and one to the team. A worker phones the participant, tells Claude how the call went, the referral goes one of three ways, and Claude updates the records and tells the referrer the outcome. The three intake steps and the three closing steps are not built yet.">
+
+        <defs>
+          <marker id="arrowFlow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon class="a-flow" points="0,1 10,5 0,9" />
+          </marker>
+        </defs>
+
+        <!-- ===== Row A — how a referral arrives ===== -->
+        <rect class="node-entry" x="40" y="36" width="280" height="76" rx="7" />
+        <text class="n-title" x="180" y="68" text-anchor="middle">Website form</text>
+        <text class="n-sub" x="180" y="90" text-anchor="middle">They fill it in on our site</text>
+
+        <rect class="node-entry" x="360" y="36" width="280" height="76" rx="7" />
+        <text class="n-title" x="500" y="68" text-anchor="middle">Direct email</text>
+        <text class="n-sub" x="500" y="90" text-anchor="middle">They email us about someone</text>
+
+        <rect class="node-entry" x="680" y="36" width="280" height="76" rx="7" />
+        <text class="n-title" x="820" y="68" text-anchor="middle">Phone, text or in person</text>
+        <text class="n-sub" x="820" y="90" text-anchor="middle">They call, message or drop in</text>
+
+        <line class="edge" x1="180" y1="112" x2="180" y2="146" marker-end="url(#arrowFlow)" />
+        <line class="edge" x1="500" y1="112" x2="500" y2="146" marker-end="url(#arrowFlow)" />
+        <line class="edge" x1="820" y1="112" x2="820" y2="146" marker-end="url(#arrowFlow)" />
+
+        <!-- ===== Left branch — the website needs nothing from us ===== -->
+        <rect class="node-auto" x="40" y="152" width="280" height="80" rx="7" />
+        <text class="n-title" x="180" y="184" text-anchor="middle">They fill it in themselves</text>
+        <text class="n-sub" x="180" y="207" text-anchor="middle">No one here lifts a finger</text>
+
+        <!-- ===== Right branch — three steps to catch the other two ===== -->
+        <rect class="node-team" x="360" y="152" width="600" height="80" rx="7" />
+        <text class="n-title" x="660" y="184" text-anchor="middle">The worker tells Claude there's a new referral</text>
+        <text class="n-sub" x="660" y="207" text-anchor="middle">Just a message — no form to find, no template to remember</text>
+
+        <line class="edge" x1="660" y1="232" x2="660" y2="266" marker-end="url(#arrowFlow)" />
+
+        <rect class="node-claude" x="360" y="272" width="600" height="80" rx="7" />
+        <text class="n-title" x="660" y="304" text-anchor="middle">Claude hands back the referral form</text>
+        <text class="n-sub" x="660" y="327" text-anchor="middle">The same form as the website, wired to the same system</text>
+
+        <line class="edge" x1="660" y1="352" x2="660" y2="386" marker-end="url(#arrowFlow)" />
+
+        <rect class="node-team" x="360" y="392" width="600" height="80" rx="7" />
+        <text class="n-title" x="660" y="424" text-anchor="middle">The worker fills it in</text>
+        <text class="n-sub" x="660" y="447" text-anchor="middle">While on the call, or straight from the email they were sent</text>
+
+        <!-- ===== converge on the trunk ===== -->
+        <polyline class="edge" points="180,232 180,488 340,488 340,506" marker-end="url(#arrowFlow)" />
+        <line class="edge" x1="660" y1="472" x2="660" y2="506" marker-end="url(#arrowFlow)" />
+
+        <!-- ===== Row E — the shared trunk ===== -->
+        <rect class="node-auto" x="200" y="512" width="600" height="132" rx="7" />
+        <text class="n-tag tag-meet" x="500" y="538" text-anchor="middle">ALL THREE CHANNELS MEET HERE</text>
+        <text class="n-title" x="500" y="562" text-anchor="middle">The system saves it — no one has to do anything</text>
+        <text class="n-sub" x="500" y="590" text-anchor="middle">A record is created for the participant and for the referrer</text>
+        <text class="n-sub" x="500" y="612" text-anchor="middle">A job appears for the team, due within 2 business hours</text>
+        <text class="n-sub" x="500" y="634" text-anchor="middle">The reply clock starts</text>
+
+        <line class="edge" x1="300" y1="644" x2="300" y2="670" marker-end="url(#arrowFlow)" />
+        <line class="edge" x1="700" y1="644" x2="700" y2="670" marker-end="url(#arrowFlow)" />
+
+        <!-- ===== Row F — the two emails ===== -->
+        <rect class="node-auto" x="130" y="676" width="340" height="76" rx="7" />
+        <text class="n-title" x="300" y="708" text-anchor="middle">Email to the referrer</text>
+        <text class="n-sub" x="300" y="730" text-anchor="middle">&ldquo;Thanks — we've received this referral&rdquo;</text>
+
+        <rect class="node-auto" x="530" y="676" width="340" height="76" rx="7" />
+        <text class="n-title" x="700" y="708" text-anchor="middle">Email to the H&amp;W team</text>
+        <text class="n-sub" x="700" y="730" text-anchor="middle">&ldquo;New referral — someone needs to call&rdquo;</text>
+
+        <line class="edge" x1="700" y1="752" x2="700" y2="786" marker-end="url(#arrowFlow)" />
+
+        <!-- ===== Row G — the worker calls ===== -->
+        <rect class="node-team" x="200" y="792" width="600" height="80" rx="7" />
+        <text class="n-title" x="500" y="824" text-anchor="middle">A worker phones the participant</text>
+        <text class="n-sub" x="500" y="847" text-anchor="middle">A real conversation with a real person. This stays human.</text>
+
+        <line class="edge-todo" x1="500" y1="872" x2="500" y2="906" marker-end="url(#arrowFlow)" />
+
+        <!-- ===== Row H — the worker tells Claude ===== -->
+        <rect class="node-team is-todo" x="200" y="912" width="600" height="80" rx="7" />
+        <text class="n-title" x="500" y="944" text-anchor="middle">The worker tells Claude how the call went</text>
+        <text class="n-sub" x="500" y="967" text-anchor="middle">In plain words, the way you'd tell a colleague</text>
+
+        <line class="edge-todo" x1="500" y1="992" x2="500" y2="1012" />
+        <line class="edge-todo" x1="180" y1="1012" x2="820" y2="1012" />
+        <line class="edge-todo" x1="180" y1="1012" x2="180" y2="1026" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="500" y1="1012" x2="500" y2="1026" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="820" y1="1012" x2="820" y2="1026" marker-end="url(#arrowFlow)" />
+
+        <!-- ===== Row I — the three outcomes ===== -->
+        <rect class="node-branch" x="40" y="1032" width="280" height="72" rx="7" />
+        <text class="n-branch" x="180" y="1064" text-anchor="middle">They're going ahead</text>
+        <text class="n-sub" x="180" y="1085" text-anchor="middle">with us</text>
+
+        <rect class="node-branch" x="360" y="1032" width="280" height="72" rx="7" />
+        <text class="n-branch" x="500" y="1064" text-anchor="middle">They want time</text>
+        <text class="n-sub" x="500" y="1085" text-anchor="middle">to think about it</text>
+
+        <rect class="node-branch" x="680" y="1032" width="280" height="72" rx="7" />
+        <text class="n-branch" x="820" y="1064" text-anchor="middle">They said no</text>
+        <text class="n-sub" x="820" y="1085" text-anchor="middle">thank you</text>
+
+        <line class="edge-todo" x1="180" y1="1104" x2="180" y2="1124" />
+        <line class="edge-todo" x1="500" y1="1104" x2="500" y2="1124" />
+        <line class="edge-todo" x1="820" y1="1104" x2="820" y2="1124" />
+        <line class="edge-todo" x1="180" y1="1124" x2="820" y2="1124" />
+        <line class="edge-todo" x1="500" y1="1124" x2="500" y2="1138" marker-end="url(#arrowFlow)" />
+
+        <!-- ===== Row J — Claude closes the loop ===== -->
+        <rect class="node-claude is-todo" x="130" y="1144" width="740" height="104" rx="7" />
+        <text class="n-tag tag-todo" x="500" y="1168" text-anchor="middle">NOT BUILT YET</text>
+        <text class="n-title" x="500" y="1192" text-anchor="middle">Claude writes it down and closes the loop</text>
+        <text class="n-sub" x="500" y="1216" text-anchor="middle">The records are updated with what was said on the call</text>
+        <text class="n-sub" x="500" y="1238" text-anchor="middle">The referrer is told which of the three it was</text>
+
+        <!-- return loop to the referrer -->
+        <polyline class="edge-todo" points="130,1196 18,1196 18,714 124,714" marker-end="url(#arrowFlow)" />
+        <text class="edge-label" x="34" y="955" text-anchor="middle" transform="rotate(-90 34 955)">the referrer finally hears back</text>
+
+      </svg>
+    </div>
+    <figcaption>Three ways in, one shared trunk, three ways out. Everything above the trunk is now live: the website branch on the left costs the team nothing, and the other two cost three short steps instead of being lost entirely. What remains dashed is the bottom — turning the worker's phone call into a record, and telling the referrer how it went.</figcaption>
+  </figure>
+
+  <div class="notes">
+
+    <section class="note">
+      <h2>What these two branches fix</h2>
+      <p>Before this, a referral by email, phone, text or in person had <strong>no path at all</strong>. No record, no job, no clock, no acknowledgement to the person who referred them. It existed only in someone's inbox or memory.</p>
+      <p>The fix is deliberately small, and it is <strong>now live</strong>. The worker does not have to find a form, log into anything, or remember a process — they tell Claude there's a new referral, Claude hands back the form, they fill it in. From the moment it is submitted, <strong>the referral is indistinguishable from a website one</strong>: same records, same job, same two-hour clock, same acknowledgement email to the referrer.</p>
+      <p>That last point is what makes this worth doing. The support coordinator who phoned you gets the same &ldquo;thanks, we've got it&rdquo; email as one who used the website — and lands in the same reporting, so &ldquo;who refers us the most&rdquo; finally counts everyone.</p>
+    </section>
+
+    <section class="note">
+      <h2>Two fields the website form doesn't have</h2>
+      <p>The staff form records <strong>how the referral arrived</strong> — phone, email, text or in person — and <strong>who on the team took it</strong>. Everything else on it is the public form, word for word.</p>
+      <p>A website referral records its channel too, as &ldquo;Website form&rdquo;. Without that, the reporting would only ever show the channels a worker typed in, which answers &ldquo;where do our referrals come from&rdquo; exactly backwards.</p>
+    </section>
+
+    <section class="note">
+      <h2>The three decisions behind it</h2>
+      <p>Settled on 24 August 2026. Recorded here because each one is a judgement that someone will eventually want to re-open, and the reasoning is easier to argue with than to reconstruct.</p>
+
+      <div class="decisions">
+        <div class="decision">
+          <h3>Consent is attested, not copied</h3>
+          <p>Nobody can read a privacy policy on someone else's behalf, so the worker does not tick the referrer's box. They tick their own: that they told the referrer we store their details, and where to find the Privacy Policy. Consent is still mandatory — a submission without it is refused, and sending the website form's tick instead does not get past it.</p>
+          <p>Because that is a different fact from a referrer ticking a box themselves, the record says which of the two it was. If consent is ever questioned, that distinction is the whole answer, and it cannot be reconstructed after the fact.</p>
+        </div>
+        <div class="decision">
+          <h3>The link is the key</h3>
+          <p>No login. A worker asks Claude and gets the address, and the page is not linked from anywhere on the site or offered to search engines. Chosen so nothing stands between a worker and the form while someone is waiting on the phone.</p>
+          <p>Worth being plain about the trade: this is obscurity, not a lock. Anyone holding the address can open it — the same as the public referral form, so it is not a step backwards, but the link should not be forwarded outside the team.</p>
+        </div>
+        <div class="decision">
+          <h3>A separate submission limit for the office</h3>
+          <p>The public form allows five submissions per ten minutes from one internet connection, which is right for one person filling in one form and wrong for a team sharing an office connection — the second worker of the morning would simply be blocked. Staff submissions get their own ceiling of forty. Still a limit, just a deliberate one.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <p class="colophon">Workflow 1 of 8. The full set is in the build register. Status as at 24 August 2026, with the intake channels and live email behaviour confirmed by the team.</p>
+
+</div>

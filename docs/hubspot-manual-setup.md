@@ -574,3 +574,38 @@ sentence a referrer relies on when deciding whether they have done right by the 
 
 - `ndis_plan_status`, `authority_to_act`, `service_region`, `first_response_at`,
   `ndis_plan_end_date`, `primary_language_other` — not created, not written.
+
+---
+
+## Staff referral intake — 3 properties (24 Aug 2026)
+
+Added for the staff intake form at `/staff/<token>/`, which captures referrals that
+arrive by phone, email, text or in person. All three are contact properties, and all
+three are schema-guarded in `api/hubspot-submit.js` — the endpoint writes them only
+once they exist, so creating them is safe at any time and nothing breaks before then.
+
+| Property | Type | Options |
+|---|---|---|
+| `referral_channel` | Dropdown select | Website form · Phone call · Direct email · Text message · In person |
+| `referral_taken_by` | Single-line text | — |
+| `consent_capture_method` | Dropdown select | Referrer ticked online · Recorded by worker |
+
+Notes on each:
+
+- **`referral_channel`** is set on every referral, not only staff-entered ones — a
+  website referral writes `Website form`. Without that default the property answers
+  "which channels bring people in" with only the channels a worker typed in, which is
+  exactly backwards.
+- **`referral_taken_by`** is blank on a website referral, because nobody took it. Free
+  text rather than an owner reference: the person entering it may not have a HubSpot
+  seat, and a name in a note is more useful than an empty reference.
+- **`consent_capture_method`** exists so the consent record stays honest. Both values
+  mean consent was given. They differ in *who said so* — the referrer ticking a box
+  themselves, or a worker recording that they explained it on a call. If consent is
+  ever questioned, that distinction is the whole answer, and it cannot be reconstructed
+  later.
+
+The staff form does **not** get its own HubSpot form or workflow. It submits to
+`REFERRAL_FORM_GUID`, the same form the website referral uses, so the same workflow
+fires and the referrer receives the same acknowledgement email. Starter allows one
+workflow per form, and this deliberately stays inside that budget.

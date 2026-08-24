@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-eyebrow">{{ icon('users') }} Team use only</div>
+    <h1 class="page-h1">Enter a referral</h1>
+    <p class="page-sub">For a referral that came in by phone, email, text or in person. Filling this in does everything the website form does — no other step is needed afterwards.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <div class="prose">
+      <h2>When to use this</h2>
+      <p>Use it whenever a referral reaches you any way other than the website form. Until it is entered here, that referral does not exist in our system: no record, no job for the team, no reply clock, and no acknowledgement to the person who referred them.</p>
+
+      <h2>What happens when you submit</h2>
+      <ol>
+        <li>A record is created for the participant and for the referrer</li>
+        <li>A job appears for the team, due within 2 business hours</li>
+        <li>The referrer gets the same acknowledgement email as a website referral</li>
+        <li>The team gets the same notification email</li>
+      </ol>
+
+      <h2>Before you fill it in</h2>
+      <p>You need the referrer's <strong>email address</strong> — the acknowledgement goes there, and without it they hear nothing back from us.</p>
+      <p>If you are on the phone, you can fill this in while you talk. If the referral came by email, work straight from their message.</p>
+      <p>If you are not sure whether the participant has agreed to the referral, leave that box unticked. It is not a problem — it just means we go back to the referrer before contacting the participant.</p>
+
+      <h2>Keep this link to yourself</h2>
+      <p>This page is not linked from anywhere on the site and search engines are told to ignore it, but anyone who has the address can open it. Please don't post it publicly or forward it outside the team.</p>
+
+      {% include "partials/staff_referral_form.html" %}
+    </div>
+  </div>
+</section>
+{% endblock %}
