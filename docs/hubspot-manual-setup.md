@@ -762,14 +762,13 @@ Claude's to invent. Bind them to literal text when building the HubSpot email:
 Replace all three with real names once Kholoud confirms who actually holds the role — at that
 point they become ordinary static text edits in the HubSpot editor, no endpoint change needed.
 
-### Draft compliance sentence — not reviewed
+### Compliance sentence — approved 25 August 2026
 
 `{{Response Line}}` (07) and `{{Update Date}}` (08) are computed by the endpoint as 5 Brisbane
-business days from receipt (`addBusinessDaysBrisbane` in `api/hubspot-submit.js`). This is a
-placeholder, not a confirmed operational promise — unlike the **2 business hour** enquiry
-response time in CLAUDE.md's canonical facts table, no complaint-handling turnaround has been
-confirmed against H&W's actual policy or the NDIS Practice Standards. Flag for the same
-compliance review templates 04/12/13 are waiting on before this is relied on in a live send.
+business days from receipt (`addBusinessDaysBrisbane` in `api/hubspot-submit.js`). Kholoud has
+reviewed and confirmed this alongside the rest of templates 07 and 08's wording — it is now a
+real operational promise, the same status as the confirmed **2 business hour** enquiry response
+time in CLAUDE.md's canonical facts table.
 
 ### Anonymous submissions
 
@@ -788,4 +787,4 @@ a phone-only enquiry already behaves.
   `complaints@` should be a separate mailbox from `hello@` once this pipeline is live, for
   retention and access control — a complaint may need to be produced at an NDIS Commission
   audit. Not yet created.
-- Compliance review of the response-time default, per the section above.
+- ~~Compliance review of the response-time default~~ — done, per the section above.

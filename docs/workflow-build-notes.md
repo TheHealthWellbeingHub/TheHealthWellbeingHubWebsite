@@ -171,7 +171,8 @@ Not a placeholder waiting on HubSpot Starter to grow a feature — the same deli
 design as workflow 01's outcome step, chosen on purpose rather than defaulted into.
 Applies to 04, 05 and 08 too; none of them need this question asked again.
 
-**Next:** get 04, 12 and 13 through compliance review, then run it once for real.
+**Next:** ~~get 04, 12 and 13 through compliance review~~ — done, approved 25 August
+2026 (see workflow 03's spec). Run it once for real.
 
 ## 04 — Maintaining participants
 
@@ -320,8 +321,9 @@ is now a `{{Response Line}}` merge token the endpoint computes server-side, the 
 properties, a subscription type, two workflows, two marketing emails. Checklist in
 `hubspot-manual-setup.md` §"Workflow 07". Until then every real submission records correctly
 and raises an `ACKNOWLEDGE MANUALLY` task, the same fail-loud state 02 was built in before its
-form existed. The 5-business-day "next update" wording the endpoint computes is a placeholder,
-not a confirmed promise — flagged for the same compliance review 04/12/13 are waiting on.
+form existed. The 5-business-day "next update" wording the endpoint computes is now a
+confirmed operational promise, not a placeholder — approved 25 August 2026 alongside the rest
+of templates 07 and 08's wording.
 
 **Next:** the HubSpot-side build (a human, not Claude Code — see `hubspot-manual-setup.md`),
 then a live test.
@@ -347,8 +349,8 @@ The quick-form also resolves the template's own `{{end / be cancelled}}` branch:
 the worker picks (five neutral, non-judgemental options, one free-text) decides the wording,
 so the form asks one question instead of two redundant ones. Full mapping in the spec.
 
-**Next:** compliance review of the wording and the five reason options — this is the most
-sensitive email in the library — then a live test.
+**Next:** ~~compliance review of the wording and the five reason options~~ — done, approved
+25 August 2026, the most sensitive email in the library included. A live test.
 
 ---
 

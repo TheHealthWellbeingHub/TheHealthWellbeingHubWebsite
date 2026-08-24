@@ -138,10 +138,10 @@ pattern reused, not new code — but "matches a proven pattern" is not the same 
 
 ## Open
 
-- **Compliance review.** Templates 10 and 11 carry a note that their wording is approved.
-  04, 12 and 13 do not — they are drafted, not reviewed. Per `CLAUDE.md`, "Compliance
-  wording is reviewed, not generated." This is the one item on this workflow that only a
-  human can close.
+- ~~**Compliance review.**~~ **Approved 25 August 2026.** Kholoud has reviewed 04
+  (the Consent email) and 12 (the Welcome email) alongside 10, 11 and 13 — all five
+  are now approved wording, not drafts. The one item this workflow's spec flagged
+  for a human is closed.
 - **A live send.** Everything here is proven by dry run and by workflow 01's precedent,
   not by an actual send to an actual participant. Worth doing once, deliberately, before
   trusting this at volume.

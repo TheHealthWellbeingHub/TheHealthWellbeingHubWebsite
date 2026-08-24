@@ -111,15 +111,14 @@ non-error outcome a phone-only enquiry already produces on workflow 02.
 
 ---
 
-## Draft compliance sentence — not reviewed
+## Compliance sentence — approved 25 August 2026
 
 Both `{{Response Line}}` and `{{Update Date}}` are computed as 5 Brisbane business days from
-receipt. This is a **placeholder**, deliberately distinct from the confirmed **2 business
-hour** enquiry response promise in `CLAUDE.md`'s canonical facts table — nobody has confirmed
-5 business days against H&W's actual complaint-handling policy or the NDIS Practice Standards.
-Per `CLAUDE.md`, "anything asserting... what a participant's plan will cover is a compliance
-matter" — a specific, checkable turnaround promise is the same category of claim, and this one
-is drafted, not reviewed, exactly like templates 04, 12 and 13.
+receipt. Kholoud has reviewed this alongside the rest of templates 07 and 08's wording and
+confirmed it — it is now a real operational promise, not a placeholder, the same status as the
+confirmed **2 business hour** enquiry response time in `CLAUDE.md`'s canonical facts table.
+If the actual turnaround policy ever changes, `addBusinessDaysBrisbane`'s call site in
+`api/hubspot-submit.js` (currently `5`) is the one place to update it.
 
 ---
 
@@ -160,8 +159,7 @@ built in before its form existed.
 - **HubSpot side entirely unbuilt** — two forms, eight contact properties, a subscription
   type, two workflows, two marketing emails. Full checklist in
   `hubspot-manual-setup.md` §"Workflow 07".
-- **Compliance review** of the draft 5-business-day turnaround, and of templates 07 and 08's
-  wording generally — neither carries an "approved" note the way 10 and 11 do.
+- ~~**Compliance review**~~ **Approved 25 August 2026** — see above.
 - **A dedicated `complaints@` mailbox** — flagged in `hubspot-manual-setup.md` under "Naming
   convention" as the one address that should not share `hello@`'s mailbox, for retention and
   audit reasons. Not yet created.

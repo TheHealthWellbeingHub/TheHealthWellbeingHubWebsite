@@ -1,7 +1,7 @@
 <title>The Eight Workflows</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Playfair+Display:wght@700;900&family=JetBrains+Mono:wght@500&display=swap">
 
 <style>
   :root {
@@ -14,9 +14,9 @@
     --rule: #E8E0ED;
     --rule-firm: #D6C9DE;
     --brand: #7B2D8B;
+    --brand-bg: #F5EDF8;
     --navy: #1D3461;
     --navy-bg: #E7EDF7;
-    --brand-bg: #F5EDF8;
     --live: #3F7135;
     --live-bg: #EAF3DE;
     --partial: #94590A;
@@ -36,13 +36,13 @@
       --sunk: #241D30;
       --ink: #EFEAF3;
       --ink-soft: #A79FB5;
-      --ink-faint: #7E7691;
+      --ink-faint: #837A96;
       --rule: #2E2739;
       --rule-firm: #423853;
       --brand: #C77BD4;
+      --brand-bg: #2A1B33;
       --navy: #9DB4E0;
       --navy-bg: #1A2438;
-      --brand-bg: #2A1B33;
       --live: #8CC47B;
       --live-bg: #21301C;
       --partial: #E3A951;
@@ -58,13 +58,13 @@
     --sunk: #241D30;
     --ink: #EFEAF3;
     --ink-soft: #A79FB5;
-    --ink-faint: #7E7691;
+    --ink-faint: #837A96;
     --rule: #2E2739;
     --rule-firm: #423853;
     --brand: #C77BD4;
+    --brand-bg: #2A1B33;
     --navy: #9DB4E0;
     --navy-bg: #1A2438;
-    --brand-bg: #2A1B33;
     --live: #8CC47B;
     --live-bg: #21301C;
     --partial: #E3A951;
@@ -72,6 +72,8 @@
     --idle: #9990AB;
     --idle-bg: #262032;
   }
+
+  * { box-sizing: border-box; }
 
   body {
     background: var(--ground);
@@ -82,23 +84,22 @@
   }
 
   .wrap {
-    max-width: 960px;
+    max-width: 900px;
     margin: 0 auto;
-    padding: clamp(32px, 6vw, 72px) clamp(20px, 5vw, 48px) 96px;
+    padding: clamp(28px, 6vw, 60px) clamp(16px, 4vw, 36px) 100px;
   }
-
-  /* ---------- masthead ---------- */
 
   .masthead {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding-bottom: 28px;
+    gap: 11px;
+    padding-bottom: 24px;
     border-bottom: 2px solid var(--rule-firm);
+    margin-bottom: 26px;
   }
 
   .eyebrow {
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: .16em;
     text-transform: uppercase;
@@ -108,781 +109,947 @@
   h1 {
     font-family: var(--fd);
     font-weight: 900;
-    font-size: clamp(34px, 5.4vw, 56px);
+    font-size: clamp(30px, 5vw, 46px);
     line-height: 1.05;
     letter-spacing: -.02em;
     color: var(--navy);
     text-wrap: balance;
+    margin: 0;
   }
 
   .standfirst {
-    font-size: 17px;
+    font-size: 15.5px;
     color: var(--ink-soft);
     max-width: 60ch;
+    margin: 0;
   }
 
-  /* ---------- tally ---------- */
-
-  .tally {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1px;
-    background: var(--rule);
-    border: 1px solid var(--rule);
-    margin: 28px 0 0;
-  }
-
-  .tally-cell {
-    background: var(--surface);
-    padding: 16px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-
-  .tally-num {
-    font-family: var(--fd);
-    font-size: 34px;
+  .standfirst .mail-hint {
+    color: var(--brand);
     font-weight: 700;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
   }
 
-  .tally-num.is-live { color: var(--live); }
-  .tally-num.is-partial { color: var(--partial); }
-  .tally-num.is-idle { color: var(--idle); }
+  /* ---------- status chip ---------- */
 
-  .tally-label {
-    font-size: 12px;
-    font-weight: 500;
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 700;
     letter-spacing: .05em;
     text-transform: uppercase;
-    color: var(--ink-faint);
+    padding: 5px 11px;
+    border-radius: 30px;
+    white-space: nowrap;
+    flex: none;
+  }
+  .chip.is-live    { color: var(--live);    background: var(--live-bg); }
+  .chip.is-partial { color: var(--partial); background: var(--partial-bg); }
+  .chip.is-idle    { color: var(--idle);    background: var(--idle-bg); }
+  /* Distinct from is-partial: nothing is missing here — no code, no HubSpot
+     build, nothing to set up. The gap is only that it has never been run for
+     a real person yet. Reuses the navy already in the palette rather than
+     introducing a new hue, since it isn't a warning the way amber is. */
+  .chip.is-ready   { color: var(--navy);    background: var(--navy-bg); }
+
+  /* ---------- top-level workflow accordion ---------- */
+
+  .wf-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .wf {
+    border: 1px solid var(--rule-firm);
+    background: var(--surface);
   }
 
-  /* ---------- constraint note ---------- */
+  .wf[open] { border-color: var(--brand); }
 
-  .constraint {
-    margin: 28px 0 0;
+  .wf > summary {
+    list-style: none;
+    cursor: pointer;
     padding: 18px 20px;
-    background: var(--sunk);
-    border: 1px solid var(--rule);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .constraint h2 {
-    font-family: var(--fb);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--navy);
-  }
-
-  .constraint p {
-    font-size: 14.5px;
-    color: var(--ink-soft);
-    max-width: 68ch;
-  }
-
-  /* ---------- register ---------- */
-
-  .register {
-    margin-top: 44px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .entry {
     display: grid;
-    grid-template-columns: 112px minmax(0, 1fr);
-    gap: 0 28px;
-    padding: 34px 0;
-    border-bottom: 1px solid var(--rule);
-    align-items: start;
+    grid-template-columns: 24px 34px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
   }
 
-  .entry:first-child { border-top: 1px solid var(--rule); }
+  .wf > summary::-webkit-details-marker { display: none; }
+  .wf > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 
-  .spine {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
-    position: sticky;
-    top: 20px;
+  .wf-chevron {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--sunk);
+    color: var(--ink-soft);
+    font-size: 12px;
+    flex: none;
+    transition: transform .15s ease;
   }
+  .wf[open] .wf-chevron { transform: rotate(90deg); }
 
-  .seq {
+  .wf-seq {
     font-family: var(--fd);
-    font-size: 46px;
     font-weight: 700;
-    line-height: .9;
+    font-size: 15px;
     color: var(--rule-firm);
     font-variant-numeric: tabular-nums;
   }
 
-  .chip {
-    font-size: 11px;
+  .wf-name {
+    font-size: 18px;
     font-weight: 700;
-    letter-spacing: .09em;
-    text-transform: uppercase;
-    padding: 5px 10px;
-    border-radius: 3px;
-    white-space: nowrap;
-  }
-
-  .chip.is-live { color: var(--live); background: var(--live-bg); }
-  .chip.is-partial { color: var(--partial); background: var(--partial-bg); }
-  .chip.is-idle { color: var(--idle); background: var(--idle-bg); }
-
-  .body-col {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    color: var(--ink);
     min-width: 0;
   }
 
-  h3 {
-    font-family: var(--fd);
-    font-size: clamp(21px, 2.6vw, 27px);
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -.01em;
-    color: var(--navy);
-    text-wrap: balance;
-  }
-
-  .facts {
-    display: grid;
-    grid-template-columns: 104px minmax(0, 1fr);
-    gap: 7px 16px;
-    font-size: 13.5px;
-    padding: 14px 16px;
-    background: var(--sunk);
-    border-left: 2px solid var(--rule-firm);
-  }
-
-  .facts dt {
-    font-weight: 700;
-    color: var(--ink-faint);
-    font-size: 11.5px;
-    letter-spacing: .07em;
-    text-transform: uppercase;
-    padding-top: 2px;
-  }
-
-  .facts dd {
-    color: var(--ink-soft);
-    min-width: 0;
-    overflow-wrap: break-word;
-  }
-
-  code {
-    font-family: var(--fm);
-    font-size: .88em;
-    color: var(--brand);
-    background: color-mix(in srgb, var(--brand) 8%, transparent);
-    padding: 1px 5px;
-    border-radius: 3px;
-  }
-
-  .body-col p {
-    font-size: 15.5px;
-    color: var(--ink-soft);
-    max-width: 66ch;
-  }
-
-  .body-col p strong { color: var(--ink); font-weight: 700; }
-
-  .next {
-    display: flex;
-    gap: 11px;
-    align-items: baseline;
-    font-size: 15.5px;
-    max-width: 66ch;
-  }
-
-  .next-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .09em;
-    text-transform: uppercase;
-    color: var(--brand);
-    white-space: nowrap;
-    padding-top: 2px;
-  }
-
-  .next span:last-child { color: var(--ink); }
-
-  .flag {
-    display: flex;
-    gap: 11px;
-    align-items: baseline;
-    font-size: 14.5px;
-    max-width: 66ch;
-    padding: 12px 15px;
-    background: var(--partial-bg);
-    border: 1px solid color-mix(in srgb, var(--partial) 26%, transparent);
-  }
-
-  .flag-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .09em;
-    text-transform: uppercase;
-    color: var(--partial);
-    white-space: nowrap;
-    padding-top: 2px;
-  }
-
-  .flag span:last-child { color: var(--ink); }
-
-  /* ---------- intake channels ---------- */
-
-  .subhead {
-    font-size: 11.5px;
-    font-weight: 700;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--navy);
-    margin-bottom: -4px;
-  }
-
-  .channels {
+  .wf-body {
+    padding: 2px 20px 22px;
+    border-top: 1px solid var(--rule);
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 10px;
   }
 
-  .channel {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 6px 14px;
-    align-items: center;
-    padding: 12px 15px;
-    background: var(--sunk);
+  /* ---------- per-trigger accordion (nested) ---------- */
+
+  .chan {
     border: 1px solid var(--rule);
-    font-size: 14.5px;
+    background: var(--sunk);
+    margin-top: 12px;
   }
 
-  .channel-name { color: var(--ink); font-weight: 700; }
-  .channel-note { color: var(--ink-soft); }
-
-  /* ---------- staged sequence ---------- */
-
-  .stages {
-    display: flex;
-    flex-direction: column;
-    padding-left: 16px;
-    border-left: 2px solid var(--rule-firm);
-  }
-
-  .stage {
-    display: grid;
-    grid-template-columns: 74px minmax(0, 1fr);
-    gap: 4px 14px;
-    padding: 13px 0;
-    border-bottom: 1px dashed var(--rule);
-  }
-
-  .stage:last-child { border-bottom: none; }
-
-  .actor {
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    padding-top: 4px;
-  }
-
-  .actor.is-auto { color: var(--live); }
-  .actor.is-person { color: var(--navy); }
-  .actor.is-claude { color: var(--brand); }
-
-  .stage-text { font-size: 15px; color: var(--ink-soft); min-width: 0; }
-  .stage-text strong { color: var(--ink); font-weight: 700; }
-
-  .gap-tag {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: var(--partial);
-    background: var(--partial-bg);
-    padding: 2px 7px;
-    border-radius: 3px;
-    margin-left: 7px;
-    vertical-align: 1.5px;
-  }
-
-  .outcomes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 9px;
-  }
-
-  .outcome {
-    font-size: 13px;
-    padding: 5px 11px;
-    background: var(--surface);
-    border: 1px solid var(--rule-firm);
-    border-radius: 3px;
-    color: var(--ink-soft);
-  }
-
-
-  /* ---------- per-channel accordions (mirrors the workflow-01 page) ---------- */
-
-  .chan { border: 1px solid var(--rule); background: var(--surface); margin-bottom: 7px; }
   .chan[open] { border-color: var(--rule-firm); }
 
   .chan summary {
-    list-style: none; cursor: pointer;
-    padding: 13px 15px;
-    display: grid; grid-template-columns: 22px minmax(0, 1fr) auto;
-    align-items: center; gap: 12px;
-    font-size: 14.5px; color: var(--ink-soft);
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 17px;
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
   }
+
   .chan summary::-webkit-details-marker { display: none; }
   .chan summary:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
-  .chan summary b { color: var(--ink); font-weight: 700; }
 
-  .chevron {
-    width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
-    border-radius: 50%; background: var(--sunk); color: var(--ink-faint);
-    font-size: 11px; transition: transform .15s ease;
+  .chan .chevron {
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-size: 11px;
+    transition: transform .15s ease;
   }
   .chan[open] .chevron { transform: rotate(90deg); }
 
-  .chan-body { padding: 2px 15px 16px; border-top: 1px solid var(--rule); }
+  .chan-note {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-faint);
+    justify-self: end;
+    text-align: right;
+  }
+
+  .chan-body {
+    padding: 2px 17px 18px;
+    border-top: 1px solid var(--rule);
+    background: var(--surface);
+  }
+
+  /* ---------- step tree ---------- */
+
+  .steps { display: flex; flex-direction: column; margin-top: 4px; }
 
   .step {
-    display: grid; grid-template-columns: 24px 86px minmax(0, 1fr);
-    gap: 2px 12px; padding: 10px 0;
-    border-bottom: 1px dashed var(--rule); align-items: start;
+    display: grid;
+    grid-template-columns: 26px 92px minmax(0, 1fr);
+    gap: 3px 13px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--rule);
+    align-items: start;
   }
-  .step:last-of-type { border-bottom: none; }
+  .step:last-child { border-bottom: none; }
 
   .step-n {
-    font-family: var(--fd); font-size: 15px; font-weight: 700;
-    color: var(--rule-firm); font-variant-numeric: tabular-nums; line-height: 1.6;
+    font-family: var(--fd);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--rule-firm);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
   }
 
   .who {
-    font-size: 9.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
-    padding: 3px 7px; border-radius: 3px; text-align: center; margin-top: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 4px 7px;
+    border-radius: 3px;
+    text-align: center;
+    margin-top: 2px;
   }
   .who.auto   { color: var(--live);  background: var(--live-bg); }
   .who.team   { color: var(--navy);  background: var(--navy-bg); }
   .who.claude { color: var(--brand); background: var(--brand-bg); }
 
-  .step-text { font-size: 14px; color: var(--ink-soft); min-width: 0; }
+  .step-text { font-size: 14.5px; color: var(--ink-soft); min-width: 0; }
   .step-text strong { color: var(--ink); font-weight: 700; }
-  .step-text em { color: var(--ink-faint); font-style: normal; font-size: 12.5px; display: block; margin-top: 2px; }
+  .step-text em { color: var(--ink-faint); font-style: normal; font-size: 13px; display: block; margin-top: 3px; }
 
   .shared-mark {
-    display: flex; align-items: center; gap: 11px; margin: 14px 0 0;
-    font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: 16px 0 0;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
     color: var(--ink-faint);
   }
   .shared-mark::after { content: ""; flex: 1; height: 1px; background: var(--rule-firm); }
 
-  @media (max-width: 640px) {
-    .step { grid-template-columns: 22px minmax(0, 1fr); }
-    .who { grid-column: 2; justify-self: start; margin-bottom: 3px; }
-    .step-text { grid-column: 2; }
-  }
-
-  /* ---------- closing ---------- */
-
-  .closing {
-    margin-top: 52px;
-    padding-top: 28px;
-    border-top: 2px solid var(--rule-firm);
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .closing h2 {
-    font-family: var(--fd);
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--navy);
-  }
-
-  .closing p {
-    font-size: 15.5px;
-    color: var(--ink-soft);
-    max-width: 66ch;
-  }
-
-  .orphans {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 4px;
-  }
-
-  .orphan {
+  .outcome-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 3px;
-    padding: 13px 16px;
-    background: var(--sunk);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 9px;
+    margin-top: 12px;
+  }
+
+  .oc {
+    padding: 12px 14px;
     border: 1px solid var(--rule);
-    font-size: 14.5px;
+    background: var(--sunk);
+    font-size: 13px;
     color: var(--ink-soft);
   }
+  .oc .mail-link { display: block; margin-bottom: 3px; font-size: 14px; }
 
-  .orphan strong { color: var(--ink); font-weight: 700; }
+  /* ---------- email hyperlink (inline, inside step text) ---------- */
 
-  .colophon {
-    margin-top: 44px;
-    padding-top: 18px;
-    border-top: 1px solid var(--rule);
-    font-size: 12.5px;
+  .mail-link {
+    font: inherit;
+    font-weight: 700;
+    color: var(--brand);
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--brand) 45%, transparent);
+    text-underline-offset: 2px;
+    text-align: left;
+  }
+  .mail-link:hover,
+  .mail-link:focus-visible { text-decoration-color: var(--brand); }
+  .mail-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 2px; }
+  .mail-link::after {
+    content: "\2709";
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 12px;
+    text-decoration: none;
+    opacity: .75;
+  }
+
+  @media (max-width: 620px) {
+    .step { grid-template-columns: 22px minmax(0, 1fr); }
+    .who { grid-column: 2; justify-self: start; margin-bottom: 4px; }
+    .step-text { grid-column: 2; }
+    .chan summary { font-size: 14.5px; }
+    .chan-note { display: none; }
+    .wf-name { font-size: 16px; }
+  }
+
+  /* ---------- modal ---------- */
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: color-mix(in srgb, #000 62%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 14px;
+    z-index: 100;
+  }
+  .modal-overlay[hidden] { display: none; }
+
+  .modal {
+    width: min(680px, 100%);
+    max-height: min(88vh, 820px);
+    background: var(--surface);
+    border: 1px solid var(--rule-firm);
+    box-shadow: 0 24px 60px color-mix(in srgb, #000 35%, transparent);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--sunk);
+  }
+
+  .modal-meta { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .modal-row { display: flex; gap: 9px; font-size: 13.5px; align-items: baseline; }
+  .modal-k {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
     color: var(--ink-faint);
-    max-width: 66ch;
+    flex: none;
+    padding-top: 1px;
+    width: 90px;
+  }
+  .modal-v { color: var(--ink); font-weight: 700; min-width: 0; }
+  .attachments-none { color: var(--ink-faint); font-weight: 500; }
+  .attachment-chip {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    background: var(--surface);
+    border: 1px solid var(--rule-firm);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin: 2px 6px 2px 0;
+    font-family: var(--fm);
   }
 
-  @media (max-width: 640px) {
-    .entry {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 16px;
-    }
-    .spine {
-      flex-direction: row;
-      align-items: center;
-      gap: 14px;
-      position: static;
-    }
-    .seq { font-size: 34px; }
-    .facts { grid-template-columns: minmax(0, 1fr); gap: 3px 0; }
-    .facts dt { padding-top: 9px; }
-    .facts dt:first-child { padding-top: 0; }
+  .modal-close {
+    flex: none;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--rule-firm);
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-close:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .modal-close:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  .modal-frame-wrap {
+    flex: 1;
+    overflow: auto;
+    background: var(--sunk);
+    padding: 18px;
+    display: flex;
+    justify-content: center;
   }
 
-  .starts {
-    display: flex; gap: 11px; align-items: baseline;
-    font-size: 15px; max-width: 66ch;
-    padding: 11px 14px; background: var(--sunk); border-left: 2px solid var(--rule-firm);
+  .modal-frame {
+    width: 640px;
+    max-width: 100%;
+    height: 900px;
+    border: 1px solid var(--rule-firm);
+    background: #fff;
+    flex: none;
   }
-  .starts-label {
-    font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
-    color: var(--ink-faint); white-space: nowrap; padding-top: 3px;
+
+  @media (prefers-reduced-motion: reduce) {
+    .wf-chevron, .chan .chevron { transition: none; }
   }
-  .starts span:last-child { color: var(--ink); }
 </style>
 
 <div class="wrap">
-
   <header class="masthead">
-    <div class="eyebrow">The Health &amp; Well-being Hub</div>
+    <div class="eyebrow">Internal · Operations</div>
     <h1>The Eight Workflows</h1>
-    <p class="standfirst">Every point where we contact someone, from the first referral through to a service ending. What happens on its own, what needs a person, and what is not set up yet.</p>
+    <p class="standfirst">Open a workflow, open a trigger, read the steps. Anywhere an email goes out is a link — click it for the <span class="mail-hint">subject, body and attachments</span>, filled with placeholder values.</p>
   </header>
 
-  <div class="tally">
-    <div class="tally-cell"><span class="tally-num is-live">1</span><span class="tally-label">Running</span></div>
-    <div class="tally-cell"><span class="tally-num is-partial">3</span><span class="tally-label">Partly running</span></div>
-    <div class="tally-cell"><span class="tally-num is-idle">4</span><span class="tally-label">Not set up yet</span></div>
-  </div>
+  <div class="wf-list">
 
-  <section class="constraint">
-    <h2>Why some of these are not automatic</h2>
-    <p>Our email system can only start a workflow when someone fills in a form. Five of the eight below begin some other way — a plan being signed, an appointment booked, a service ending — so each needs either a new form or Claude doing the step on request instead. Workflow 03 settled which, for good, on 24 August 2026: Claude doing the step, permanently, the same way workflow 01's outcome step already works — not a placeholder waiting for HubSpot to grow a feature. What is still open for 04, 05, 06 and 08 is building each one out, not choosing how it fires.</p>
-  </section>
-
-  <div class="register">
-
-    <article class="entry">
-      <div class="spine">
-        <span class="seq">01</span>
+    <!-- ============ 01 — Referral received ============ -->
+    <details class="wf">
+      <summary>
+        <span class="wf-chevron" aria-hidden="true">&#9656;</span>
+        <span class="wf-seq">01</span>
+        <span class="wf-name">Referral received</span>
         <span class="chip is-partial">Partly running</span>
-      </div>
-      <div class="body-col">
-        <h3>Referral received</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>Someone refers a participant to us — three ways in.</span></div>
-        <p>The referrer is acknowledged, a job appears for the team on a two-hour clock, a worker calls the participant, and the referrer is told how it went.</p>
-        <p><strong>Open the route that matches</strong> to see the whole journey for it.</p>
-        <div class="channels">
-          <details class="chan">
-            <summary>
-              <span class="chevron" aria-hidden="true">&#9656;</span>
-              <span><b>Website form</b> — nothing for you to do</span>
-              <span class="chip is-live">Running</span>
-            </summary>
-            <div class="chan-body">
-            <div class="step">
-              <span class="step-n">1</span><span class="who auto">Automatic</span>
-              <span class="step-text"><strong>They fill in the form themselves.</strong><em>The endpoint captures it. No one here lifts a finger.</em></span>
-            </div>
-            <div class="shared-mark">Same for all three from here</div>
-            <div class="step">
-              <span class="step-n">2</span><span class="who auto">Automatic</span>
-              <span class="step-text"><strong>The system saves it.</strong> Records for the participant and the referrer, a job for the team due within 2 business hours, and the reply clock starts.</span>
-            </div>
-            <div class="step">
-              <span class="step-n">3</span><span class="who auto">Automatic</span>
-              <span class="step-text"><strong>Two emails go out</strong> — the referrer's acknowledgement, and the team notification.</span>
-            </div>
-            <div class="step">
-              <span class="step-n">4</span><span class="who team">You</span>
-              <span class="step-text"><strong>A worker phones the participant.</strong><em>The one part that should never be automated.</em></span>
-            </div>
-            <div class="step">
-              <span class="step-n">5</span><span class="who claude">Claude</span>
-              <span class="step-text"><strong>Tell Claude how the call went.</strong> Claude writes the outcome to the deal and keeps your words in a note.</span>
-            </div>
-            <div class="step">
-              <span class="step-n">6</span><span class="who claude">Claude</span>
-              <span class="step-text"><strong>Claude reads the details back, shows a preview of the email, then sends it to the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
-            </div>
-            </div>
-          </details>
-          <details class="chan">
-            <summary>
-              <span class="chevron" aria-hidden="true">&#9656;</span>
-              <span><b>Direct email</b> — 3 extra steps, about 2 minutes</span>
-              <span class="chip is-live">Running</span>
-            </summary>
-            <div class="chan-body">
-            <div class="step">
-              <span class="step-n">1</span><span class="who team">You</span>
-              <span class="step-text"><strong>An email arrives</strong> about someone.<em>Until step 2, this referral is not in the system at all.</em></span>
-            </div>
-            <div class="step">
-              <span class="step-n">2</span><span class="who team">You</span>
-              <span class="step-text"><strong>Tell Claude you have a new referral.</strong></span>
-            </div>
-            <div class="step">
-              <span class="step-n">3</span><span class="who claude">Claude</span>
-              <span class="step-text"><strong>Claude sends back the referral form</strong> — the same one the website uses.</span>
-            </div>
-            <div class="step">
-              <span class="step-n">4</span><span class="who team">You</span>
-              <span class="step-text"><strong>Fill it in from their email.</strong><em>You need the referrer's email address — that is where the acknowledgement goes.</em></span>
-            </div>
-            <div class="shared-mark">Same for all three from here</div>
-            <div class="step">
-              <span class="step-n">5</span><span class="who auto">Automatic</span>
-              <span class="step-text"><strong>The system saves it.</strong> Records for the participant and the referrer, a job for the team due within 2 business hours, and the reply clock starts.</span>
-            </div>
-            <div class="step">
-              <span class="step-n">6</span><span class="who auto">Automatic</span>
-              <span class="step-text"><strong>Two emails go out</strong> — the referrer's acknowledgement, and the team notification.</span>
-            </div>
-            <div class="step">
-              <span class="step-n">7</span><span class="who team">You</span>
-              <span class="step-text"><strong>A worker phones the participant.</strong><em>The one part that should never be automated.</em></span>
-            </div>
-            <div class="step">
-              <span class="step-n">8</span><span class="who claude">Claude</span>
-              <span class="step-text"><strong>Tell Claude how the call went.</strong> Claude writes the outcome to the deal and keeps your words in a note.</span>
-            </div>
-            <div class="step">
-              <span class="step-n">9</span><span class="who claude">Claude</span>
-              <span class="step-text"><strong>Claude reads the details back, shows a preview of the email, then sends it to the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
-            </div>
-            </div>
-          </details>
-          <details class="chan">
-            <summary>
-              <span class="chevron" aria-hidden="true">&#9656;</span>
-              <span><b>Phone, text and in person</b> — 3 extra steps, do it while you talk</span>
-              <span class="chip is-live">Running</span>
-            </summary>
-            <div class="chan-body">
-            <div class="step">
-              <span class="step-n">1</span><span class="who team">You</span>
-              <span class="step-text"><strong>They call, message or drop in.</strong><em>Until step 2, this referral exists only in your memory.</em></span>
-            </div>
-            <div class="step">
-              <span class="step-n">2</span><span class="who team">You</span>
-              <span class="step-text"><strong>Tell Claude you have a new referral</strong> — you can do this mid-call.</span>
-            </div>
-            <div class="step">
-              <span class="step-n">3</span><span class="who claude">Claude</span>
-              <span class="step-text"><strong>Claude sends back the referral form.</strong></span>
-            </div>
-            <div class="step">
-              <span class="step-n">4</span><span class="who team">You</span>
-              <span class="step-text"><strong>Fill it in while you talk.</strong><em>Ask for the referrer's email before they hang up.</em></span>
-            </div>
-            <div class="shared-mark">Same for all three from here</div>
-            <div class="step">
-              <span class="step-n">5</span><span class="who auto">Automatic</span>
-              <span class="step-text"><strong>The system saves it.</strong> Records for the participant and the referrer, a job for the team due within 2 business hours, and the reply clock starts.</span>
-            </div>
-            <div class="step">
-              <span class="step-n">6</span><span class="who auto">Automatic</span>
-              <span class="step-text"><strong>Two emails go out</strong> — the referrer's acknowledgement, and the team notification.</span>
-            </div>
-            <div class="step">
-              <span class="step-n">7</span><span class="who team">You</span>
-              <span class="step-text"><strong>A worker phones the participant.</strong><em>The one part that should never be automated.</em></span>
-            </div>
-            <div class="step">
-              <span class="step-n">8</span><span class="who claude">Claude</span>
-              <span class="step-text"><strong>Tell Claude how the call went.</strong> Claude writes the outcome to the deal and keeps your words in a note.</span>
-            </div>
-            <div class="step">
-              <span class="step-n">9</span><span class="who claude">Claude</span>
-              <span class="step-text"><strong>Claude reads the details back, shows a preview of the email, then sends it to the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
-            </div>
-            </div>
-          </details>
-        </div>
+      </summary>
+      <div class="wf-body">
 
-        <div class="flag">
-          <span class="flag-label">Important</span>
-          <span>If a participant decides not to go ahead, we tell the referrer the decision and nothing more. We do not ask why, and we do not pass on a reason.</span>
-        </div>
-      </div>
-    </article>
+        <details class="chan">
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>Website form</span>
+            <span class="chan-note">Nothing for you to do</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>They fill in the form themselves</strong> on our website.</span>
+              </div>
+            </div>
+            <div class="shared-mark">From here it is the same for all three</div>
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">2</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>The system saves it.</strong> A record for the participant and referrer, a job for the team due within 2 business hours, and the reply clock starts.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">3</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>Two emails go out</strong> — <button type="button" class="mail-link" data-email="02">the referrer's acknowledgement</button> and a job notice to the team.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">4</span><span class="who team">You</span>
+                <span class="step-text"><strong>A worker phones the participant.</strong></span>
+              </div>
+              <div class="step">
+                <span class="step-n">5</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Tell Claude how the call went.</strong> Claude writes the outcome to the record and keeps your words in a note.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">6</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude reads the details back, shows a preview of the email, then sends it to the referrer.</strong></span>
+              </div>
+            </div>
+            <div class="outcome-row">
+              <div class="oc"><button type="button" class="mail-link" data-email="13">Going ahead</button>The referrer is told. Deal moves to Service Agreement Sent.</div>
+              <div class="oc"><button type="button" class="mail-link" data-email="10">Wants time to think</button>The referrer is told we'll be in touch either way. Deal stage untouched.</div>
+              <div class="oc"><button type="button" class="mail-link" data-email="11">Said no thank you</button>The referrer is told. No reason given. Deal moves to Lost / Not Suitable.</div>
+            </div>
+          </div>
+        </details>
 
-    <article class="entry">
-      <div class="spine">
-        <span class="seq">02</span>
+        <details class="chan">
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>Direct email</span>
+            <span class="chan-note">3 extra steps &middot; about 2 minutes</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who team">You</span>
+                <span class="step-text"><strong>An email arrives</strong> about someone.<em>Until step 2, this referral is not in the system at all.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">2</span><span class="who team">You</span>
+                <span class="step-text"><strong>Tell Claude you have a new referral.</strong></span>
+              </div>
+              <div class="step">
+                <span class="step-n">3</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude sends back the referral form</strong> — the same one the website uses.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">4</span><span class="who team">You</span>
+                <span class="step-text"><strong>Fill it in from their email.</strong><em>You need the referrer's email address — that is where the acknowledgement goes.</em></span>
+              </div>
+            </div>
+            <div class="shared-mark">From here it is the same for all three</div>
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">5</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>The system saves it.</strong> A record for the participant and referrer, a job for the team due within 2 business hours, and the reply clock starts.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">6</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>Two emails go out</strong> — <button type="button" class="mail-link" data-email="02">the referrer's acknowledgement</button> and a job notice to the team.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">7</span><span class="who team">You</span>
+                <span class="step-text"><strong>A worker phones the participant.</strong></span>
+              </div>
+              <div class="step">
+                <span class="step-n">8</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Tell Claude how the call went.</strong> Claude writes the outcome to the record and keeps your words in a note.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">9</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude reads the details back, shows a preview of the email, then sends it to the referrer.</strong></span>
+              </div>
+            </div>
+            <div class="outcome-row">
+              <div class="oc"><button type="button" class="mail-link" data-email="13">Going ahead</button>The referrer is told. Deal moves to Service Agreement Sent.</div>
+              <div class="oc"><button type="button" class="mail-link" data-email="10">Wants time to think</button>The referrer is told we'll be in touch either way. Deal stage untouched.</div>
+              <div class="oc"><button type="button" class="mail-link" data-email="11">Said no thank you</button>The referrer is told. No reason given. Deal moves to Lost / Not Suitable.</div>
+            </div>
+          </div>
+        </details>
+
+        <details class="chan">
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>Phone, text or in person</span>
+            <span class="chan-note">3 extra steps &middot; do it while you talk</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who team">You</span>
+                <span class="step-text"><strong>They call, message or drop in.</strong><em>Until step 2, this referral exists only in your memory.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">2</span><span class="who team">You</span>
+                <span class="step-text"><strong>Tell Claude you have a new referral</strong> — you can do this while still on the call.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">3</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude sends back the referral form</strong> — the same one the website uses.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">4</span><span class="who team">You</span>
+                <span class="step-text"><strong>Fill it in while you talk to them.</strong><em>Ask for the referrer's email before they hang up.</em></span>
+              </div>
+            </div>
+            <div class="shared-mark">From here it is the same for all three</div>
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">5</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>The system saves it.</strong> A record for the participant and referrer, a job for the team due within 2 business hours, and the reply clock starts.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">6</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>Two emails go out</strong> — <button type="button" class="mail-link" data-email="02">the referrer's acknowledgement</button> and a job notice to the team.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">7</span><span class="who team">You</span>
+                <span class="step-text"><strong>A worker phones the participant.</strong></span>
+              </div>
+              <div class="step">
+                <span class="step-n">8</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Tell Claude how the call went.</strong> Claude writes the outcome to the record and keeps your words in a note.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">9</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude reads the details back, shows a preview of the email, then sends it to the referrer.</strong></span>
+              </div>
+            </div>
+            <div class="outcome-row">
+              <div class="oc"><button type="button" class="mail-link" data-email="13">Going ahead</button>The referrer is told. Deal moves to Service Agreement Sent.</div>
+              <div class="oc"><button type="button" class="mail-link" data-email="10">Wants time to think</button>The referrer is told we'll be in touch either way. Deal stage untouched.</div>
+              <div class="oc"><button type="button" class="mail-link" data-email="11">Said no thank you</button>The referrer is told. No reason given. Deal moves to Lost / Not Suitable.</div>
+            </div>
+          </div>
+        </details>
+
+      </div>
+    </details>
+
+    <!-- ============ 02 — New enquiry acknowledgement ============ -->
+    <details class="wf">
+      <summary>
+        <span class="wf-chevron" aria-hidden="true">&#9656;</span>
+        <span class="wf-seq">02</span>
+        <span class="wf-name">New enquiry acknowledgement</span>
         <span class="chip is-live">Running</span>
+      </summary>
+      <div class="wf-body">
+        <details class="chan" open>
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>Website enquiry form</span>
+            <span class="chan-note">Nothing for you to do</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>They fill in the enquiry form</strong> on the homepage or /contact/.<em>Phone is required, email is optional.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">2</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>The system saves it.</strong> A contact record, a deal, and a job for the team due within 2 business hours.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">3</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong><button type="button" class="mail-link" data-email="03">HubSpot sends the acknowledgement</button></strong><em>The moment the form registers — no one has to do anything.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">4</span><span class="who team">You</span>
+                <span class="step-text"><strong>A worker calls or replies.</strong><em>The job already has their number, or their email if that's all they gave.</em></span>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
-      <div class="body-col">
-        <h3>New enquiry acknowledgement</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>Someone fills in the enquiry form on the website.</span></div>
-        <p>They get an acknowledgement straight away and a job appears for the team. Running and confirmed working.</p>
-        <p>Two things to know: <strong>the wording has never been reviewed by Kholoud</strong>, and we have not confirmed it lands outside people's spam folders.</p>
+    </details>
+
+    <!-- ============ 03 — New participant ============ -->
+    <details class="wf">
+      <summary>
+        <span class="wf-chevron" aria-hidden="true">&#9656;</span>
+        <span class="wf-seq">03</span>
+        <span class="wf-name">New participant</span>
+        <span class="chip is-ready">Ready to test</span>
+      </summary>
+      <div class="wf-body">
+
+        <details class="chan">
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>Send the Consent email</span>
+            <span class="chan-note">After the outcome call says yes</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who team">You</span>
+                <span class="step-text"><strong>Tell Claude the participant wants to go ahead.</strong><em>Said after the outcome step already recorded a yes.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">2</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong><button type="button" class="mail-link" data-email="04">Claude fills the Consent email and shows a preview</button></strong><em>Both PDFs attach every time — the referral form and the NDIS consent form, never just one.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">3</span><span class="who team">You</span>
+                <span class="step-text"><strong>Confirm, and Claude sends it.</strong><em>From the H&amp;W mailbox.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">4</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude leaves a note on the deal</strong> — a reminder to follow up if the forms don't come back.</span>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="chan">
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>The forms are back</span>
+            <span class="chan-note">Once both documents return</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who team">You</span>
+                <span class="step-text"><strong>Tell Claude both forms are back.</strong><em>Only when both are in — a partial return isn't this trigger.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">2</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude reads the forms and writes a note.</strong> NDIS number, date of birth, plan details — onto the participant's own contact record.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">3</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong><button type="button" class="mail-link" data-email="12">Claude previews and sends the Welcome email</button></strong><em>Attaching the four easy-read guides.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">4</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>The deal moves to Participant Onboarded.</strong></span>
+              </div>
+            </div>
+          </div>
+        </details>
 
       </div>
-    </article>
+    </details>
 
-    <article class="entry">
-      <div class="spine">
-        <span class="seq">03</span>
-        <span class="chip is-idle">Not set up yet</span>
-      </div>
-      <div class="body-col">
-        <h3>New participant</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>A participant agrees to come on board.</span></div>
-        <p>The <strong>Consent email</strong> is written and ready, and now has both documents a participant needs attached — a fillable referral form and the NDIA's own consent form, with real interactive fields rather than a flat PDF to print and post back.</p>
-        <p>Once the forms come back, the <strong>Welcome email</strong> hands over the welcome pack — four easy-read guides on privacy, feedback, rights and incident management. Built as template 12, ready the same way. That same moment is also when the deal moves to <em>Participant Onboarded</em> — before that, while the forms are outstanding, it sits at <em>Service Agreement Sent</em>.</p>
-        <p>Neither is wired to a trigger, because signing an agreement is not something our email system can react to. Both run the way workflow 01's outcome step does — tell Claude, and it sends from the H&amp;W mailbox. <strong>Decided 24 August 2026:</strong> that stays the design, permanently — not a gap waiting on HubSpot, a deliberate choice, same as workflow 01's.</p>
-        <p>Walked through end to end as a dry run on 24 August 2026 — a fictional referral, through the staff intake link, to the outcome step, to both emails — and the mechanics hold: same confirm-before-send pattern as workflow 01, same mailbox send, the Consent email's two attachments fixed on every send, both previewed as a rendered image before sending, attachments and all. Nothing has gone to a real participant yet.</p>
-        <p>The dry run surfaced two real problems in workflow 01's outcome step, both fixed the same day: a referrer used to hear nothing when their referral said yes — now they get an email, the same as the other two outcomes — and the deal used to move to <em>Lost / Not Suitable</em> for a yes, which was a genuine bug. It now moves to <em>Service Agreement Sent</em> instead: active, not yet onboarded. See workflow 01 for both.</p>
-        <p>Three more edges came up, and none of them need a feature — just a person doing the obvious thing. Only one of the two forms comes back? Reply and ask for the other one before telling Claude the forms are in. A participant changes their mind after saying yes? Same as any decline — deal closed, referrer told. Worried something will sit forgotten if the forms never come back? Claude leaves a note on the deal when the Consent email goes out, as a reminder to check.</p>
-        <p>One question was still open: the two forms carry around 70 fields between them, and none of it was landing anywhere in HubSpot. Settled the same way — no attempt to map it onto individual fields. When the forms come back, Claude reads them and writes what is on them as a note: the participant's own details on their contact record, anything about the referrer on theirs.</p>
-
-        <p>This was the one to settle first, and it is settled now — 04, 05 and 08 inherit the same answer: Claude doing the step on request, for good.</p>
-
-      </div>
-    </article>
-
-    <article class="entry">
-      <div class="spine">
-        <span class="seq">04</span>
+    <!-- ============ 04 — Maintaining participants ============ -->
+    <details class="wf">
+      <summary>
+        <span class="wf-chevron" aria-hidden="true">&#9656;</span>
+        <span class="wf-seq">04</span>
+        <span class="wf-name">Maintaining participants</span>
         <span class="chip is-partial">Partly running</span>
-      </div>
-      <div class="body-col">
-        <h3>Maintaining participants</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>A worker asks Claude to look up, add, or update a participant's or referrer's HubSpot record.</span></div>
-        <p><strong>Decided 24 August 2026 — this is on-request record maintenance, not a scheduled campaign.</strong> The earlier framing (plan review reminders, regular check-ins, agreement renewals, getting back in touch with people who've gone quiet) assumed this ran on a calendar. It doesn't. A worker asks, Claude does it — the same &ldquo;tell Claude&rdquo; pattern as workflow 03, not a recurring job.</p>
-        <p>Three things it can do, and one it can't. Creating, looking up and updating a record are all real — every create or update shows exactly what's about to change, old value to new, before anything writes. <strong>Deleting isn't possible at all</strong> — no tool for it exists — so it's handled as a soft delete instead: a participant's deal moves to <em>Lost / Not Suitable</em>, a referrer's contact is marked inactive.</p>
+      </summary>
+      <div class="wf-body">
 
-        <div class="flag">
-          <span class="flag-label">Important</span>
-          <span>Looking a record up has already been proven for real this session — a live search, correctly returning nothing for a participant who doesn't exist. Creating or updating one hasn't been tried for real yet, which is why this sits at partly running rather than running.</span>
-        </div>
-      </div>
-    </article>
+        <details class="chan">
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>Create, look up or update a record</span>
+            <span class="chan-note">Look-up proven live this session</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who team">You</span>
+                <span class="step-text"><strong>Tell Claude what you need.</strong><em>A new record, a lookup, or a change to an existing one.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">2</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude shows exactly what's about to change.</strong> Old value to new, before anything writes.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">3</span><span class="who team">You</span>
+                <span class="step-text"><strong>Confirm, and Claude writes it.</strong></span>
+              </div>
+            </div>
+          </div>
+        </details>
 
-    <article class="entry">
-      <div class="spine">
-        <span class="seq">05</span>
-        <span class="chip is-idle">Not set up yet</span>
-      </div>
-      <div class="body-col">
-        <h3>Support worker introduction</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>A worker tells Claude to send the support worker introduction to a named participant.</span></div>
-        <p><strong>Redefined 24 August 2026 — asked fresh each time, not stored.</strong> The email needs a worker's name, languages, experience and a little about them, and we don't keep support worker records. Rather than deciding how to store them, the answer is: don't. Claude asks for exactly what the email needs, right there in the conversation, the same way workflow 04 asks rather than looks up.</p>
-        <p>Claude reads it back before sending — who the worker is, who the participant is, what the first appointment looks like — and shows a rendered preview of the actual email, the same habit as everywhere else. A note goes on the participant's contact afterwards, so there's a record the introduction happened even though nothing about the worker is stored anywhere permanent.</p>
-        <p>Worth getting right rather than getting out — gender-matched workers and shared language are a large part of why families choose us.</p>
+        <details class="chan">
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>Remove a record</span>
+            <span class="chan-note">No real delete exists</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who team">You</span>
+                <span class="step-text"><strong>Tell Claude to remove a participant or referrer.</strong></span>
+              </div>
+              <div class="step">
+                <span class="step-n">2</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude moves the deal to Lost / Not Suitable, or marks the referrer inactive.</strong><em>There's no delete tool — this is the safe equivalent.</em></span>
+              </div>
+            </div>
+          </div>
+        </details>
 
       </div>
-    </article>
+    </details>
 
-    <article class="entry">
-      <div class="spine">
-        <span class="seq">06</span>
-        <span class="chip is-idle">Not set up yet</span>
+    <!-- ============ 05 — Support worker introduction ============ -->
+    <details class="wf">
+      <summary>
+        <span class="wf-chevron" aria-hidden="true">&#9656;</span>
+        <span class="wf-seq">05</span>
+        <span class="wf-name">Support worker introduction</span>
+        <span class="chip is-ready">Ready to test</span>
+      </summary>
+      <div class="wf-body">
+        <details class="chan" open>
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>Send the introduction email</span>
+            <span class="chan-note">5 steps &middot; a couple of minutes</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who team">You</span>
+                <span class="step-text"><strong>Tell Claude to send the introduction email</strong>, naming the participant.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">2</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude asks for what the template needs.</strong><em>Worker's name, role, experience, languages, first appointment details — nothing else.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">3</span><span class="who team">You</span>
+                <span class="step-text"><strong>Answer the questions.</strong></span>
+              </div>
+              <div class="step">
+                <span class="step-n">4</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong><button type="button" class="mail-link" data-email="06">Claude previews and sends the email</button></strong></span>
+              </div>
+              <div class="step">
+                <span class="step-n">5</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude leaves a note on the participant's contact</strong> — recording who was introduced and when.</span>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
-      <div class="body-col">
-        <h3>Appointment confirmation</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>A worker tells Claude to set an appointment with a named participant.</span></div>
-        <p><strong>Redefined 24 August 2026 — asked fresh each time, not read from a calendar.</strong> The open question used to be where appointments actually get booked today, since that would decide what the confirmation is built from. Dropped, the same way 04 and 05 were: Claude asks for the service, date, time, worker, location and any preparation notes right there in the conversation, rather than depending on where a booking happens to live.</p>
-        <p>Before it sends, Claude shows a rendered preview of the actual email — not just a description of it — plus the Google Calendar event it's about to create. Once confirmed, both happen together, and a note goes on the participant's contact linking the two.</p>
-        <p><strong>The participant is never added to the calendar event as a guest.</strong> Google would email them directly the moment they're added — a second, unbranded message about the same appointment, separate from the actual confirmation email. The event is for internal scheduling; the email is the participant's real confirmation.</p>
-        <p>Still the only one with a natural second message — a reminder before the appointment, not just a confirmation after booking.</p>
+    </details>
 
+    <!-- ============ 06 — Appointment confirmation ============ -->
+    <details class="wf">
+      <summary>
+        <span class="wf-chevron" aria-hidden="true">&#9656;</span>
+        <span class="wf-seq">06</span>
+        <span class="wf-name">Appointment confirmation</span>
+        <span class="chip is-ready">Ready to test</span>
+      </summary>
+      <div class="wf-body">
+        <details class="chan" open>
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>Set an appointment</span>
+            <span class="chan-note">6 steps &middot; creates a calendar event too</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who team">You</span>
+                <span class="step-text"><strong>Tell Claude to set an appointment</strong>, naming the participant.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">2</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude asks for the appointment details.</strong><em>Service, date, time, worker, location, prep notes.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">3</span><span class="who team">You</span>
+                <span class="step-text"><strong>Answer the questions.</strong></span>
+              </div>
+              <div class="step">
+                <span class="step-n">4</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong><button type="button" class="mail-link" data-email="05">Claude previews the email and the calendar event</button></strong><em>Both shown before either is created.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">5</span><span class="who team">You</span>
+                <span class="step-text"><strong>Confirm, and both are created together.</strong><em>The participant is never added as a calendar guest — Google would email them separately, unbranded.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">6</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude leaves a note on the participant's contact.</strong></span>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
-    </article>
+    </details>
 
-    <article class="entry">
-      <div class="spine">
-        <span class="seq">07</span>
+    <!-- ============ 07 — Feedback and complaint acknowledgement ============ -->
+    <details class="wf">
+      <summary>
+        <span class="wf-chevron" aria-hidden="true">&#9656;</span>
+        <span class="wf-seq">07</span>
+        <span class="wf-name">Feedback and complaint acknowledgement</span>
         <span class="chip is-partial">Partly running</span>
+      </summary>
+      <div class="wf-body">
+        <details class="chan" open>
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>Submit the form on Complaints &amp; Feedback</span>
+            <span class="chan-note">Live, except the acknowledgement email</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>They fill in the form.</strong><em>Feedback or a complaint, what it's about, whether they want a reply. Phone and email are optional.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">2</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>The system saves it.</strong> A contact record and a note — no sales deal, this isn't that kind of step.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">3</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>A job is raised for the team.</strong><em>Complaints always get one. Feedback only if a reply was requested.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">4</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>HubSpot sends the acknowledgement</strong> — <button type="button" class="mail-link" data-email="07">feedback</button> or <button type="button" class="mail-link" data-email="08">complaint</button>, depending which they picked.<em>Not live yet — until the HubSpot side is built, this raises a manual job instead.</em></span>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
-      <div class="body-col">
-        <h3>Feedback and complaint acknowledgement</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>Someone submits the form on our complaints &amp; feedback page.</span></div>
-        <p><strong>Built 24 August 2026.</strong> Our complaints page used to explain how to complain but <strong>had no form on it</strong> — nothing captured a complaint, nothing acknowledged it, no record it happened. It has a real form now, asking whether this is feedback or a complaint, what it's about, and whether a reply is wanted. Anonymous is allowed — leave phone and email blank.</p>
-        <p>One deliberate difference from every other form-triggered workflow here: <strong>this one doesn't create a sales pipeline deal.</strong> A complaint isn't a step toward someone becoming a participant, so it only ever creates a contact record, a note with what they said, and a job for the team. Complaints always get a job raised, whether or not a reply was requested — feedback only when one was.</p>
+    </details>
 
-        <div class="flag">
-          <span class="flag-label">Why only partly running</span>
-          <span>The form, the record-keeping and the job creation are live. The email side isn't yet — two more places in HubSpot need building by a person before the acknowledgement actually sends, so today a submission is recorded correctly and a job is raised to reply by hand, the same safety net workflow 02 had before its own email existed.</span>
-        </div>
-        <div class="flag">
-          <span class="flag-label">Important</span>
-          <span>NDIS complaint handling carries obligations about timeframes and what a person is told. The wording and the promised response time are both drafted, not approved — the "we'll update you within" line is a placeholder pending Kholoud's review, the same as three other unreviewed templates.</span>
-        </div>
+    <!-- ============ 08 — Service cancellation and exit ============ -->
+    <details class="wf">
+      <summary>
+        <span class="wf-chevron" aria-hidden="true">&#9656;</span>
+        <span class="wf-seq">08</span>
+        <span class="wf-name">Service cancellation and exit</span>
+        <span class="chip is-ready">Ready to test</span>
+      </summary>
+      <div class="wf-body">
+        <details class="chan" open>
+          <summary>
+            <span class="chevron" aria-hidden="true">&#9656;</span>
+            <span>Tell Claude a participant is exiting</span>
+            <span class="chan-note">5 steps &middot; always a full exit</span>
+          </summary>
+          <div class="chan-body">
+            <div class="steps">
+              <div class="step">
+                <span class="step-n">1</span><span class="who team">You</span>
+                <span class="step-text"><strong>Tell Claude the participant is exiting</strong>, naming them.</span>
+              </div>
+              <div class="step">
+                <span class="step-n">2</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong>Claude asks a short set of questions.</strong><em>Reason, final service date, final appointment if any, notice date, who's signing it. Not which service — every exit here is a full one.</em></span>
+              </div>
+              <div class="step">
+                <span class="step-n">3</span><span class="who team">You</span>
+                <span class="step-text"><strong>Answer the questions.</strong></span>
+              </div>
+              <div class="step">
+                <span class="step-n">4</span><span class="who claude">Claude</span>
+                <span class="step-text"><strong><button type="button" class="mail-link" data-email="09">Claude previews and sends the email</button></strong></span>
+              </div>
+              <div class="step">
+                <span class="step-n">5</span><span class="who auto">Automatic</span>
+                <span class="step-text"><strong>The deal moves to Lost / Not Suitable.</strong><em>Always, for every exit.</em></span>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
-    </article>
+    </details>
 
-    <article class="entry">
-      <div class="spine">
-        <span class="seq">08</span>
-        <span class="chip is-idle">Not set up yet</span>
-      </div>
-      <div class="body-col">
-        <h3>Service cancellation and exit</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>A worker tells Claude a participant is ending their services.</span></div>
-        <p><strong>Designed 25 August 2026 — a worker tells Claude, same as 05 and 06.</strong> A service ending is not something our email system can react to on its own, so it stays deliberate: someone decides to send it, the same way a person would decide to make that phone call.</p>
-        <p>Claude asks a short set of questions first — why, the final service date, whether there's one more appointment on the books, who's signing it — and shows a preview before anything goes. Not which service: every exit through this workflow is a full one, so the email always speaks to "your services with us", never a specific service line.</p>
-        <p><strong>Every cancellation here is a full exit.</strong> There's no partial version — keeping some services while dropping one is a different conversation this workflow doesn't try to have. So the deal always moves to Lost / Not Suitable, no branching to get wrong.</p>
-        <p><strong>Participant only.</strong> Unlike workflow 03's change-of-mind case, the referrer isn't told. A service exit can happen long after a referrer's own involvement ended, and telling them by default risks sharing a former participant's circumstances with someone no longer part of their care.</p>
-
-        <div class="flag">
-          <span class="flag-label">Important</span>
-          <span><strong>The most sensitive email of the eight.</strong> It reaches someone as they leave, sometimes unhappily, and it may be the last thing they remember about us. The wording — including the five neutral reason options the form offers — needs Kholoud's review before this sends to a real person.</span>
-        </div>
-      </div>
-    </article>
   </div>
-
-  <section class="closing">
-    <h2>Two emails that sit outside the eight</h2>
-    <p>Both are written and neither belongs to a workflow above.</p>
-    <div class="orphans">
-      <div class="orphan"><strong>Referrer introduction.</strong> Sent out to new referral partners rather than triggered by anything. Held up by email deliverability, not by anything unbuilt.</div>
-      <div class="orphan"><strong>Feedback acknowledgement.</strong> The sibling of complaint acknowledgement, blocked by the same missing form. Build one form and both work.</div>
-    </div>
-  </section>
-
-  <p class="colophon">Last checked 24 August 2026. The technical detail behind these — filenames, properties, what is left to build — lives in the build notes, not here.</p>
-
 </div>
+
+<div class="modal-overlay" id="overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Email preview">
+    <div class="modal-head">
+      <div class="modal-meta">
+        <div class="modal-row"><span class="modal-k">Subject</span><span class="modal-v" id="modalSubject"></span></div>
+        <div class="modal-row"><span class="modal-k">Attachments</span><span class="modal-v" id="modalAttachments"></span></div>
+      </div>
+      <button type="button" class="modal-close" id="modalClose" aria-label="Close preview">&times;</button>
+    </div>
+    <div class="modal-frame-wrap">
+      <iframe id="modalFrame" class="modal-frame" title="Email preview" sandbox=""></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+  const EMAIL_PREVIEWS = {"02": {"file": "02-referral-received.html", "subject": "Referral received", "attachments": [], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>Referral received</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">We have received your participant referral.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><h1 style=\"margin:0;font:700 29px/1.25 Georgia;color:#273963\">Referral received</h1><p style=\"margin:10px 0 0;font:15px/1.6 Arial;color:#5f6681\">Thank you for trusting us with your participant’s support.</p></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin:0 0 16px\">Hi Jacob,</p><p>Thank you for referring <b style=\"color:#273963\">Sabrina</b> to The Health &amp; Well-being Hub.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f8f1f8\" style=\"margin:22px 0;background:#f8f1f8;border-radius:12px\"><tr><td style=\"padding:20px\"><b>Referral reference:</b> REF-2026-100294<br><b>Date received:</b> 18/08/2026<br><b>Requested support:</b> Support Coordination</td></tr></table><p>Our team will review the referral and contact Sabrina or their nominated representative to discuss the next steps. We’ll keep you updated where the participant has consented to this.</p><p>If anything is urgent or needs clarification, reply to this email or call 0433 604 507.</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">NDIS Registered Provider #4050045262 · 0433 604 507<br><a href=\"#\" style=\"color:#81268a\">Unsubscribe</a></td></tr></table></td></tr></table></body></html>\n"}, "03": {"file": "03-new-enquiry-acknowledgement.html", "subject": "We've received your enquiry", "attachments": [], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>We received your enquiry</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">Thanks for contacting H&amp;W. We’ll be in touch shortly.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><span style=\"display:inline-block;padding:7px 13px;border-radius:30px;background:#f1e3f3;font:700 11px Arial;color:#85288d\">ENQUIRY RECEIVED</span><h1 style=\"margin:16px 0 0;font:700 30px/1.25 Georgia;color:#273963\">Thanks for reaching out</h1></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin-top:0\">Hi Sabrina,</p><p>We’ve received your enquiry about <b>Support Coordination</b>. A member of our team will contact you within 2 business hours to learn more about your needs.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f1f6e8\" style=\"margin:22px 0;background:#f1f6e8;border-radius:12px\"><tr><td style=\"padding:20px\"><b>Enquiry reference:</b> ENQ-2026-100301<br><b>Date received:</b> 24/08/2026</td></tr></table><p>You’re welcome to reply with your preferred contact time, suburb, plan-management type, and any language, cultural or support-worker preferences.</p><p>For urgent enquiries, call 0433 604 507. We are not an emergency service; if someone is in immediate danger, call 000.</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">NDIS Registered Provider #4050045262 · 0433 604 507<br><a href=\"#\" style=\"color:#81268a\">Unsubscribe</a></td></tr></table></td></tr></table></body></html>\n"}, "04": {"file": "04-participant-welcome-onboarding.html", "subject": "Your consent and referral forms", "attachments": ["The Health & Well-being Hub – Referral Form (Fillable).pdf", "NDIS Consent for Your Information (Fillable).pdf"], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>Your consent and referral forms</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">Two quick forms before we can start supporting you.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><h1 style=\"margin:0;font:700 31px/1.25 Georgia;color:#273963\">Just two things before we start, Sabrina</h1><p style=\"margin:10px 0 0;font:15px/1.6 Arial;color:#5f6681\">We’re looking forward to supporting you.</p></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin-top:0\">Your primary H&amp;W contact is <b>Amina</b>, Support Coordinator.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f8f1f8\" style=\"margin:22px 0;background:#f8f1f8;border-radius:12px\"><tr><td style=\"padding:20px\"><b>Service:</b> Support Coordination<br><b>Proposed start:</b> TBC<br><b>Preferred schedule:</b> Mondays and Thursdays, 10am–12pm<br><b>Location:</b> Sabrina's home</td></tr></table><h2 style=\"font:700 21px Georgia;color:#273963\">Before services begin</h2><p>Please provide the completed intake form, completed consent form, signed service agreement, relevant NDIS plan details, emergency contacts, and any information needed to deliver support safely.</p><p>Let us know about communication, cultural, language, accessibility or worker preferences. We can also assist with forms or provide information in another format.</p><p><b>Contact:</b> 0433 604 507 · thehealthwellbeinghub@gmail.com</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">Amina<br>The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">NDIS Registered Provider #4050045262 · 0433 604 507<br><a href=\"#\" style=\"color:#81268a\">Unsubscribe</a></td></tr></table></td></tr></table></body></html>\n"}, "05": {"file": "05-appointment-confirmation.html", "subject": "Appointment confirmed", "attachments": [], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>Appointment confirmed</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">Your H&amp;W appointment is confirmed.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><h1 style=\"margin:0;font:700 29px/1.25 Georgia;color:#273963\">Appointment confirmed</h1></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin-top:0\">Hi Sabrina,</p><p>Your appointment with The Health &amp; Well-being Hub is confirmed.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f1f6e8\" style=\"margin:22px 0;background:#f1f6e8;border-radius:12px\"><tr><td style=\"padding:22px\"><b>Service:</b> Community Participation<br><b>Date:</b> 2 September 2026<br><b>Time:</b> 10:00am–11:00am<br><b>Worker or practitioner:</b> Amina<br><b>Location:</b> 73 Jacaranda Avenue, Logan Central<br><b>Duration:</b> 1 hour</td></tr></table><p>Please have your NDIS plan summary on hand.</p><p>To reschedule or cancel, contact us as early as possible. Cancellation fees may apply under your service agreement and the current NDIS Pricing Arrangements.</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">0433 604 507 · thehealthwellbeinghub@gmail.com<br><a href=\"#\" style=\"color:#81268a\">Unsubscribe</a></td></tr></table></td></tr></table></body></html>\n"}, "06": {"file": "06-support-worker-introduction.html", "subject": "Meet your support worker", "attachments": [], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>Meet your support worker</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">Introducing the support worker selected for you.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><h1 style=\"margin:0;font:700 30px/1.25 Georgia;color:#273963\">Meet Daniel</h1><p style=\"margin:10px 0 0;font:15px/1.6 Arial;color:#5f6681\">Your proposed support worker</p></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin-top:0\">Hi Sabrina,</p><p>We’re pleased to introduce <b>Daniel Osei</b>, who has been selected to support you with Community Participation.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f1f6e8\" style=\"margin:22px 0;background:#f1f6e8;border-radius:12px\"><tr><td style=\"padding:22px\"><b>Role:</b> Support Coordinator<br><b>Relevant experience:</b> 4 years supporting young adults with autism<br><b>Languages:</b> English, Somali<br><b>Interests or skills:</b> Music, cooking, gentle exercise</td></tr></table><h2 style=\"font:700 21px Georgia;color:#273963\">First scheduled support</h2><p><b>Date:</b> 2 September 2026<br><b>Time:</b> 10:00am–12:00pm<br><b>Location:</b> Sabrina's home<br><b>Planned support:</b> Weekly community outings, 2 hours each visit</p><p>Your comfort and choice matter. Contact Amina Yusuf on 0433 604 507 if you have questions or concerns about the proposed match.</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">Amina Yusuf<br>The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">NDIS Registered Provider #4050045262 · 0433 604 507<br><a href=\"#\" style=\"color:#81268a\">Unsubscribe</a></td></tr></table></td></tr></table></body></html>\n"}, "07": {"file": "07-feedback-acknowledgement.html", "subject": "Feedback received", "attachments": [], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>Feedback received</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">Thank you for sharing your feedback with H&amp;W.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><span style=\"display:inline-block;padding:7px 13px;border-radius:30px;background:#f1e3f3;font:700 11px Arial;color:#85288d\">FEEDBACK RECEIVED</span><h1 style=\"margin:16px 0 0;font:700 30px/1.25 Georgia;color:#273963\">Thank you for sharing your feedback</h1><p style=\"margin:10px 0 0;font:15px/1.6 Arial;color:#5f6681\">Your experience helps us improve our services.</p></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin-top:0\">Hi Sabrina,</p><p>Thank you for taking the time to provide feedback to The Health &amp; Well-being Hub.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f8f1f8\" style=\"margin:22px 0;background:#f8f1f8;border-radius:12px\"><tr><td style=\"padding:22px\"><b>Feedback reference:</b> FB-2026-100305<br><b>Date received:</b> 24/08/2026<br><b>Regarding:</b> Support Coordination<br><b>Assigned contact:</b> Amina</td></tr></table><p>We value compliments, suggestions and concerns. Your feedback will be reviewed by the appropriate team member and used to help us understand what is working well and where we can improve.</p><p>We will contact you by 31/08/2026 with an update.</p><p>Providing feedback will not negatively affect your services. If your feedback raises a safety concern or requires urgent attention, please call 0433 604 507. In an emergency, call 000.</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">Amina<br>The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">NDIS Registered Provider #4050045262 · 0433 604 507<br><a href=\"#\" style=\"color:#81268a\">Unsubscribe</a></td></tr></table></td></tr></table></body></html>\n"}, "08": {"file": "08-complaint-acknowledgement.html", "subject": "Complaint acknowledged", "attachments": [], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>Complaint acknowledged</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">We have received your complaint and will keep you updated.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><h1 style=\"margin:0;font:700 29px/1.25 Georgia;color:#273963\">We have received your complaint</h1></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin-top:0\">Hi Sabrina,</p><p>Thank you for telling us about your concerns. We have recorded your complaint regarding the response time for a recent support request.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f8f1f8\" style=\"margin:22px 0;background:#f8f1f8;border-radius:12px\"><tr><td style=\"padding:22px\"><b>Reference:</b> CMP-2026-100306<br><b>Date received:</b> 24/08/2026<br><b>Assigned contact:</b> The Complaints Team<br><b>Next update by:</b> 31/08/2026</td></tr></table><p>Raising a concern will not negatively affect your services. You may involve an advocate, family member or support person at any stage.</p><p>We will review the information, contact you if clarification is needed, and provide an outcome or explain if additional time is required. Reply if you want to provide more information, request a communication method or describe your preferred outcome.</p><p>If you feel unsafe or immediate action is required, contact our team on 0433 604 507. In an emergency, call 000. You may also contact the NDIS Quality and Safeguards Commission.</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">The Complaints Team<br>The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">Complaint information is shared only as needed, subject to legal and safeguarding obligations.</td></tr></table></td></tr></table></body></html>\n"}, "09": {"file": "09-service-cancellation-exit.html", "subject": "Confirming your service exit", "attachments": [], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>Service exit confirmation</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">Confirmation of your service cancellation or exit arrangements.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><h1 style=\"margin:0;font:700 29px/1.25 Georgia;color:#273963\">Service exit confirmation</h1></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin-top:0\">Hi Sabrina,</p><p>This confirms that your services with The Health &amp; Well-being Hub will be cancelled effective 12 September 2026.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f1f6e8\" style=\"margin:22px 0;background:#f1f6e8;border-radius:12px\"><tr><td style=\"padding:22px\"><b>Reason recorded:</b> At your request<br><b>Final scheduled service:</b> None — no further appointments scheduled<br><b>Notice received:</b> 3 September 2026<br><b>H&amp;W contact:</b> Amina</td></tr></table><p>Before services conclude, we will confirm remaining appointments, finalise outstanding notes and claims, issue any final account information, and coordinate a consented handover where requested.</p><p>Tell us if you would like us to work with your support coordinator, nominee or new provider. We will obtain consent before sharing participant information.</p><p>Ending services does not affect your right to provide feedback or make a complaint. Thank you for allowing us to be part of your support team.</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">Amina<br>The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">0433 604 507 · thehealthwellbeinghub@gmail.com<br><a href=\"#\" style=\"color:#81268a\">Unsubscribe</a></td></tr></table></td></tr></table></body></html>\n"}, "10": {"file": "10-referral-outcome-considering.html", "subject": "Referral update", "attachments": [], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>Referral update</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">They have asked for some time to think it over.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><span style=\"display:inline-block;padding:7px 13px;border-radius:30px;background:#f1e3f3;font:700 11px Arial;color:#85288d\">REFERRAL UPDATE</span><h1 style=\"margin:16px 0 0;font:700 29px/1.25 Georgia;color:#273963\">Sabrina would like some time to think</h1><p style=\"margin:10px 0 0;font:15px/1.6 Arial;color:#5f6681\">We will let you know either way.</p></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin:0 0 16px\">Hi Jacob,</p><p>We have spoken with <b style=\"color:#273963\">Sabrina</b> about the referral you sent us. They have asked for some time to think about whether to go ahead.</p><p>That is a reasonable thing to ask for, and we have not pushed them. Choosing a provider is a big decision, and it is often one a family makes together.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f8f1f8\" style=\"margin:22px 0;background:#f8f1f8;border-radius:12px\"><tr><td style=\"padding:20px\"><b>Referral reference:</b> REF-2026-100294<br><b>Date received:</b> 18/08/2026<br><b>Requested support:</b> Support Coordination<br><b>We spoke with them:</b> 24/08/2026</td></tr></table><p>We will let you know as soon as they decide. Nothing is needed from you in the meantime.</p><p>If you would like to talk it through before then, reply to this email or call 0433 604 507.</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">NDIS Registered Provider #4050045262 · 0433 604 507<br><a href=\"#\" style=\"color:#81268a\">Unsubscribe</a></td></tr></table></td></tr></table></body></html>\n"}, "11": {"file": "11-referral-outcome-declined.html", "subject": "Referral update", "attachments": [], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>Referral update</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">They have decided not to go ahead with our services.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><span style=\"display:inline-block;padding:7px 13px;border-radius:30px;background:#f1e3f3;font:700 11px Arial;color:#85288d\">REFERRAL UPDATE</span><h1 style=\"margin:16px 0 0;font:700 29px/1.25 Georgia;color:#273963\">Sabrina has decided not to go ahead</h1></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin:0 0 16px\">Hi Jacob,</p><p>We have spoken with <b style=\"color:#273963\">Sabrina</b> about the referral you sent us. They have decided not to take up our services.</p><p>We have not asked them why, and we are not passing on a reason. We are letting you know so that you can look at other options for them without waiting on us.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f8f1f8\" style=\"margin:22px 0;background:#f8f1f8;border-radius:12px\"><tr><td style=\"padding:20px\"><b>Referral reference:</b> REF-2026-100294<br><b>Date received:</b> 18/08/2026<br><b>Requested support:</b> Support Coordination<br><b>We spoke with them:</b> 24/08/2026</td></tr></table><p>We have closed this referral and will not contact them again about it. If their situation changes, they are welcome to come back to us at any time.</p><p>Thank you for thinking of us. If it would help to talk through who else might suit them, we are happy to.</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">NDIS Registered Provider #4050045262 · 0433 604 507<br><a href=\"#\" style=\"color:#81268a\">Unsubscribe</a></td></tr></table></td></tr></table></body></html>\n"}, "12": {"file": "12-welcome-pack.html", "subject": "Your welcome pack", "attachments": ["Privacy & Confidentiality Guide.pdf", "Feedback & Complaints Guide.pdf", "Your Rights & Responsibilities.pdf", "Incident Management Guide.pdf"], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>Your welcome pack</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">Welcome to the family — here is your welcome pack.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><h1 style=\"margin:0;font:700 31px/1.25 Georgia;color:#273963\">Welcome to the family, Sabrina</h1><p style=\"margin:10px 0 0;font:15px/1.6 Arial;color:#5f6681\">We&rsquo;re so glad to have you with us.</p></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin-top:0\">We&rsquo;ve received your referral and consent forms and everything is in order. You&rsquo;re officially part of the H&amp;W family now, and we&rsquo;re looking forward to supporting you. Attached to this email is your <b>welcome pack</b> — four short guides, written in plain language, that explain how we work with you.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f8f1f8\" style=\"margin:22px 0;background:#f8f1f8;border-radius:12px\"><tr><td style=\"padding:20px\"><b style=\"color:#273963\">Keeping your information safe</b><br>How we protect your information and keep it private.<br><br><b style=\"color:#273963\">It&rsquo;s OK to complain</b><br>How to give feedback, or make a complaint, at any time.<br><br><b style=\"color:#273963\">Your rights and responsibilities</b><br>Our client charter — what you can expect from us, and from working together.<br><br><b style=\"color:#273963\">Working together safely</b><br>How we prevent incidents, and what we do if one happens.</td></tr></table><p>Each guide is a short summary. If you&rsquo;d like the full policy behind any of them, just ask — we are always happy to provide a copy, or go through it with you in your preferred language.</p><p>Your primary H&amp;W contact is <b>Amina</b>, Support Coordinator. They will be in touch to confirm your first appointment.</p><p><b>Contact:</b> 0433 604 507 · thehealthwellbeinghub@gmail.com</p><p>We&rsquo;re really glad you&rsquo;re here.</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">Amina<br>The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">NDIS Registered Provider #4050045262 · 0433 604 507<br><a href=\"#\" style=\"color:#81268a\">Unsubscribe</a></td></tr></table></td></tr></table></body></html>\n"}, "13": {"file": "13-referral-outcome-going-ahead.html", "subject": "Referral update", "attachments": [], "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"x-apple-disable-message-reformatting\"><title>Referral update</title><style>body{margin:0!important;padding:0!important;background:#f7f4f7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}@media(max-width:640px){.wrap{width:100%!important}.pad{padding-left:22px!important;padding-right:22px!important}.outer{padding:0!important}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">They have decided to go ahead with our services.</div><table role=\"presentation\" width=\"100%\" bgcolor=\"#f7f4f7\"><tr><td class=\"outer\" align=\"center\" style=\"padding:32px 12px\"><table role=\"presentation\" class=\"wrap\" width=\"640\" bgcolor=\"#ffffff\" style=\"width:640px;max-width:640px;background:#fff;border-radius:16px;overflow:hidden\"><tr><td class=\"pad\" style=\"padding:26px 40px;border-bottom:1px solid #eee7ef\"><b style=\"font:700 25px Georgia;color:#273963\">H &amp; W</b><br><span style=\"font:10px Arial;letter-spacing:1.4px;color:#81508f\">HEALTH &amp; WELL-BEING</span></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f5ee\" style=\"padding:42px 40px;text-align:center;background-color:#f7f5ee;background-image:linear-gradient(120deg,#f8eff8 0%,#f7f5ee 52%,#f0f7e8 100%)\"><span style=\"display:inline-block;padding:7px 13px;border-radius:30px;background:#f1e3f3;font:700 11px Arial;color:#85288d\">REFERRAL UPDATE</span><h1 style=\"margin:16px 0 0;font:700 29px/1.25 Georgia;color:#273963\">Sabrina has decided to go ahead</h1><p style=\"margin:10px 0 0;font:15px/1.6 Arial;color:#5f6681\">Thank you for connecting them with us.</p></td></tr><tr><td class=\"pad\" style=\"padding:34px 40px;font:15px/1.7 Arial;color:#434b66\"><p style=\"margin:0 0 16px\">Hi Jacob,</p><p>We have spoken with <b style=\"color:#273963\">Sabrina</b> about the referral you sent us, and they have decided to go ahead with our services.</p><p>We are now working with them directly to get the paperwork sorted and services started. There is nothing further needed from you.</p><table role=\"presentation\" width=\"100%\" bgcolor=\"#f8f1f8\" style=\"margin:22px 0;background:#f8f1f8;border-radius:12px\"><tr><td style=\"padding:20px\"><b>Referral reference:</b> REF-2026-100294<br><b>Date received:</b> 18/08/2026<br><b>Requested support:</b> Support Coordination<br><b>We spoke with them:</b> 24/08/2026</td></tr></table><p>Thank you for thinking of us. Referrals like this are how families who need us find us in the first place.</p><p style=\"margin-bottom:0\">Kind regards,<br><b style=\"color:#273963\">The Health &amp; Well-being Hub</b></p></td></tr><tr><td class=\"pad\" bgcolor=\"#f7f4f7\" style=\"padding:22px 40px;text-align:center;font:11px/1.6 Arial;color:#858b9c\">NDIS Registered Provider #4050045262 · 0433 604 507<br><a href=\"#\" style=\"color:#81268a\">Unsubscribe</a></td></tr></table></td></tr></table></body></html>\n"}};
+
+  const overlay = document.getElementById('overlay');
+  const modalSubject = document.getElementById('modalSubject');
+  const modalAttachments = document.getElementById('modalAttachments');
+  const modalFrame = document.getElementById('modalFrame');
+  const modalClose = document.getElementById('modalClose');
+  let lastFocused = null;
+
+  function openEmail(id) {
+    const p = EMAIL_PREVIEWS[id];
+    if (!p) return;
+    lastFocused = document.activeElement;
+    modalSubject.textContent = p.subject;
+    if (p.attachments && p.attachments.length) {
+      modalAttachments.innerHTML = '';
+      p.attachments.forEach(function (a) {
+        const span = document.createElement('span');
+        span.className = 'attachment-chip';
+        span.textContent = a;
+        modalAttachments.appendChild(span);
+      });
+    } else {
+      modalAttachments.innerHTML = '<span class="attachments-none">None</span>';
+    }
+    modalFrame.srcdoc = p.html;
+    overlay.hidden = false;
+    modalClose.focus();
+  }
+
+  function closeModal() {
+    overlay.hidden = true;
+    modalFrame.srcdoc = '';
+    if (lastFocused) lastFocused.focus();
+  }
+
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.mail-link');
+    if (btn) { openEmail(btn.getAttribute('data-email')); return; }
+    if (e.target === overlay) closeModal();
+  });
+
+  modalClose.addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !overlay.hidden) closeModal();
+  });
+</script>
