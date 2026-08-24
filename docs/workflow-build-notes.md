@@ -278,13 +278,12 @@ calendar event's title, time and location, before either is created.
 | `location` | `{{Address / Online Meeting Details}}` |
 | `description` | Staff member, duration, preparation instructions |
 
-**The participant is not added as an attendee.** `create_event` would email them
-directly through Google the moment an attendee with their address is added —
-unbranded, unreviewed, and a second, different-looking message about the same
-appointment landing right after the actual confirmation email. The calendar event is
-internal scheduling only; the branded email is the participant's actual confirmation.
-Flagging this rather than deciding it silently — if Google invites are wanted too,
-that's a real change, not a default.
+**The participant is not added as an attendee — confirmed with the user 24 August
+2026.** `create_event` would email them directly through Google the moment an attendee
+with their address is added — unbranded, unreviewed, and a second, different-looking
+message about the same appointment landing right after the actual confirmation email.
+The calendar event is internal scheduling only; the branded email is the participant's
+actual confirmation.
 
 **Step 3 — a note on the participant's contact**, same default as workflow 05: nothing
 here is stored as structured data beyond the calendar event itself, so the note
