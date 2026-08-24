@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>The Eight Workflows</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%237B2D8B'/%3E%3Cpath d='M50 34c-8-12-30-8-30 10 0 16 30 40 30 40s30-24 30-40c0-18-22-22-30-10z' fill='white'/%3E%3C/svg%3E">
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@700;900&display=swap">
+
+<style>
+  :root {
+    --ground: #FBFAFC;
+    --surface: #FFFFFF;
+    --sunk: #F4F0F7;
+    --ink: #1A1A2E;
+    --ink-soft: #5A5A7A;
+    --ink-faint: #8A85A0;
+    --rule: #E8E0ED;
+    --rule-firm: #D6C9DE;
+    --brand: #7B2D8B;
+    --navy: #1D3461;
+    --live: #3F7135;
+    --live-bg: #EAF3DE;
+    --partial: #94590A;
+    --partial-bg: #FBF0DC;
+    --idle: #6F6A85;
+    --idle-bg: #EFECF3;
+
+    --fd: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --fb: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --fm: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #141019;
+      --surface: #1C1726;
+      --sunk: #241D30;
+      --ink: #EFEAF3;
+      --ink-soft: #A79FB5;
+      --ink-faint: #7E7691;
+      --rule: #2E2739;
+      --rule-firm: #423853;
+      --brand: #C77BD4;
+      --navy: #9DB4E0;
+      --live: #8CC47B;
+      --live-bg: #21301C;
+      --partial: #E3A951;
+      --partial-bg: #33260F;
+      --idle: #9990AB;
+      --idle-bg: #262032;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #141019;
+    --surface: #1C1726;
+    --sunk: #241D30;
+    --ink: #EFEAF3;
+    --ink-soft: #A79FB5;
+    --ink-faint: #7E7691;
+    --rule: #2E2739;
+    --rule-firm: #423853;
+    --brand: #C77BD4;
+    --navy: #9DB4E0;
+    --live: #8CC47B;
+    --live-bg: #21301C;
+    --partial: #E3A951;
+    --partial-bg: #33260F;
+    --idle: #9990AB;
+    --idle-bg: #262032;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--fb);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: clamp(32px, 6vw, 72px) clamp(20px, 5vw, 48px) 96px;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-bottom: 28px;
+    border-bottom: 2px solid var(--rule-firm);
+  }
+
+  .eyebrow {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+
+  h1 {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: clamp(34px, 5.4vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    color: var(--navy);
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 60ch;
+  }
+
+  /* ---------- tally ---------- */
+
+  .tally {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin: 28px 0 0;
+  }
+
+  .tally-cell {
+    background: var(--surface);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .tally-num {
+    font-family: var(--fd);
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tally-num.is-live { color: var(--live); }
+  .tally-num.is-partial { color: var(--partial); }
+  .tally-num.is-idle { color: var(--idle); }
+
+  .tally-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- constraint note ---------- */
+
+  .constraint {
+    margin: 28px 0 0;
+    padding: 18px 20px;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .constraint h2 {
+    font-family: var(--fb);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--navy);
+  }
+
+  .constraint p {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    max-width: 68ch;
+  }
+
+  /* ---------- register ---------- */
+
+  .register {
+    margin-top: 44px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .entry {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 0 28px;
+    padding: 34px 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: start;
+  }
+
+  .entry:first-child { border-top: 1px solid var(--rule); }
+
+  .spine {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    position: sticky;
+    top: 20px;
+  }
+
+  .seq {
+    font-family: var(--fd);
+    font-size: 46px;
+    font-weight: 700;
+    line-height: .9;
+    color: var(--rule-firm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chip {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .chip.is-live { color: var(--live); background: var(--live-bg); }
+  .chip.is-partial { color: var(--partial); background: var(--partial-bg); }
+  .chip.is-idle { color: var(--idle); background: var(--idle-bg); }
+
+  .body-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  h3 {
+    font-family: var(--fd);
+    font-size: clamp(21px, 2.6vw, 27px);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -.01em;
+    color: var(--navy);
+    text-wrap: balance;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 7px 16px;
+    font-size: 13.5px;
+    padding: 14px 16px;
+    background: var(--sunk);
+    border-left: 2px solid var(--rule-firm);
+  }
+
+  .facts dt {
+    font-weight: 700;
+    color: var(--ink-faint);
+    font-size: 11.5px;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding-top: 2px;
+  }
+
+  .facts dd {
+    color: var(--ink-soft);
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+
+  code {
+    font-family: var(--fm);
+    font-size: .88em;
+    color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 8%, transparent);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .body-col p {
+    font-size: 15.5px;
+    color: var(--ink-soft);
+    max-width: 66ch;
+  }
+
+  .body-col p strong { color: var(--ink); font-weight: 700; }
+
+  .next {
+    display: flex;
+    gap: 11px;
+    align-items: baseline;
+    font-size: 15.5px;
+    max-width: 66ch;
+  }
+
+  .next-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--brand);
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+
+  .next span:last-child { color: var(--ink); }
+
+  .flag {
+    display: flex;
+    gap: 11px;
+    align-items: baseline;
+    font-size: 14.5px;
+    max-width: 66ch;
+    padding: 12px 15px;
+    background: var(--partial-bg);
+    border: 1px solid color-mix(in srgb, var(--partial) 26%, transparent);
+  }
+
+  .flag-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--partial);
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+
+  .flag span:last-child { color: var(--ink); }
+
+  /* ---------- intake channels ---------- */
+
+  .subhead {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: -4px;
+  }
+
+  .channels {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .channel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 14px;
+    align-items: center;
+    padding: 12px 15px;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    font-size: 14.5px;
+  }
+
+  .channel-name { color: var(--ink); font-weight: 700; }
+  .channel-note { color: var(--ink-soft); }
+
+  /* ---------- staged sequence ---------- */
+
+  .stages {
+    display: flex;
+    flex-direction: column;
+    padding-left: 16px;
+    border-left: 2px solid var(--rule-firm);
+  }
+
+  .stage {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 4px 14px;
+    padding: 13px 0;
+    border-bottom: 1px dashed var(--rule);
+  }
+
+  .stage:last-child { border-bottom: none; }
+
+  .actor {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding-top: 4px;
+  }
+
+  .actor.is-auto { color: var(--live); }
+  .actor.is-person { color: var(--navy); }
+  .actor.is-claude { color: var(--brand); }
+
+  .stage-text { font-size: 15px; color: var(--ink-soft); min-width: 0; }
+  .stage-text strong { color: var(--ink); font-weight: 700; }
+
+  .gap-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--partial);
+    background: var(--partial-bg);
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-left: 7px;
+    vertical-align: 1.5px;
+  }
+
+  .outcomes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 9px;
+  }
+
+  .outcome {
+    font-size: 13px;
+    padding: 5px 11px;
+    background: var(--surface);
+    border: 1px solid var(--rule-firm);
+    border-radius: 3px;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- closing ---------- */
+
+  .closing {
+    margin-top: 52px;
+    padding-top: 28px;
+    border-top: 2px solid var(--rule-firm);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .closing h2 {
+    font-family: var(--fd);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  .closing p {
+    font-size: 15.5px;
+    color: var(--ink-soft);
+    max-width: 66ch;
+  }
+
+  .orphans {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .orphan {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+    padding: 13px 16px;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    font-size: 14.5px;
+    color: var(--ink-soft);
+  }
+
+  .orphan strong { color: var(--ink); font-weight: 700; }
+
+  .colophon {
+    margin-top: 44px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    max-width: 66ch;
+  }
+
+  @media (max-width: 640px) {
+    .entry {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+    }
+    .spine {
+      flex-direction: row;
+      align-items: center;
+      gap: 14px;
+      position: static;
+    }
+    .seq { font-size: 34px; }
+    .facts { grid-template-columns: minmax(0, 1fr); gap: 3px 0; }
+    .facts dt { padding-top: 9px; }
+    .facts dt:first-child { padding-top: 0; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">The Health &amp; Well-being Hub · Build register</div>
+    <h1>The Eight Workflows</h1>
+    <p class="standfirst">Every automated touchpoint in the participant lifecycle, from the first referral through to exit — what is running, what is half-built, and what is next for each one.</p>
+  </header>
+
+  <div class="tally">
+    <div class="tally-cell">
+      <span class="tally-num is-live">1</span>
+      <span class="tally-label">Live</span>
+    </div>
+    <div class="tally-cell">
+      <span class="tally-num is-partial">1</span>
+      <span class="tally-label">Partly built</span>
+    </div>
+    <div class="tally-cell">
+      <span class="tally-num is-idle">6</span>
+      <span class="tally-label">Not started</span>
+    </div>
+    <div class="tally-cell">
+      <span class="tally-num is-idle">4</span>
+      <span class="tally-label">Need a trigger</span>
+    </div>
+  </div>
+
+  <section class="constraint">
+    <h2>The constraint that shapes all eight</h2>
+    <p>HubSpot Starter allows <strong>one simple workflow per form</strong>, triggered by a form submission only — ten actions, no branching, no webhooks. Four of the eight workflows below have no form behind them, so each needs either a new form built on the site or automation that lives outside HubSpot entirely. That decision is the same decision eight times over, and it is worth settling once.</p>
+  </section>
+
+  <div class="register">
+
+    <!-- 01 -->
+    <article class="entry">
+      <div class="spine">
+        <span class="seq">01</span>
+        <span class="chip is-partial">Partly built</span>
+      </div>
+      <div class="body-col">
+        <h3>Referral received</h3>
+        <dl class="facts">
+          <dt>Channels</dt>
+          <dd>Website form · direct email · phone, text and in person</dd>
+          <dt>Email</dt>
+          <dd><code>02-referral-received.html</code> — sending</dd>
+          <dt>Reference</dt>
+          <dd><code>REF-&lt;year&gt;-&lt;dealId&gt;</code></dd>
+          <dt>Spec</dt>
+          <dd><code>docs/workflow-01-referral.md</code></dd>
+        </dl>
+        <p>Referrals arrive through <strong>three channels</strong>, and only one of them is automated. The other two reach the team as ordinary messages, so nothing enters the CRM unless a person puts it there.</p>
+
+        <div class="channels">
+          <div class="channel">
+            <div><span class="channel-name">Website form</span> <span class="channel-note">— endpoint captures it, both emails fire</span></div>
+            <span class="chip is-live">Running</span>
+          </div>
+          <div class="channel">
+            <div><span class="channel-name">Direct email</span> <span class="channel-note">— worker asks Claude for the form, then fills it in</span></div>
+            <span class="chip is-live">Running</span>
+          </div>
+          <div class="channel">
+            <div><span class="channel-name">Phone, text and in person</span> <span class="channel-note">— same path as direct email</span></div>
+            <span class="chip is-live">Running</span>
+          </div>
+        </div>
+
+        <p>All three channels now have a route in. For the other two the worker tells Claude there is a new referral, Claude hands back the same form the website uses, and the worker fills it in. <strong>From submission onwards all three are identical</strong> — same records, same job, same clock, same acknowledgement. Built and deployed 24 August 2026.</p>
+
+        <div class="subhead">The website path, stage by stage</div>
+        <div class="stages">
+          <div class="stage">
+            <span class="actor is-auto">Automated</span>
+            <span class="stage-text">Referral form submitted. The endpoint validates it, records consent, upserts the referrer and the participant, associates them, and creates the deal, the note and a high-priority task due within two business hours.</span>
+          </div>
+          <div class="stage">
+            <span class="actor is-auto">Automated</span>
+            <span class="stage-text"><strong>Two emails fire</strong> — an acknowledgement to the referrer, and a notification to the H&amp;W team. Both confirmed reaching the right addresses.</span>
+          </div>
+          <div class="stage">
+            <span class="actor is-person">Person</span>
+            <span class="stage-text">A worker picks the referral up from the team email and <strong>contacts the participant</strong>. This step is human by design and should stay that way.</span>
+          </div>
+          <div class="stage">
+            <span class="actor is-claude">Claude</span>
+            <span class="stage-text">The worker tells Claude how the call went. Claude <strong>records the outcome</strong> — deal stage, <code>referral_outcome</code>, the date of the conversation, and a note in the worker's own words.</span>
+          </div>
+          <div class="stage">
+            <span class="actor is-claude">Claude</span>
+            <span class="stage-text">Claude reads the details back, then <strong>emails the referrer</strong> the outcome. Sent through the H&amp;W mailbox, not HubSpot — Starter cannot trigger a workflow on a deal stage.
+              <span class="outcomes">
+                <span class="outcome">Went ahead — opens onboarding</span>
+                <span class="outcome">Wants time — email 10</span>
+                <span class="outcome">Chose not to proceed — email 11</span>
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <p>The loop now closes end to end. The one piece still missing is what happens when someone <em>does</em> go ahead — that opens onboarding, which is workflow 03 and still to be designed. So today a referrer is told when a participant declines and not told when one signs up, which is backwards and worth fixing there.</p>
+
+        <p>Two older items are still open regardless: the endpoint hardening (CORS allowlist, honeypot, rate limiting), and the duplicate-contact bug — <code>upsertContact</code> dedupes on email only, so a participant referred with a phone number and no email creates a brand new contact on every single submission.</p>
+
+        <div class="next">
+          <span class="next-label">Next</span>
+          <span>Define the outcome step: which three outcomes get recorded, where they are written, and what the referrer is told in each case.</span>
+        </div>
+        <div class="flag">
+          <span class="flag-label">Watch</span>
+          <span>Telling a referrer that someone declined services shares a participant's decision with a third party. What can be said, and with whose consent, needs settling before this is automated.</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 02 -->
+    <article class="entry">
+      <div class="spine">
+        <span class="seq">02</span>
+        <span class="chip is-live">Live</span>
+      </div>
+      <div class="body-col">
+        <h3>New enquiry acknowledgement</h3>
+        <dl class="facts">
+          <dt>Trigger</dt>
+          <dd>Enquiry form on <code>/</code> and <code>/contact/</code></dd>
+          <dt>Email</dt>
+          <dd><code>03-new-enquiry-acknowledgement.html</code></dd>
+          <dt>Reference</dt>
+          <dd><code>ENQ-&lt;year&gt;-&lt;dealId&gt;</code></dd>
+          <dt>Spec</dt>
+          <dd><code>docs/workflow-02-enquiry.md</code></dd>
+        </dl>
+        <p>The one that works end to end. Verified against production on 19 August 2026: endpoint → contact, deal, note, task → merge properties → Forms API enrolment → workflow → email sent and delivered. This is the working reference implementation, and every workflow below should be built to match its shape.</p>
+        <p>Three things stay open. <strong>The copy has never been reviewed</strong> — it is participant-facing and needs Kholoud. Inbox placement is unconfirmed: delivery proves the receiving server accepted the mail, not that it cleared spam. And <code>first_response_at</code> is not stamped, because the webhook action that would report an actual send does not exist on Starter.</p>
+        <div class="next">
+          <span class="next-label">Next</span>
+          <span>Get the copy reviewed and approved, then confirm inbox placement with a real send to a few outside addresses.</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 03 -->
+    <article class="entry">
+      <div class="spine">
+        <span class="seq">03</span>
+        <span class="chip is-idle">Not started</span>
+      </div>
+      <div class="body-col">
+        <h3>New participant</h3>
+        <dl class="facts">
+          <dt>Trigger</dt>
+          <dd>None — needs one</dd>
+          <dt>Email</dt>
+          <dd><code>04-participant-welcome-onboarding.html</code></dd>
+          <dt>Spec</dt>
+          <dd>Not written</dd>
+        </dl>
+        <p>The welcome and onboarding email is written and sitting in the library, with nothing to send it. This is the first workflow where the trigger is the whole problem: a participant becomes a participant when a service agreement is signed, which is a <strong>deal stage change, not a form submission</strong> — and Starter cannot trigger on deal stages.</p>
+        <p>So this needs a decision rather than a build. The realistic options are an internal form the team submits when onboarding someone, or driving the send from outside HubSpot. Whichever way this goes sets the pattern for 04, 05 and 08, which all have the same shape.</p>
+        <div class="next">
+          <span class="next-label">Next</span>
+          <span>Decide the trigger mechanism once, for this and the three that follow it. Then write the spec.</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 04 -->
+    <article class="entry">
+      <div class="spine">
+        <span class="seq">04</span>
+        <span class="chip is-idle">Not started</span>
+      </div>
+      <div class="body-col">
+        <h3>Maintaining participants</h3>
+        <dl class="facts">
+          <dt>Trigger</dt>
+          <dd>None — needs one</dd>
+          <dt>Email</dt>
+          <dd>No template exists</dd>
+          <dt>Spec</dt>
+          <dd>Not written</dd>
+        </dl>
+        <p>The only one of the eight with <strong>nothing behind it at all</strong> — no template, no spec, no trigger. It is also the only recurring one: the others fire once on an event, this runs on a rhythm.</p>
+        <p>What it should actually do is genuinely undecided. Plan review reminders as a plan end date approaches, periodic check-ins, service agreement renewals, and re-contacting participants who have gone quiet are all plausible readings, and they need different data and different cadences. Worth defining before anything is built.</p>
+        <div class="next">
+          <span class="next-label">Next</span>
+          <span>Define what maintaining a participant means in practice — which moments deserve contact, and how often.</span>
+        </div>
+        <div class="flag">
+          <span class="flag-label">Watch</span>
+          <span>Anything tied to plan dates or plan contents touches what a participant's plan will cover. That is compliance wording — drafted here, approved by a human.</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 05 -->
+    <article class="entry">
+      <div class="spine">
+        <span class="seq">05</span>
+        <span class="chip is-idle">Not started</span>
+      </div>
+      <div class="body-col">
+        <h3>Support worker introduction</h3>
+        <dl class="facts">
+          <dt>Trigger</dt>
+          <dd>None — needs one</dd>
+          <dt>Email</dt>
+          <dd><code>06-support-worker-introduction.html</code></dd>
+          <dt>Spec</dt>
+          <dd>Not written</dd>
+        </dl>
+        <p>The template is written and expects a support worker's name, and probably a photo and a short introduction. <strong>None of that data exists in the CRM today</strong> — there are no support worker records, so there is nothing for the merge fields to read from.</p>
+        <p>This one matters more than its position suggests. Gender-matched workers and shared language are central to why a family chooses this provider, so the introduction is doing real work, not being polite. It is worth getting right rather than getting out.</p>
+        <div class="next">
+          <span class="next-label">Next</span>
+          <span>Decide how support workers are represented in HubSpot before touching the email.</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 06 -->
+    <article class="entry">
+      <div class="spine">
+        <span class="seq">06</span>
+        <span class="chip is-idle">Not started</span>
+      </div>
+      <div class="body-col">
+        <h3>Appointment confirmation</h3>
+        <dl class="facts">
+          <dt>Trigger</dt>
+          <dd>None — needs one</dd>
+          <dt>Email</dt>
+          <dd><code>05-appointment-confirmation.html</code></dd>
+          <dt>Spec</dt>
+          <dd>Not written</dd>
+        </dl>
+        <p>Template written, no trigger. This is the one workflow where the obvious source is not HubSpot at all — appointments live in a calendar, and <strong>Google Calendar is already connected to Claude in this workspace</strong>. A confirmation driven from a real calendar event is closer to how the work actually happens than one driven from a form.</p>
+        <p>It is also the only one with a natural second beat: a reminder before the appointment, not just a confirmation after booking. Worth deciding whether that is in scope now or later.</p>
+        <div class="next">
+          <span class="next-label">Next</span>
+          <span>Confirm where appointments are really booked today, before assuming the calendar is the source of truth.</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 07 -->
+    <article class="entry">
+      <div class="spine">
+        <span class="seq">07</span>
+        <span class="chip is-idle">Not started</span>
+      </div>
+      <div class="body-col">
+        <h3>Complaint acknowledgement</h3>
+        <dl class="facts">
+          <dt>Trigger</dt>
+          <dd>None — <code>/complaints-feedback/</code> has no form</dd>
+          <dt>Email</dt>
+          <dd><code>08-complaint-acknowledgement.html</code></dd>
+          <dt>Spec</dt>
+          <dd>Not written</dd>
+        </dl>
+        <p>The complaints page is live and static. It explains how to complain, but there is <strong>no form on it</strong> — so there is nothing to capture a complaint, nothing to acknowledge, and no record that one was ever made. The email template exists and has never had a way to fire.</p>
+        <p>The build here is straightforward and mirrors the enquiry path exactly: a form, the endpoint handling a third <code>form_name</code>, a HubSpot form, and a workflow. Of the six not-started workflows, this is the one that is genuinely ready to build.</p>
+        <div class="next">
+          <span class="next-label">Next</span>
+          <span>Build the complaints form and route it through the existing endpoint — the enquiry path is the template.</span>
+        </div>
+        <div class="flag">
+          <span class="flag-label">Watch</span>
+          <span>NDIS complaint handling carries obligations about timeframes and what a participant is told. The wording and the promised response time both need approval before this goes live.</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 08 -->
+    <article class="entry">
+      <div class="spine">
+        <span class="seq">08</span>
+        <span class="chip is-idle">Not started</span>
+      </div>
+      <div class="body-col">
+        <h3>Service cancellation and exit</h3>
+        <dl class="facts">
+          <dt>Trigger</dt>
+          <dd>None — needs one</dd>
+          <dt>Email</dt>
+          <dd><code>09-service-cancellation-exit.html</code></dd>
+          <dt>Spec</dt>
+          <dd>Not written</dd>
+        </dl>
+        <p>Closes the lifecycle. Template written, no trigger, and the same deal-stage problem as 03 — a service ending is a stage change, not a form submission. Whatever is decided for 03 applies here.</p>
+        <p>This is the most sensitive email of the eight. It reaches someone at the point they are leaving, sometimes unhappily, and it is the last thing they will remember. <strong>An automated send here can do real damage if the timing or tone is wrong</strong>, so it is worth asking whether this should be automatic at all, or a prompt for a person to send it deliberately.</p>
+        <div class="next">
+          <span class="next-label">Next</span>
+          <span>Decide automated versus prompted, then follow whatever 03 settles for the trigger.</span>
+        </div>
+        <div class="flag">
+          <span class="flag-label">Watch</span>
+          <span>Exit wording touches notice periods and service agreement terms. Compliance review before it sends to anyone.</span>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <section class="closing">
+    <h2>Two templates sit outside these eight</h2>
+    <p>Both are built and neither appears in the list above. Flagging them so they are excluded on purpose rather than by accident.</p>
+    <div class="orphans">
+      <div class="orphan">
+        <strong>01 — Referrer introduction.</strong> Outbound rather than triggered. It is the basis of the August referrer outreach campaign, which is built and tracked, and currently held up by deliverability rather than by anything in the build.
+      </div>
+      <div class="orphan">
+        <strong>07 — Feedback acknowledgement.</strong> The sibling of complaint acknowledgement, blocked by the same missing form. If a form is built on <code>/complaints-feedback/</code> for workflow 07 above, this one comes almost free.
+      </div>
+    </div>
+  </section>
+
+  <p class="colophon">Status recorded 24 August 2026, from the specs, endpoint and templates committed in this repository, with the referral intake channels and live email behaviour confirmed directly by the team on the same date. Note that <code>docs/workflow-01-referral.md</code> still describes the referral emails as unbuilt and is now out of date — this register is the current position. Business facts and guardrails: <code>CLAUDE.md</code>. Platform limits: <code>docs/hubspot-configuration.md</code>.</p>
+
+</div>
+</body>
+</html>
