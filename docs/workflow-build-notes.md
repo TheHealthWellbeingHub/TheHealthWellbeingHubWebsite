@@ -263,12 +263,33 @@ constants. What actually gets asked:
 | Address or online meeting details | `{{Address / Online Meeting Details}}` |
 | Preparation instructions, if any | `{{Preparation Instructions}}` |
 
-**Step 2 — preview, then send.** See the standard above: a rendered preview of the
-actual email, shown before it goes.
+**Step 2 — preview, then send and create.** Added 24 August 2026: this workflow also
+creates the Google Calendar event, since Google Calendar is genuinely connected — just
+no longer trusted as the *source* of appointment data, only as somewhere to put it once
+collected. The preview (see the standard above) shows both: the rendered email and the
+calendar event's title, time and location, before either is created.
+
+`create_event` fields, mapped from what was already asked in step 1:
+
+| Calendar field | From |
+|---|---|
+| `summary` | `{{Service}} — {{Participant First Name}}` |
+| `startTime` / `endTime` | `{{Appointment Date}}` + `{{Start Time}}` / `{{End Time}}`, `Australia/Brisbane` |
+| `location` | `{{Address / Online Meeting Details}}` |
+| `description` | Staff member, duration, preparation instructions |
+
+**The participant is not added as an attendee.** `create_event` would email them
+directly through Google the moment an attendee with their address is added —
+unbranded, unreviewed, and a second, different-looking message about the same
+appointment landing right after the actual confirmation email. The calendar event is
+internal scheduling only; the branded email is the participant's actual confirmation.
+Flagging this rather than deciding it silently — if Google invites are wanted too,
+that's a real change, not a default.
 
 **Step 3 — a note on the participant's contact**, same default as workflow 05: nothing
-here is stored as structured data, so the note is the record that the appointment was
-confirmed and what was in the email.
+here is stored as structured data beyond the calendar event itself, so the note
+records that the appointment was confirmed, what was in the email, and links the
+calendar event.
 
 **Next:** none, design-wise. Build status: content exists (email 05), nothing else to
 build — same shape as 04 and 05.

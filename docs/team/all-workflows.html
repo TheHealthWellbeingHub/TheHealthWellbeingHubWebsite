@@ -833,7 +833,8 @@
         <h3>Appointment confirmation</h3>
         <div class="starts"><span class="starts-label">Starts when</span><span>A worker tells Claude to set an appointment with a named participant.</span></div>
         <p><strong>Redefined 24 August 2026 — asked fresh each time, not read from a calendar.</strong> The open question used to be where appointments actually get booked today, since that would decide what the confirmation is built from. Dropped, the same way 04 and 05 were: Claude asks for the service, date, time, worker, location and any preparation notes right there in the conversation, rather than depending on where a booking happens to live.</p>
-        <p>Before it sends, Claude shows a rendered preview of the actual email — not just a description of it — and leaves a note on the participant's contact once it's confirmed.</p>
+        <p>Before it sends, Claude shows a rendered preview of the actual email — not just a description of it — plus the Google Calendar event it's about to create. Once confirmed, both happen together, and a note goes on the participant's contact linking the two.</p>
+        <p><strong>The participant is never added to the calendar event as a guest.</strong> Google would email them directly the moment they're added — a second, unbranded message about the same appointment, separate from the actual confirmation email. The event is for internal scheduling; the email is the participant's real confirmation.</p>
         <p>Still the only one with a natural second message — a reminder before the appointment, not just a confirmation after booking.</p>
 
       </div>
