@@ -166,6 +166,39 @@ a redeploy before the function picks it up.
 To verify a deploy landed, check that the newest production deployment's commit SHA matches the
 tip of the default branch, and that its `gitRepo` metadata names this repository — not `Tabby`.
 
+### `vercel.json` takes no comments
+
+Learned the hard way on 24 Aug 2026: a production deploy failed outright with
+
+> ``The `vercel.json` schema validation failed: `headers[0]` should NOT have additional
+> property `comment` ``
+
+JSON has no comment syntax, and Vercel validates the file against a strict schema that
+rejects any key it does not recognise — so an explanatory `"comment"` field does not sit
+there harmlessly, it stops the deploy. The failure happens before the build, so there are
+**no build logs**; the reason is only in the deployment's `errorMessage`. Look there first
+when a deploy errors with an empty log.
+
+The live site was never affected: a deployment that fails validation never takes the domain
+aliases, so production keeps serving the previous good build. Reasoning about config
+belongs here, not in the file.
+
+### Why the noindex headers exist
+
+`vercel.json` sets `X-Robots-Tag: noindex, nofollow` on `/email-templates/` and `/staff/`.
+
+The email template library is committed to the repo, so Vercel serves it: every template has
+been publicly readable and indexable since it was added. They are internal working files —
+drafts, editorial notes sitting inside token braces, copy awaiting compliance review — and
+none of it should surface in a search for the business. The staff intake form is covered for
+the same reason, on top of the `noindex` meta tag it already carries, because it creates
+participant records and is protected only by an unguessable address.
+
+**Do not add a matching `Disallow` to `robots.txt`.** It looks like belt and braces and is
+actually the opposite: blocking the crawl stops Google ever reading the header, and the
+header is what reliably removes a page from the index. A `Disallow` alone can leave URL-only
+entries in results.
+
 ---
 
 ## Working agreement
