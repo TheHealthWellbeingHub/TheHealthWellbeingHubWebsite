@@ -173,6 +173,7 @@ GENERATED_DIRS = (
     "provider-directory",
     "referrals",
     "services",
+    "staff",
 )
 
 

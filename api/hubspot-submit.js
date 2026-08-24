@@ -45,6 +45,11 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
 
 const HONEYPOT_FIELD = 'company_website';
 const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX || 5);
+// The public limit is sized for one person filling in one form. Staff entering
+// referrals that arrived by phone or email share an office connection, so the
+// same ceiling would block the second or third worker of the morning. A
+// deliberate separate number, not an exemption — it is still a limit.
+const STAFF_RATE_LIMIT_MAX = Number(process.env.STAFF_RATE_LIMIT_MAX || 40);
 const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 10 * 60 * 1000);
 const MAX_BODY_BYTES = 20 * 1024;
 
@@ -56,7 +61,7 @@ function clientIp(req) {
   return req.socket && req.socket.remoteAddress ? req.socket.remoteAddress : 'unknown';
 }
 
-function isRateLimited(ip) {
+function isRateLimited(ip, max = RATE_LIMIT_MAX) {
   const now = Date.now();
   const hits = (rateLimitBuckets.get(ip) || []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
   hits.push(now);
@@ -68,7 +73,7 @@ function isRateLimited(ip) {
       if (!times.some((t) => now - t < RATE_LIMIT_WINDOW_MS)) rateLimitBuckets.delete(key);
     }
   }
-  return hits.length > RATE_LIMIT_MAX;
+  return hits.length > max;
 }
 
 const FORMS_API_BASE = process.env.HUBSPOT_FORMS_BASE || 'https://api-ap1.hsforms.com';
@@ -237,7 +242,17 @@ function filterToWritable(desired, schema) {
   return writable;
 }
 
-function buildTriageProperties(f, formName, receivedAt) {
+// How the referral reached us. Without this a phone referral is indistinguishable
+// from a website one, and "which channels actually bring people in" stays
+// unanswerable — which is the whole reason for capturing the other two.
+const REFERRAL_CHANNEL_MAP = {
+  'Direct email': 'Direct email',
+  'Phone call': 'Phone call',
+  'Text message': 'Text message',
+  'In person': 'In person',
+};
+
+function buildTriageProperties(f, formName, receivedAt, isStaffEntry = false) {
   const isReferral = formName === 'referral';
   const serviceLine = SERVICE_LINE_MAP[(f.service_needed || '').replace('&amp;', '&')] || null;
 
@@ -270,6 +285,20 @@ function buildTriageProperties(f, formName, receivedAt) {
     enquiry_type: isReferral ? 'Referral' : 'New enquiry',
     enquiry_received_at: receivedAt,
     referral_source_detail: isReferral ? (f.referrer_name || null) : null,
+    // A website referral is the only one that can arrive without a worker, so
+    // it is the default rather than something the public form has to send.
+    // An unrecognised value maps to null instead of passing through — the form
+    // is the only legitimate source and filterToWritable would reject it anyway.
+    referral_channel: isReferral
+      ? (isStaffEntry ? (REFERRAL_CHANNEL_MAP[f.referral_channel] || null) : 'Website form')
+      : null,
+    // Who typed it in. Blank on a website referral because nobody did.
+    referral_taken_by: isStaffEntry ? (f.referral_taken_by || null) : null,
+    // Keeps the consent record honest. Both values mean consent was given; they
+    // differ in who said so, and that difference matters if it is ever queried.
+    consent_capture_method: isReferral
+      ? (isStaffEntry ? 'Recorded by worker' : 'Referrer ticked online')
+      : null,
   };
 }
 
@@ -605,10 +634,17 @@ function buildEnquiryNote(f, sourcePage, campaign) {
   return lines.join('\n');
 }
 
-function buildReferralNote(f, sourcePage, campaign) {
+function buildReferralNote(f, sourcePage, campaign, isStaffEntry = false) {
+  const stamp = new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' });
   const lines = [
-    `Website referral submitted ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}`,
-    sourcePage ? `Submitted from: ${sourcePage}` : null,
+    isStaffEntry
+      ? `Referral entered by a worker ${stamp}`
+      : `Website referral submitted ${stamp}`,
+    // First line of the note after the stamp, because it changes how the rest
+    // is read: on a staff entry every value below is second-hand.
+    isStaffEntry ? `Arrived by: ${f.referral_channel || '(not given)'}` : null,
+    isStaffEntry ? `Taken by: ${f.referral_taken_by || '(not given)'}` : null,
+    sourcePage && !isStaffEntry ? `Submitted from: ${sourcePage}` : null,
     campaign ? `Campaign: ${campaign}` : null,
     `Referred by: ${f.referrer_name || '(not given)'}${f.referrer_organisation ? ' — ' + f.referrer_organisation : ''}`,
     f.referrer_role ? `Referrer role: ${f.referrer_role}` : null,
@@ -644,7 +680,12 @@ module.exports = async (req, res) => {
   }
 
   const ip = clientIp(req);
-  if (isRateLimited(ip)) {
+  // Read before the body is otherwise touched so the limit can differ by form.
+  // A caller could claim to be staff to get the higher ceiling; that buys 40
+  // submissions per ten minutes instead of 5, and every other check — honeypot,
+  // consent, origin — still applies. Worth the trade to keep the office working.
+  const staffEntry = (req.body || {}).form_name === 'staff_referral';
+  if (isRateLimited(ip, staffEntry ? STAFF_RATE_LIMIT_MAX : RATE_LIMIT_MAX)) {
     console.warn('rate limited submission from', ip);
     return res.status(429).json({ ok: false, error: 'Too many submissions. Please try again shortly.' });
   }
@@ -671,14 +712,29 @@ module.exports = async (req, res) => {
     // reachable directly, so without a server-side check a submission can
     // create a CRM record carrying no consent at all — and the record would
     // look identical to a consented one.
-    if (!isAffirmative(f.privacy_consent)) {
+    // A referral typed in by a worker cannot carry the referrer's own tick —
+    // nobody can read a privacy policy on someone else's behalf. The staff form
+    // asks the worker to attest that they told the referrer instead, which is a
+    // different fact and is recorded as one (consent_capture_method below).
+    // Consent is still mandatory; only the person making the statement changes.
+    const isStaffEntry = f.form_name === 'staff_referral';
+    if (!isAffirmative(isStaffEntry ? f.staff_consent_attested : f.privacy_consent)) {
       console.warn('rejected submission without privacy consent from', ip);
       return res.status(400).json({
         ok: false,
-        error: 'Please confirm you have read the Privacy Policy before submitting.',
+        error: isStaffEntry
+          ? 'Please confirm you told the referrer how their details will be used.'
+          : 'Please confirm you have read the Privacy Policy before submitting.',
       });
     }
-    const formName = f.form_name || (f.participant_name ? 'referral' : 'enquiry');
+
+    // Normalised to 'referral' immediately, so every branch below — records,
+    // deal, note, task, acknowledgement email, Forms API enrolment — runs the
+    // referral path unchanged. A staff-entered referral is not a different kind
+    // of referral; it only arrived a different way.
+    const formName = isStaffEntry
+      ? 'referral'
+      : f.form_name || (f.participant_name ? 'referral' : 'enquiry');
 
     let contactId, dealId, noteBody, dealName;
 
@@ -699,7 +755,7 @@ module.exports = async (req, res) => {
         phone: looksLikeEmail(contact) ? undefined : contact,
       });
       dealName = `${f.participant_name || 'Referral'} — referred by ${f.referrer_name || 'unknown'}`;
-      noteBody = buildReferralNote(f, sourcePage, campaign);
+      noteBody = buildReferralNote(f, sourcePage, campaign, isStaffEntry);
 
       // The referrer is UPSERTED every time, not merely looked up. Without
       // this a referrer who is not already tracked disappears entirely, and
@@ -772,7 +828,7 @@ module.exports = async (req, res) => {
     try {
       const schema = await getContactSchema();
       const desired = {
-        ...buildTriageProperties(f, formName, receivedAt),
+        ...buildTriageProperties(f, formName, receivedAt, isStaffEntry),
         // Which page converted them. Schema-filtered like everything else, so
         // these stay inert until the properties are created and start
         // populating the moment they are — see docs/hubspot-manual-setup.md.

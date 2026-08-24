@@ -144,6 +144,23 @@ def build(render, SITE, C):
     )
 
     # ------------------------------------------------------------------
+    # STAFF REFERRAL INTAKE
+    #
+    # Unlisted, not linked from anywhere, noindex, and kept out of the sitemap.
+    # That is obscurity, not authentication: anyone holding the URL can open it,
+    # exactly as anyone can open /referrals/. The token exists so the address
+    # cannot be guessed or crawled, and can be rotated by changing it here.
+    # ------------------------------------------------------------------
+    path = "/staff/8d7c6ee2286d20b7/"
+    render(
+        "staff_referral.html", path,
+        title="Enter a referral | Team use only",
+        meta_description="Internal referral intake form for The Health & Well-being Hub team.",
+        robots="noindex, nofollow",
+        sitemap=False,
+    )
+
+    # ------------------------------------------------------------------
     # PROVIDER DIRECTORY
     # ------------------------------------------------------------------
     path = "/provider-directory/"
