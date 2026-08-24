@@ -112,6 +112,22 @@ moment that triggers the Welcome email — the deal moves to `Participant Onboar
 Not automatic yet, same as everything else in this workflow — whoever tells Claude the
 forms are back is telling it both things at once.
 
+**Three more edges, decided 24 August 2026 — all handled by a person, not a feature:**
+
+1. **A partial return** — only one of the two forms comes back. No system handling for
+   this and none is planned. Staff reply to the participant's email and get the missing
+   one before telling Claude the forms are back. "Forms are back" stays a single event
+   that only ever means both.
+2. **A change of mind after going ahead.** If a participant backs out after the Consent
+   email has gone out but before the Welcome email, it is treated exactly like a decline
+   at the first call: the deal moves to `Lost / Not Suitable`, and the referrer is told.
+   No new template — `11-referral-outcome-declined.html` already says the right thing
+   regardless of when the decline happens, so it is reused rather than duplicated.
+3. **No automatic follow-up if the forms never come back.** Also not a system feature.
+   Instead, when the Consent email sends, Claude leaves a note on the deal as a reminder
+   for staff to follow up — the same record-keeping habit as the outcome step's note,
+   applied one step earlier.
+
 **Next:** decide the trigger mechanism once, for all four. Then write the spec.
 
 ## 04 — Maintaining participants
