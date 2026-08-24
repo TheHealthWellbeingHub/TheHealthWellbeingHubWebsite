@@ -9,18 +9,12 @@
   ],
   "headers": [
     {
-      "comment": "The email template library is committed to the repo, so Vercel serves it — every template has been publicly readable and indexable at /email-templates/. These are internal working files: drafts, editorial notes left inside token braces, and copy awaiting compliance review. None of it should turn up in a search for the business. X-Robots-Tag keeps them reachable by URL for the team while removing them from search results. Note this is deliberately NOT paired with a robots.txt Disallow: blocking the crawl would stop Google ever reading this header, which is the one thing that reliably de-indexes a page.",
       "source": "/email-templates/(.*)",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     },
     {
-      "comment": "Same reasoning for the staff referral intake form. It already carries a noindex meta tag; this covers it at the header level too, since the page creates participant records and is protected only by its unguessable address.",
       "source": "/staff/(.*)",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
   ]
 }
