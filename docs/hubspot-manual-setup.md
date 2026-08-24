@@ -648,3 +648,42 @@ HubSpot copies have been corrected in ways the repo files have not:
 So building a new HubSpot email from a repo template means resolving those by hand,
 exactly as was done for 02 and 03. Do not paste a template in and assume the tokens
 will bind.
+
+---
+
+## Referral outcome — 2 deal properties (24 Aug 2026)
+
+Created for workflow 01's outcome step, and **on the deal, not the contact**. Both were
+initially specified as contact properties and moved after reading the endpoint's own
+reasoning: `api/hubspot-submit.js` states that deal stage is the single source of truth for
+where someone is up to, and that a contact-level duplicate diverges. A contact-level outcome
+would also be overwritten by any later referral for the same person.
+
+| Property | Type | Options |
+|---|---|---|
+| `referral_outcome` | Dropdown | Going ahead · Still deciding · Not proceeding |
+| `referral_outcome_date` | Date | — |
+
+`referral_outcome` does **not** duplicate the deal stage. The stage answers *where is this up
+to*; this answers *what did the participant decide*. The existing `Lost / Not Suitable` stage
+otherwise conflates a participant declining us with us being unable to serve them — different
+problems, different fixes, and currently indistinguishable in reporting.
+
+`referral_outcome_date` is the day of the conversation, not the day it was typed in. It is
+quoted back to the referrer in emails 10 and 11, so a data-entry date would be a small lie.
+
+### The email does not send from HubSpot
+
+Worth stating because it breaks the pattern of workflows 01 and 02. Starter triggers workflows
+on **form submission only** — there is no way to fire one when a deal reaches `Lost / Not
+Suitable`. Building emails 10 and 11 as HubSpot marketing emails would produce assets nothing
+could trigger.
+
+They send from the H&W mailbox instead, composed from the committed template so the approved
+wording is what goes out. That also fits what they are: a one-to-one message to one referrer,
+not a marketing send to a list. Consequences to accept — no HubSpot open/click tracking on
+these two, and no subscription-type suppression, so they must never be used for anything
+resembling marketing.
+
+Verified end to end 24 Aug 2026 against a throwaway deal, with the referrer email drafted
+rather than sent.
