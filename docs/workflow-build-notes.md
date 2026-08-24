@@ -213,10 +213,11 @@ the email leaves the building.
 **Step 3 — a note on the participant's contact**, recording who was introduced and
 when, the same reasoning as workflow 03's forms-back note: nothing here is stored as
 structured data, so the note is the only record that this introduction happened at
-all. Proposed, not yet confirmed with the user — flag if a different record is wanted.
+all. Confirmed with the user 24 August 2026 — keep doing this by default going forward
+wherever a workflow writes nothing structured but something still happened.
 
-**Next:** none, design-wise, pending confirmation of the step 3 note. Build status:
-content exists (email 06), nothing else to build — same shape as workflow 04.
+**Next:** none, design-wise. Build status: content exists (email 06), nothing else to
+build — same shape as workflow 04.
 
 ## 06 — Appointment confirmation
 
