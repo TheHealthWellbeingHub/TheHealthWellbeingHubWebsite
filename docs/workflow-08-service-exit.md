@@ -110,8 +110,9 @@ live or dry run of the actual question-and-send sequence yet.
 
 ## Open
 
-- **Compliance review.** `09-service-cancellation-exit.html` carries no "approved"
-  note — same open item as templates 04, 07, 08, 12 and 13. This is the most
-  sensitive email in the library; Kholoud should read the wording and, specifically,
-  the five reason options above before this is relied on for a live send.
-- **A live send**, once reviewed.
+- ~~**Compliance review.**~~ **Approved 25 August 2026.** Kholoud has read
+  `09-service-cancellation-exit.html`, including the five reason options above — the
+  most sensitive email in the library is no longer an unreviewed draft.
+- **A live send**, now that the wording is cleared. Nothing here has gone through a
+  live or dry run of the actual question-and-send sequence yet — see "Verification"
+  above.
