@@ -62,6 +62,11 @@ Two emails now, not one — named for what each one does, not for the order they
 | The Consent email | `04-participant-welcome-onboarding.html` — attaches `The Health & Well-being Hub - Referral Form (Fillable).pdf` (53 fields) and `NDIS Consent for Your Information (Fillable).pdf` (20 fields, overlaid on the NDIA's own unaltered form) |
 | The Welcome email | `12-welcome-pack.html` — attaches the four easy-read policy guides (privacy, feedback, rights, incident management), unchanged from what was supplied |
 
+**The two attachments on the Consent email are fixed, not optional.** Every send carries
+both the referral form and the consent form — there is no version of this email that goes
+out with only one, or with neither. Recorded here because it is a decision, not an
+accident of how the first draft happened to be built.
+
 No trigger for either. A participant becomes a participant when a service agreement is
 signed, which is a **deal stage change**, and Starter cannot trigger on those; stage 2
 starts when the forms come back, which isn't a HubSpot event at all. Both can run the
