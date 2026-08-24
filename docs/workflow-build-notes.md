@@ -148,13 +148,33 @@ Applies to 04, 05 and 08 too; none of them need this question asked again.
 
 ## 04 — Maintaining participants
 
-No template, no spec — the only one with nothing behind it, and the only recurring
-one. Plan review reminders, periodic check-ins, agreement renewals and re-contacting
-quiet participants are all plausible readings needing different data. The trigger
-question is settled (see workflow 03) — whichever of these it turns out to be, it runs
-on someone telling Claude, not a HubSpot workflow.
+**Redefined 24 August 2026 — on-request CRM maintenance, not a scheduled campaign.**
+Every earlier reading (plan review reminders, periodic check-ins, agreement renewals,
+re-contacting quiet participants) assumed a recurring, calendar-driven workflow. Dropped
+in favour of something simpler: a worker asks Claude to create, look up, or update a
+participant's or referrer's HubSpot record, and Claude does it — the same "tell Claude"
+trigger as workflow 03, on request rather than on a schedule. No template, no email,
+nothing to build in HubSpot — this workflow *is* the ask.
 
-**Next:** define what it means before building anything.
+**What's actually available, checked against the real tools:**
+
+| Operation | Possible? |
+|---|---|
+| Create | Yes — `manage_crm_objects`, create request |
+| Get / search | Yes — `search_crm_objects` / `get_crm_objects` |
+| Update | Yes — `manage_crm_objects`, update request |
+| Delete | **No delete or archive tool exists.** Handled as a soft delete instead: a participant's deal moves to `Lost / Not Suitable`; a referrer's contact is marked inactive. |
+
+Every create and update carries HubSpot's own mandatory confirmation — a table of what's
+changing, old value to new, before anything writes. Not built for this workflow
+specifically; it's how the tool already behaves, and it happens to match the
+confirm-before-write habit used everywhere else in this document.
+
+**Proof so far:** a real search has already run this session — `CONTACT`/`DEAL` for
+"Sabrina," correctly returning nothing, since she was never a real record. Create and
+update have not been exercised for real yet.
+
+**Next:** none, design-wise. Use it, and see what comes up.
 
 ## 05 — Support worker introduction
 
@@ -197,7 +217,9 @@ compliance review before it goes near a participant who is leaving.
 ## The constraint behind most of these
 
 HubSpot Starter allows **one simple workflow per form**, triggered by form submission
-only — ten actions, no branching, no webhooks. Four of the eight have no form behind
-them, so each needs either a new form or automation outside HubSpot. Workflow 01's
-outcome step took the second route: it sends from the H&W mailbox, because no HubSpot
-workflow can fire on a deal reaching a closed stage.
+only — ten actions, no branching, no webhooks. Three of the eight (03, 05, 08) have no
+form behind the email they need to send, so each needs either a new form or automation
+outside HubSpot. Workflow 01's outcome step took the second route: it sends from the
+H&W mailbox, because no HubSpot workflow can fire on a deal reaching a closed stage.
+Workflow 04 no longer belongs on this list — redefined 24 August 2026 as on-request CRM
+maintenance, it sends nothing and has no form to be missing.

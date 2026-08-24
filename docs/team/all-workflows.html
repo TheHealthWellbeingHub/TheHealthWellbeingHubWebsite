@@ -599,8 +599,8 @@
 
   <div class="tally">
     <div class="tally-cell"><span class="tally-num is-live">1</span><span class="tally-label">Running</span></div>
-    <div class="tally-cell"><span class="tally-num is-partial">1</span><span class="tally-label">Partly running</span></div>
-    <div class="tally-cell"><span class="tally-num is-idle">6</span><span class="tally-label">Not set up yet</span></div>
+    <div class="tally-cell"><span class="tally-num is-partial">2</span><span class="tally-label">Partly running</span></div>
+    <div class="tally-cell"><span class="tally-num is-idle">5</span><span class="tally-label">Not set up yet</span></div>
   </div>
 
   <section class="constraint">
@@ -794,17 +794,17 @@
     <article class="entry">
       <div class="spine">
         <span class="seq">04</span>
-        <span class="chip is-idle">Not set up yet</span>
+        <span class="chip is-partial">Partly running</span>
       </div>
       <div class="body-col">
         <h3>Maintaining participants</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>Nothing yet — this one runs on a rhythm, not an event.</span></div>
-        <p>The only one with nothing behind it at all, and the only one that repeats rather than firing once.</p>
-        <p>What it should actually do is genuinely undecided: plan review reminders, regular check-ins, agreement renewals, or getting back in touch with people who have gone quiet. They need different information and different timing.</p>
+        <div class="starts"><span class="starts-label">Starts when</span><span>A worker asks Claude to look up, add, or update a participant's or referrer's HubSpot record.</span></div>
+        <p><strong>Decided 24 August 2026 — this is on-request record maintenance, not a scheduled campaign.</strong> The earlier framing (plan review reminders, regular check-ins, agreement renewals, getting back in touch with people who've gone quiet) assumed this ran on a calendar. It doesn't. A worker asks, Claude does it — the same &ldquo;tell Claude&rdquo; pattern as workflow 03, not a recurring job.</p>
+        <p>Three things it can do, and one it can't. Creating, looking up and updating a record are all real — every create or update shows exactly what's about to change, old value to new, before anything writes. <strong>Deleting isn't possible at all</strong> — no tool for it exists — so it's handled as a soft delete instead: a participant's deal moves to <em>Lost / Not Suitable</em>, a referrer's contact is marked inactive.</p>
 
         <div class="flag">
           <span class="flag-label">Important</span>
-          <span>Anything tied to plan dates or what a plan covers needs checking against our approved policies before it goes anywhere near a participant.</span>
+          <span>Looking a record up has already been proven for real this session — a live search, correctly returning nothing for a participant who doesn't exist. Creating or updating one hasn't been tried for real yet, which is why this sits at partly running rather than running.</span>
         </div>
       </div>
     </article>
