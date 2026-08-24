@@ -438,6 +438,100 @@ add(
     cta=("Speak to someone about this", "tel:+61433604507"),
 )
 
+# ---------------------------------------------------------------------------
+# 10 and 11 — referral outcome, back to the referrer (workflow 01, step 5)
+#
+# These close the loop a referrer currently never gets: they send someone to
+# us and never hear what became of them. Both are triggered by the worker
+# telling Claude how the first call went.
+#
+# DRAFT — NOT APPROVED. Two things need a human decision before either sends:
+#
+#   1. Both disclose a participant's decision to a third party. The referrer
+#      usually has a legitimate need to know — a support coordinator has to
+#      place the person somewhere — but "the participant agreed to be
+#      referred" is not the same as "the participant agreed we may report
+#      their decision back". Template 11 is the sharper case.
+#   2. Neither gives a reason for the decision, deliberately. A participant
+#      does not owe anyone one, and relaying it would disclose more than the
+#      decision itself. Do not add one.
+#
+# There is no third template for "they went ahead" on purpose: that outcome
+# opens the onboarding flow, which is where the referrer update belongs.
+# ---------------------------------------------------------------------------
+
+# 10 — Referral outcome: still deciding
+add(
+    "10-referral-outcome-considering.html",
+    "10", "Referral outcome — still deciding",
+    subject="An update on your referral for {{participant_first_name}}",
+    preheader="They have asked for some time to think it over. We will let you know.",
+    eyebrow="Referral update",
+    title="{{participant_first_name}} would like some time to think",
+    body_html=(
+        p("Hi {{referrer_first_name}},")
+        + p(
+            "We have spoken with {{participant_first_name}} {{participant_last_name}} about the "
+            "referral you sent us. They have asked for some time to think about whether to go "
+            "ahead."
+        )
+        + p(
+            "That is a reasonable thing to ask for, and we have not pushed them. Choosing a "
+            "provider is a big decision, and it is often one a family makes together."
+        )
+        + info_box(
+            "Referral date: {{referral_date}}<br>"
+            "Service requested: {{service_requested}}<br>"
+            "Reference: {{referral_reference}}<br>"
+            "We spoke with them: {{outcome_date}}"
+        )
+        + p(
+            "We will let you know as soon as they decide, either way. Nothing is needed from "
+            "you in the meantime."
+        )
+        + p(
+            "If you would like to talk it through before then, reply to this email or call us."
+        )
+    ),
+    cta=("Call us", "tel:+61433604507"),
+)
+
+# 11 — Referral outcome: not proceeding
+add(
+    "11-referral-outcome-declined.html",
+    "11", "Referral outcome — not proceeding",
+    subject="An update on your referral for {{participant_first_name}}",
+    preheader="They have decided not to go ahead with our services.",
+    eyebrow="Referral update",
+    title="{{participant_first_name}} has decided not to go ahead",
+    body_html=(
+        p("Hi {{referrer_first_name}},")
+        + p(
+            "We have spoken with {{participant_first_name}} {{participant_last_name}} about the "
+            "referral you sent us. They have decided not to take up our services."
+        )
+        + p(
+            "We have not asked them why, and we are not passing on a reason. We are letting you "
+            "know so that you can look at other options for them without waiting on us."
+        )
+        + info_box(
+            "Referral date: {{referral_date}}<br>"
+            "Service requested: {{service_requested}}<br>"
+            "Reference: {{referral_reference}}<br>"
+            "We spoke with them: {{outcome_date}}"
+        )
+        + p(
+            "We have closed this referral and will not contact them again about it. If their "
+            "situation changes, they are welcome to come back to us at any time."
+        )
+        + p(
+            "Thank you for thinking of us. If it would help to talk through who else might suit "
+            "them, we are happy to."
+        )
+    ),
+    cta=("Call us", "tel:+61433604507"),
+)
+
 
 def build_index():
     cards = []
