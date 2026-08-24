@@ -15,6 +15,14 @@ NOT the same syntax HubSpot's own personalization tokens use, so anything
 pasted into HubSpot needs those converted first, not assumed compatible.
 
 Run: python3 generate.py   (writes the sibling .html files in this dir)
+
+WARNING — this generator is no longer the source of truth for every template.
+On 24 Aug 2026 templates 02, 03, 04, 05 and 07 were replaced by hand with a
+different design supplied by the user (640px, Georgia "H & W" wordmark, Title
+Case merge fields). Running this script WILL overwrite those five files and
+revert them to the generated design. Either port the new design into the
+builders below before running it again, or run it only for the four templates
+that are still generated: 01, 06, 08, 09.
 """
 import os
 
