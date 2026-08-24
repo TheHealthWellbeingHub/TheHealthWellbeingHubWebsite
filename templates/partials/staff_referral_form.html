@@ -115,11 +115,12 @@
              tabindex="-1" autocomplete="off">
     </div>
 
-    {# DRAFT WORDING — awaiting approval. Both statements below are compliance
-       wording and must be signed off before this page goes live. The first
-       replaces the referrer's own privacy tick and is required by the endpoint;
-       the second mirrors the public form's optional participant consent, with
-       the worker relaying what the referrer said rather than answering it. #}
+    {# APPROVED 24 Aug 2026. Both statements are compliance wording: do not
+       reword either without a fresh approval. The first replaces the referrer's
+       own privacy tick and is required by the endpoint; the second mirrors the
+       public form's optional participant consent, with the worker relaying what
+       the referrer said rather than answering it themselves. Which of the two
+       routes consent came through is recorded in consent_capture_method. #}
     <label class="form-consent form-consent-tight">
       <input type="checkbox" name="staff_consent_attested" required>
       <span>I told this referrer that we store their contact details so we can respond to the referral, and where to find our <a href="{{ url('/privacy-policy/') }}">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
