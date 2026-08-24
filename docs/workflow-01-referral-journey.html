@@ -239,6 +239,14 @@
   }
 
   .decision p { color: var(--ink); font-size: 15px; }
+  .decision p + p { margin-top: 9px; }
+
+  /* Settled items keep their reasoning on the page but stop shouting: the
+     amber rail means "someone still has to decide this". */
+  .decision.is-settled {
+    border-left-color: var(--live);
+    background: var(--live-bg);
+  }
 
   .colophon {
     margin-top: 46px;
@@ -437,7 +445,7 @@
       <p><strong>They're going ahead.</strong> This opens onboarding, which is its own flow and still to be designed. Note what that means for now: the referrer is told when someone declines, and <em>not</em> told when someone signs up. That is backwards, and worth fixing when we build onboarding — a referrer hearing &ldquo;they've joined us&rdquo; is the message most likely to bring you the next referral.</p>
       <p><strong>They want time to think.</strong> Claude emails the referrer to say so, and that we will come back either way. It sets no deadline and asks nothing of them.</p>
       <p><strong>They said no.</strong> Claude emails the referrer to say the person is not going ahead, so the referrer can look elsewhere without waiting on us. <strong>No reason is given</strong> — not because we would not know, but because a participant does not owe anyone one, and passing it on would disclose more than the decision itself.</p>
-      <p>Both emails are drafted and sit in the template library as 10 and 11. Neither is approved to send yet.</p>
+      <p>Both emails live in the template library as 10 and 11, and <strong>the wording is approved</strong>. What remains is wiring them to fire — the outcome step above does not exist yet, so nothing triggers them.</p>
 
       <h2>The three decisions behind it</h2>
       <p>Settled on 24 August 2026. Recorded here because each one is a judgement that someone will eventually want to re-open, and the reasoning is easier to argue with than to reconstruct.</p>
@@ -457,9 +465,10 @@
           <h3>A separate submission limit for the office</h3>
           <p>The public form allows five submissions per ten minutes from one internet connection, which is right for one person filling in one form and wrong for a team sharing an office connection — the second worker of the morning would simply be blocked. Staff submissions get their own ceiling of forty. Still a limit, just a deliberate one.</p>
         </div>
-        <div class="decision">
-          <h3>Still open: telling a referrer someone declined</h3>
-          <p>Emails 10 and 11 both disclose a participant's decision to someone outside our service. The referrer usually has a fair reason to know — a support coordinator has to place that person somewhere — but <strong>&ldquo;the participant agreed to be referred&rdquo; is not the same as &ldquo;the participant agreed we may report their decision back&rdquo;</strong>. That gap has not been closed, and it is the one thing standing between these drafts and sending them.</p>
+        <div class="decision is-settled">
+          <h3>Telling a referrer someone declined — approved 24 Aug 2026</h3>
+          <p>Emails 10 and 11 both disclose a participant's decision to someone outside our service. That was held open on the grounds that <strong>&ldquo;the participant agreed to be referred&rdquo; is not the same as &ldquo;the participant agreed we may report their decision back&rdquo;</strong>. It is now approved: the referrer has a fair reason to know, because a support coordinator has to place that person somewhere, and telling them nothing leaves the participant waiting longer.</p>
+          <p>The limit stays where it was drawn. <strong>Neither email gives a reason</strong>, and email 11 says so in as many words. What the referrer learns is the decision, not the thinking behind it.</p>
         </div>
       </div>
     </section>
