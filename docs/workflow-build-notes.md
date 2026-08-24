@@ -12,6 +12,26 @@ Statuses live on the register, not here — one source, so they cannot disagree.
 
 ---
 
+## Standard: a rendered preview before every Claude-sent email
+
+**Decided 24 August 2026, applies everywhere, not just to one workflow.** "Claude
+confirms before it sends" used to mean a text read-back — participant, referrer,
+reference. From here on it also means a **rendered preview image** of the actual
+email: subject line, body as it will actually look, and every attachment — shown to
+the worker before the send happens, not described in words.
+
+Applies to every email Claude sends itself, from the H&W mailbox, on request: workflow
+01's outcome step (templates 10, 11, 13), workflow 03 (the Consent and Welcome
+emails), workflow 05 (support worker introduction), workflow 06 (appointment
+confirmation), and workflow 08 once it exists. Does **not** apply to templates 02 and
+03 — those send automatically from a live HubSpot workflow the moment a form is
+submitted, with no Claude-in-the-loop moment to show anything before it goes.
+
+Individual workflow sections below don't repeat this in full — they note "preview,
+then send" and mean this.
+
+---
+
 ## 01 — Referral received
 
 | | |
@@ -207,8 +227,8 @@ actually gets asked:
 | Coordinator or manager to contact | `{{Coordinator or Manager}}` |
 
 **Step 2 — confirm, then send.** Same habit as every other trigger in this document:
-Claude reads back what it collected — worker, participant, first appointment — before
-the email leaves the building.
+Claude reads back what it collected — worker, participant, first appointment — and
+shows a rendered preview of the actual email before it leaves the building.
 
 **Step 3 — a note on the participant's contact**, recording who was introduced and
 when, the same reasoning as workflow 03's forms-back note: nothing here is stored as
@@ -221,10 +241,37 @@ build — same shape as workflow 04.
 
 ## 06 — Appointment confirmation
 
-Email `05-appointment-confirmation.html`. No trigger. Google Calendar is connected, so
-a calendar event is the natural source rather than a form.
+**Redefined 24 August 2026 — asked fresh each time, not read from a calendar.** The
+original assumption was that Google Calendar, since it's connected, is the natural
+source. Dropped, without confirming where appointments are actually booked today — same
+move as 04 and 05: don't build a dependency on a system when asking directly is simpler
+and needs no answer about where bookings currently live.
 
-**Next:** confirm where appointments are actually booked today before assuming that.
+**Trigger:** *"Set an appointment with [Participant]."*
+
+**Step 1 — Claude asks for exactly what the template needs.** `{{First Name}}` is
+already known from the trigger; `{{Email Address}}` and `{{unsubscribe_url}}` are
+constants. What actually gets asked:
+
+| Asked | Template token |
+|---|---|
+| Service | `{{Service}}` |
+| Appointment date | `{{Appointment Date}}` |
+| Start / end time | `{{Start Time}}` / `{{End Time}}` |
+| Duration | `{{Duration}}` |
+| Worker or practitioner | `{{Staff Member}}` |
+| Address or online meeting details | `{{Address / Online Meeting Details}}` |
+| Preparation instructions, if any | `{{Preparation Instructions}}` |
+
+**Step 2 — preview, then send.** See the standard above: a rendered preview of the
+actual email, shown before it goes.
+
+**Step 3 — a note on the participant's contact**, same default as workflow 05: nothing
+here is stored as structured data, so the note is the record that the appointment was
+confirmed and what was in the email.
+
+**Next:** none, design-wise. Build status: content exists (email 05), nothing else to
+build — same shape as 04 and 05.
 
 ## 07 — Complaint acknowledgement
 

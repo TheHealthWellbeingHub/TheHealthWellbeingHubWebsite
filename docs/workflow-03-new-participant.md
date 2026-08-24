@@ -29,8 +29,9 @@ their own paperwork.
 ## Trigger 1 — "Send the Consent email"
 
 Said after the outcome step has already recorded "going ahead." Confirm first, the same
-way workflow 01's outcome step does — read back the participant's name and which deal —
-before anything leaves the building.
+way workflow 01's outcome step does — read back the participant's name and which deal,
+and show a rendered preview of the email itself (subject, body, both attachments listed)
+— before anything leaves the building.
 
 1. Fill the Consent email (`04-participant-welcome-onboarding.html`) with the participant
    and staff details.
@@ -80,7 +81,8 @@ happens when only one has. One event, three things happen:
 3. **Move the deal to `Participant Onboarded`.**
 
 Confirm before sending, same as every other step here — read back who, which deal, and
-that both documents are actually in hand.
+that both documents are actually in hand, plus a rendered preview of the email and its
+four attachments.
 
 ### Merge fields — the Welcome email
 

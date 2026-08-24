@@ -651,7 +651,7 @@
             </div>
             <div class="step">
               <span class="step-n">6</span><span class="who claude">Claude</span>
-              <span class="step-text"><strong>Claude reads the details back, then emails the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
+              <span class="step-text"><strong>Claude reads the details back, shows a preview of the email, then sends it to the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
             </div>
             </div>
           </details>
@@ -697,7 +697,7 @@
             </div>
             <div class="step">
               <span class="step-n">9</span><span class="who claude">Claude</span>
-              <span class="step-text"><strong>Claude reads the details back, then emails the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
+              <span class="step-text"><strong>Claude reads the details back, shows a preview of the email, then sends it to the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
             </div>
             </div>
           </details>
@@ -743,7 +743,7 @@
             </div>
             <div class="step">
               <span class="step-n">9</span><span class="who claude">Claude</span>
-              <span class="step-text"><strong>Claude reads the details back, then emails the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
+              <span class="step-text"><strong>Claude reads the details back, shows a preview of the email, then sends it to the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
             </div>
             </div>
           </details>
@@ -781,7 +781,7 @@
         <p>The <strong>Consent email</strong> is written and ready, and now has both documents a participant needs attached — a fillable referral form and the NDIA's own consent form, with real interactive fields rather than a flat PDF to print and post back.</p>
         <p>Once the forms come back, the <strong>Welcome email</strong> hands over the welcome pack — four easy-read guides on privacy, feedback, rights and incident management. Built as template 12, ready the same way. That same moment is also when the deal moves to <em>Participant Onboarded</em> — before that, while the forms are outstanding, it sits at <em>Service Agreement Sent</em>.</p>
         <p>Neither is wired to a trigger, because signing an agreement is not something our email system can react to. Both run the way workflow 01's outcome step does — tell Claude, and it sends from the H&amp;W mailbox. <strong>Decided 24 August 2026:</strong> that stays the design, permanently — not a gap waiting on HubSpot, a deliberate choice, same as workflow 01's.</p>
-        <p>Walked through end to end as a dry run on 24 August 2026 — a fictional referral, through the staff intake link, to the outcome step, to both emails — and the mechanics hold: same confirm-before-send pattern as workflow 01, same mailbox send, the Consent email's two attachments fixed on every send. Nothing has gone to a real participant yet.</p>
+        <p>Walked through end to end as a dry run on 24 August 2026 — a fictional referral, through the staff intake link, to the outcome step, to both emails — and the mechanics hold: same confirm-before-send pattern as workflow 01, same mailbox send, the Consent email's two attachments fixed on every send, both previewed as a rendered image before sending, attachments and all. Nothing has gone to a real participant yet.</p>
         <p>The dry run surfaced two real problems in workflow 01's outcome step, both fixed the same day: a referrer used to hear nothing when their referral said yes — now they get an email, the same as the other two outcomes — and the deal used to move to <em>Lost / Not Suitable</em> for a yes, which was a genuine bug. It now moves to <em>Service Agreement Sent</em> instead: active, not yet onboarded. See workflow 01 for both.</p>
         <p>Three more edges came up, and none of them need a feature — just a person doing the obvious thing. Only one of the two forms comes back? Reply and ask for the other one before telling Claude the forms are in. A participant changes their mind after saying yes? Same as any decline — deal closed, referrer told. Worried something will sit forgotten if the forms never come back? Claude leaves a note on the deal when the Consent email goes out, as a reminder to check.</p>
         <p>One question was still open: the two forms carry around 70 fields between them, and none of it was landing anywhere in HubSpot. Settled the same way — no attempt to map it onto individual fields. When the forms come back, Claude reads them and writes what is on them as a note: the participant's own details on their contact record, anything about the referrer on theirs.</p>
@@ -818,7 +818,7 @@
         <h3>Support worker introduction</h3>
         <div class="starts"><span class="starts-label">Starts when</span><span>A worker tells Claude to send the support worker introduction to a named participant.</span></div>
         <p><strong>Redefined 24 August 2026 — asked fresh each time, not stored.</strong> The email needs a worker's name, languages, experience and a little about them, and we don't keep support worker records. Rather than deciding how to store them, the answer is: don't. Claude asks for exactly what the email needs, right there in the conversation, the same way workflow 04 asks rather than looks up.</p>
-        <p>Claude reads it back before sending — who the worker is, who the participant is, what the first appointment looks like — the same confirm-first habit as everywhere else. A note goes on the participant's contact afterwards, so there's a record the introduction happened even though nothing about the worker is stored anywhere permanent.</p>
+        <p>Claude reads it back before sending — who the worker is, who the participant is, what the first appointment looks like — and shows a rendered preview of the actual email, the same habit as everywhere else. A note goes on the participant's contact afterwards, so there's a record the introduction happened even though nothing about the worker is stored anywhere permanent.</p>
         <p>Worth getting right rather than getting out — gender-matched workers and shared language are a large part of why families choose us.</p>
 
       </div>
@@ -831,9 +831,10 @@
       </div>
       <div class="body-col">
         <h3>Appointment confirmation</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>An appointment is booked.</span></div>
-        <p>The email is written. The open question is where appointments actually get booked today, because that decides what the confirmation is built from.</p>
-        <p>It is also the only one with a natural second message — a reminder before the appointment, not just a confirmation after booking.</p>
+        <div class="starts"><span class="starts-label">Starts when</span><span>A worker tells Claude to set an appointment with a named participant.</span></div>
+        <p><strong>Redefined 24 August 2026 — asked fresh each time, not read from a calendar.</strong> The open question used to be where appointments actually get booked today, since that would decide what the confirmation is built from. Dropped, the same way 04 and 05 were: Claude asks for the service, date, time, worker, location and any preparation notes right there in the conversation, rather than depending on where a booking happens to live.</p>
+        <p>Before it sends, Claude shows a rendered preview of the actual email — not just a description of it — and leaves a note on the participant's contact once it's confirmed.</p>
+        <p>Still the only one with a natural second message — a reminder before the appointment, not just a confirmation after booking.</p>
 
       </div>
     </article>
