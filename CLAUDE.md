@@ -127,8 +127,13 @@ that does not translate.
   without explicit permission.
 - **Naming:** one scheme per directory, applied consistently. The email template library's
   drift (display labels not matching filenames, one template living outside the directory
-  under a different convention) has been fixed — all nine now live in `email-templates/` as
-  `01-`–`09-` prefixed files with labels matching filenames. Keep it that way.
+  under a different convention) has been fixed — all templates live in `email-templates/` as
+  `01-`-prefixed files with labels matching filenames, now numbered `01-`–`11-`. Keep it that
+  way. The templates are **hand-authored HTML and are the source of truth**: the old
+  `generate.py`, which wrote them from Python, was removed on 24 Aug 2026 when the designs were
+  supplied as finished HTML, because a generator holding a superseded design silently overwrites
+  approved work the next time anyone runs it. `build_index.py` only reads the templates and
+  rebuilds `index.html` from them.
 - **Merge fields:** the email templates use `{{double brackets}}`. HubSpot uses its own
   token syntax. Anything intended to sync into HubSpot needs deliberate conversion — do not
   assume the two are interchangeable.
