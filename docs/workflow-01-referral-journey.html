@@ -116,7 +116,7 @@
 
   .legend {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 12px 22px;
     margin: 30px 0 8px;
     padding: 18px 20px;
@@ -140,16 +140,14 @@
     border: 1.5px solid;
   }
 
-  .swatch.auto { background: var(--live-bg); border-color: var(--live); }
-  .swatch.team { background: var(--navy-bg); border-color: var(--navy); }
-  .swatch.claude { background: var(--brand-bg); border-color: var(--brand); border-style: dashed; }
-  .swatch.gap { background: var(--partial-bg); border-color: var(--partial); border-style: dashed; }
+  .swatch.auto   { background: var(--live-bg);  border-color: var(--live); }
+  .swatch.team   { background: var(--navy-bg);  border-color: var(--navy); }
+  .swatch.claude { background: var(--brand-bg); border-color: var(--brand); }
+  .swatch.todo   { background: transparent;     border-color: var(--ink-faint); border-style: dashed; }
 
   /* ---------- figure ---------- */
 
-  figure {
-    margin: 26px 0 0;
-  }
+  figure { margin: 26px 0 0; }
 
   .canvas {
     overflow-x: auto;
@@ -173,27 +171,24 @@
   }
 
   /* svg nodes */
-  .node-auto   { fill: var(--live-bg);   stroke: var(--live);   stroke-width: 1.6; }
-  .node-team   { fill: var(--navy-bg);   stroke: var(--navy);   stroke-width: 1.6; }
-  .node-claude { fill: var(--brand-bg);  stroke: var(--brand);  stroke-width: 1.6; stroke-dasharray: 7 5; }
-  .node-gap    { fill: var(--partial-bg);stroke: var(--partial);stroke-width: 1.6; stroke-dasharray: 7 5; }
-  .node-branch { fill: var(--surface);   stroke: var(--rule-firm); stroke-width: 1.6; }
+  .node-auto   { fill: var(--live-bg);  stroke: var(--live);      stroke-width: 1.6; }
+  .node-team   { fill: var(--navy-bg);  stroke: var(--navy);      stroke-width: 1.6; }
+  .node-claude { fill: var(--brand-bg); stroke: var(--brand);     stroke-width: 1.6; }
+  .node-entry  { fill: var(--surface);  stroke: var(--rule-firm); stroke-width: 1.6; }
+  .node-branch { fill: var(--surface);  stroke: var(--rule-firm); stroke-width: 1.6; }
+  .is-todo     { stroke-dasharray: 7 5; }
 
   .n-title  { fill: var(--ink); font-family: var(--fb); font-size: 15px; font-weight: 700; }
   .n-sub    { fill: var(--ink-soft); font-family: var(--fb); font-size: 12.5px; }
   .n-branch { fill: var(--ink); font-family: var(--fb); font-size: 13.5px; font-weight: 700; }
   .n-tag    { font-family: var(--fb); font-size: 10.5px; font-weight: 700; letter-spacing: .09em; }
-  .tag-gap    { fill: var(--partial); }
-  .tag-claude { fill: var(--brand); }
+  .tag-meet  { fill: var(--ink-faint); }
+  .tag-todo  { fill: var(--brand); }
 
-  .edge        { stroke: var(--ink-faint); stroke-width: 1.7; fill: none; }
-  .edge-gap    { stroke: var(--partial);   stroke-width: 1.7; fill: none; stroke-dasharray: 7 5; }
-  .edge-claude { stroke: var(--brand);     stroke-width: 1.7; fill: none; stroke-dasharray: 7 5; }
-  .edge-label  { fill: var(--ink-faint); font-family: var(--fb); font-size: 11.5px; }
-
-  .a-flow   { fill: var(--ink-faint); }
-  .a-gap    { fill: var(--partial); }
-  .a-claude { fill: var(--brand); }
+  .edge      { stroke: var(--ink-faint); stroke-width: 1.7; fill: none; }
+  .edge-todo { stroke: var(--ink-faint); stroke-width: 1.7; fill: none; stroke-dasharray: 7 5; }
+  .edge-label { fill: var(--ink-faint); font-family: var(--fb); font-size: 11.5px; }
+  .a-flow    { fill: var(--ink-faint); }
 
   /* ---------- prose ---------- */
 
@@ -222,15 +217,28 @@
   .note p + p { margin-top: 11px; }
   .note p strong { color: var(--ink); font-weight: 700; }
 
-  .rail {
-    border-left: 3px solid var(--partial);
-    background: var(--partial-bg);
-    padding: 16px 20px;
-    margin-top: 14px;
-    max-width: 66ch;
+  .decisions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 16px;
   }
 
-  .rail p { color: var(--ink); }
+  .decision {
+    border-left: 3px solid var(--partial);
+    background: var(--partial-bg);
+    padding: 15px 19px;
+    max-width: 68ch;
+  }
+
+  .decision h3 {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 5px;
+  }
+
+  .decision p { color: var(--ink); font-size: 15px; }
 
   .colophon {
     margin-top: 46px;
@@ -251,155 +259,176 @@
   <header class="masthead">
     <div class="eyebrow">Workflow 1 of 8</div>
     <h1>Referral Received</h1>
-    <p class="standfirst">What happens from the moment someone refers a participant to us, through to the referrer hearing how it went. Everything the system does on its own, and every point where a person is needed.</p>
+    <p class="standfirst">What happens from the moment someone refers a participant to us, through to the referrer hearing how it went. However the referral arrives, it ends up in the same place.</p>
   </header>
 
   <div class="legend">
     <div class="key"><span class="swatch auto"></span><span>Happens automatically</span></div>
     <div class="key"><span class="swatch team"></span><span>Your team does this</span></div>
-    <div class="key"><span class="swatch claude"></span><span>Claude does this — not built yet</span></div>
-    <div class="key"><span class="swatch gap"></span><span>Gap — nothing happens on its own</span></div>
+    <div class="key"><span class="swatch claude"></span><span>Claude does this</span></div>
+    <div class="key"><span class="swatch todo"></span><span>Dashed = not built yet</span></div>
   </div>
 
   <figure>
     <div class="canvas">
-      <svg class="flow" viewBox="0 0 1000 1055" role="img"
-           aria-label="A tree showing the referral journey. Referrals arrive three ways: the website form is captured automatically, while direct email and phone or in-person referrals have no automatic capture and must be entered by hand. Once captured, the system saves the records, creates a job for the team and starts a two-hour reply clock, then sends one email to the referrer and one to the team. A worker then phones the participant. The worker tells Claude how the call went, the referral goes one of three ways, and Claude updates the records and tells the referrer the outcome. The last three steps are not built yet.">
+      <svg class="flow" viewBox="0 0 1000 1290" role="img"
+           aria-label="A tree showing the referral journey. Referrals arrive three ways. A website referral is filled in by the referrer with no effort from the team. A referral by direct email, phone, text or in person takes three extra steps: the worker tells Claude there is a new referral, Claude sends back the same referral form used on the website, and the worker fills it in. All three channels then meet at the same point, where the system saves the records, creates a job due within two business hours and starts the reply clock, then sends one email to the referrer and one to the team. A worker phones the participant, tells Claude how the call went, the referral goes one of three ways, and Claude updates the records and tells the referrer the outcome. The three intake steps and the three closing steps are not built yet.">
 
         <defs>
           <marker id="arrowFlow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <polygon class="a-flow" points="0,1 10,5 0,9" />
           </marker>
-          <marker id="arrowGap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <polygon class="a-gap" points="0,1 10,5 0,9" />
-          </marker>
-          <marker id="arrowClaude" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <polygon class="a-claude" points="0,1 10,5 0,9" />
-          </marker>
         </defs>
 
         <!-- ===== Row A — how a referral arrives ===== -->
-        <rect class="node-auto" x="40" y="36" width="280" height="76" rx="7" />
+        <rect class="node-entry" x="40" y="36" width="280" height="76" rx="7" />
         <text class="n-title" x="180" y="68" text-anchor="middle">Website form</text>
         <text class="n-sub" x="180" y="90" text-anchor="middle">They fill it in on our site</text>
 
-        <rect class="node-gap" x="360" y="36" width="280" height="76" rx="7" />
+        <rect class="node-entry" x="360" y="36" width="280" height="76" rx="7" />
         <text class="n-title" x="500" y="68" text-anchor="middle">Direct email</text>
         <text class="n-sub" x="500" y="90" text-anchor="middle">They email us about someone</text>
 
-        <rect class="node-gap" x="680" y="36" width="280" height="76" rx="7" />
+        <rect class="node-entry" x="680" y="36" width="280" height="76" rx="7" />
         <text class="n-title" x="820" y="68" text-anchor="middle">Phone, text or in person</text>
         <text class="n-sub" x="820" y="90" text-anchor="middle">They call, message or drop in</text>
 
-        <line class="edge-gap" x1="500" y1="112" x2="500" y2="146" marker-end="url(#arrowGap)" />
-        <line class="edge-gap" x1="820" y1="112" x2="820" y2="146" marker-end="url(#arrowGap)" />
+        <line class="edge" x1="180" y1="112" x2="180" y2="146" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="500" y1="112" x2="500" y2="146" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="820" y1="112" x2="820" y2="146" marker-end="url(#arrowFlow)" />
 
-        <!-- ===== Row B — the manual gap ===== -->
-        <rect class="node-gap" x="360" y="152" width="600" height="84" rx="7" />
-        <text class="n-tag tag-gap" x="660" y="176" text-anchor="middle">NOTHING HAPPENS ON ITS OWN</text>
-        <text class="n-title" x="660" y="199" text-anchor="middle">Someone has to type it in by hand</text>
-        <text class="n-sub" x="660" y="221" text-anchor="middle">If they don't, none of the steps below ever run</text>
+        <!-- ===== Left branch — the website needs nothing from us ===== -->
+        <rect class="node-auto" x="40" y="152" width="280" height="80" rx="7" />
+        <text class="n-title" x="180" y="184" text-anchor="middle">They fill it in themselves</text>
+        <text class="n-sub" x="180" y="207" text-anchor="middle">No one here lifts a finger</text>
 
-        <!-- website joins the trunk -->
-        <polyline class="edge" points="180,112 180,262 340,262 340,280" marker-end="url(#arrowFlow)" />
-        <line class="edge-gap" x1="660" y1="236" x2="660" y2="280" marker-end="url(#arrowGap)" />
+        <!-- ===== Right branch — three steps to catch the other two ===== -->
+        <rect class="node-team is-todo" x="360" y="152" width="600" height="80" rx="7" />
+        <text class="n-title" x="660" y="184" text-anchor="middle">The worker tells Claude there's a new referral</text>
+        <text class="n-sub" x="660" y="207" text-anchor="middle">Just a message — no form to find, no template to remember</text>
 
-        <!-- ===== Row C — the system saves it ===== -->
-        <rect class="node-auto" x="200" y="286" width="600" height="116" rx="7" />
-        <text class="n-title" x="500" y="316" text-anchor="middle">The system saves it — no one has to do anything</text>
-        <text class="n-sub" x="500" y="344" text-anchor="middle">A record is created for the participant and for the referrer</text>
-        <text class="n-sub" x="500" y="366" text-anchor="middle">A job appears for the team, due within 2 business hours</text>
-        <text class="n-sub" x="500" y="388" text-anchor="middle">The reply clock starts</text>
+        <line class="edge-todo" x1="660" y1="232" x2="660" y2="266" marker-end="url(#arrowFlow)" />
 
-        <line class="edge" x1="300" y1="402" x2="300" y2="428" marker-end="url(#arrowFlow)" />
-        <line class="edge" x1="700" y1="402" x2="700" y2="428" marker-end="url(#arrowFlow)" />
+        <rect class="node-claude is-todo" x="360" y="272" width="600" height="80" rx="7" />
+        <text class="n-title" x="660" y="304" text-anchor="middle">Claude hands back the referral form</text>
+        <text class="n-sub" x="660" y="327" text-anchor="middle">The same form as the website, wired to the same system</text>
 
-        <!-- ===== Row D — the two emails ===== -->
-        <rect class="node-auto" x="130" y="434" width="340" height="76" rx="7" />
-        <text class="n-title" x="300" y="466" text-anchor="middle">Email to the referrer</text>
-        <text class="n-sub" x="300" y="488" text-anchor="middle">“Thanks — we've received this referral”</text>
+        <line class="edge-todo" x1="660" y1="352" x2="660" y2="386" marker-end="url(#arrowFlow)" />
 
-        <rect class="node-auto" x="530" y="434" width="340" height="76" rx="7" />
-        <text class="n-title" x="700" y="466" text-anchor="middle">Email to the H&amp;W team</text>
-        <text class="n-sub" x="700" y="488" text-anchor="middle">“New referral — someone needs to call”</text>
+        <rect class="node-team is-todo" x="360" y="392" width="600" height="80" rx="7" />
+        <text class="n-title" x="660" y="424" text-anchor="middle">The worker fills it in</text>
+        <text class="n-sub" x="660" y="447" text-anchor="middle">While on the call, or straight from the email they were sent</text>
 
-        <line class="edge" x1="700" y1="510" x2="700" y2="544" marker-end="url(#arrowFlow)" />
+        <!-- ===== converge on the trunk ===== -->
+        <polyline class="edge" points="180,232 180,488 340,488 340,506" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="660" y1="472" x2="660" y2="506" marker-end="url(#arrowFlow)" />
 
-        <!-- ===== Row E — the worker calls ===== -->
-        <rect class="node-team" x="200" y="550" width="600" height="80" rx="7" />
-        <text class="n-title" x="500" y="582" text-anchor="middle">A worker phones the participant</text>
-        <text class="n-sub" x="500" y="605" text-anchor="middle">A real conversation with a real person. This stays human.</text>
+        <!-- ===== Row E — the shared trunk ===== -->
+        <rect class="node-auto" x="200" y="512" width="600" height="132" rx="7" />
+        <text class="n-tag tag-meet" x="500" y="538" text-anchor="middle">ALL THREE CHANNELS MEET HERE</text>
+        <text class="n-title" x="500" y="562" text-anchor="middle">The system saves it — no one has to do anything</text>
+        <text class="n-sub" x="500" y="590" text-anchor="middle">A record is created for the participant and for the referrer</text>
+        <text class="n-sub" x="500" y="612" text-anchor="middle">A job appears for the team, due within 2 business hours</text>
+        <text class="n-sub" x="500" y="634" text-anchor="middle">The reply clock starts</text>
 
-        <line class="edge-claude" x1="500" y1="630" x2="500" y2="664" marker-end="url(#arrowClaude)" />
+        <line class="edge" x1="300" y1="644" x2="300" y2="670" marker-end="url(#arrowFlow)" />
+        <line class="edge" x1="700" y1="644" x2="700" y2="670" marker-end="url(#arrowFlow)" />
 
-        <!-- ===== Row F — the worker tells Claude ===== -->
-        <rect class="node-claude" x="200" y="670" width="600" height="80" rx="7" />
-        <text class="n-title" x="500" y="702" text-anchor="middle">The worker tells Claude how the call went</text>
-        <text class="n-sub" x="500" y="725" text-anchor="middle">In plain words, the way you'd tell a colleague</text>
+        <!-- ===== Row F — the two emails ===== -->
+        <rect class="node-auto" x="130" y="676" width="340" height="76" rx="7" />
+        <text class="n-title" x="300" y="708" text-anchor="middle">Email to the referrer</text>
+        <text class="n-sub" x="300" y="730" text-anchor="middle">&ldquo;Thanks — we've received this referral&rdquo;</text>
 
-        <!-- fan out to three outcomes -->
-        <line class="edge-claude" x1="500" y1="750" x2="500" y2="770" />
-        <line class="edge-claude" x1="180" y1="770" x2="820" y2="770" />
-        <line class="edge-claude" x1="180" y1="770" x2="180" y2="784" marker-end="url(#arrowClaude)" />
-        <line class="edge-claude" x1="500" y1="770" x2="500" y2="784" marker-end="url(#arrowClaude)" />
-        <line class="edge-claude" x1="820" y1="770" x2="820" y2="784" marker-end="url(#arrowClaude)" />
+        <rect class="node-auto" x="530" y="676" width="340" height="76" rx="7" />
+        <text class="n-title" x="700" y="708" text-anchor="middle">Email to the H&amp;W team</text>
+        <text class="n-sub" x="700" y="730" text-anchor="middle">&ldquo;New referral — someone needs to call&rdquo;</text>
 
-        <!-- ===== Row G — the three outcomes ===== -->
-        <rect class="node-branch" x="40" y="790" width="280" height="72" rx="7" />
-        <text class="n-branch" x="180" y="822" text-anchor="middle">They're going ahead</text>
-        <text class="n-sub" x="180" y="843" text-anchor="middle">with us</text>
+        <line class="edge" x1="700" y1="752" x2="700" y2="786" marker-end="url(#arrowFlow)" />
 
-        <rect class="node-branch" x="360" y="790" width="280" height="72" rx="7" />
-        <text class="n-branch" x="500" y="822" text-anchor="middle">They want time</text>
-        <text class="n-sub" x="500" y="843" text-anchor="middle">to think about it</text>
+        <!-- ===== Row G — the worker calls ===== -->
+        <rect class="node-team" x="200" y="792" width="600" height="80" rx="7" />
+        <text class="n-title" x="500" y="824" text-anchor="middle">A worker phones the participant</text>
+        <text class="n-sub" x="500" y="847" text-anchor="middle">A real conversation with a real person. This stays human.</text>
 
-        <rect class="node-branch" x="680" y="790" width="280" height="72" rx="7" />
-        <text class="n-branch" x="820" y="822" text-anchor="middle">They said no</text>
-        <text class="n-sub" x="820" y="843" text-anchor="middle">thank you</text>
+        <line class="edge-todo" x1="500" y1="872" x2="500" y2="906" marker-end="url(#arrowFlow)" />
 
-        <!-- converge -->
-        <line class="edge-claude" x1="180" y1="862" x2="180" y2="882" />
-        <line class="edge-claude" x1="500" y1="862" x2="500" y2="882" />
-        <line class="edge-claude" x1="820" y1="862" x2="820" y2="882" />
-        <line class="edge-claude" x1="180" y1="882" x2="820" y2="882" />
-        <line class="edge-claude" x1="500" y1="882" x2="500" y2="896" marker-end="url(#arrowClaude)" />
+        <!-- ===== Row H — the worker tells Claude ===== -->
+        <rect class="node-team is-todo" x="200" y="912" width="600" height="80" rx="7" />
+        <text class="n-title" x="500" y="944" text-anchor="middle">The worker tells Claude how the call went</text>
+        <text class="n-sub" x="500" y="967" text-anchor="middle">In plain words, the way you'd tell a colleague</text>
 
-        <!-- ===== Row H — Claude closes the loop ===== -->
-        <rect class="node-claude" x="130" y="902" width="740" height="104" rx="7" />
-        <text class="n-tag tag-claude" x="500" y="926" text-anchor="middle">NOT BUILT YET</text>
-        <text class="n-title" x="500" y="950" text-anchor="middle">Claude writes it down and closes the loop</text>
-        <text class="n-sub" x="500" y="974" text-anchor="middle">The records are updated with what was said on the call</text>
-        <text class="n-sub" x="500" y="996" text-anchor="middle">The referrer is told which of the three it was</text>
+        <line class="edge-todo" x1="500" y1="992" x2="500" y2="1012" />
+        <line class="edge-todo" x1="180" y1="1012" x2="820" y2="1012" />
+        <line class="edge-todo" x1="180" y1="1012" x2="180" y2="1026" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="500" y1="1012" x2="500" y2="1026" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="820" y1="1012" x2="820" y2="1026" marker-end="url(#arrowFlow)" />
+
+        <!-- ===== Row I — the three outcomes ===== -->
+        <rect class="node-branch" x="40" y="1032" width="280" height="72" rx="7" />
+        <text class="n-branch" x="180" y="1064" text-anchor="middle">They're going ahead</text>
+        <text class="n-sub" x="180" y="1085" text-anchor="middle">with us</text>
+
+        <rect class="node-branch" x="360" y="1032" width="280" height="72" rx="7" />
+        <text class="n-branch" x="500" y="1064" text-anchor="middle">They want time</text>
+        <text class="n-sub" x="500" y="1085" text-anchor="middle">to think about it</text>
+
+        <rect class="node-branch" x="680" y="1032" width="280" height="72" rx="7" />
+        <text class="n-branch" x="820" y="1064" text-anchor="middle">They said no</text>
+        <text class="n-sub" x="820" y="1085" text-anchor="middle">thank you</text>
+
+        <line class="edge-todo" x1="180" y1="1104" x2="180" y2="1124" />
+        <line class="edge-todo" x1="500" y1="1104" x2="500" y2="1124" />
+        <line class="edge-todo" x1="820" y1="1104" x2="820" y2="1124" />
+        <line class="edge-todo" x1="180" y1="1124" x2="820" y2="1124" />
+        <line class="edge-todo" x1="500" y1="1124" x2="500" y2="1138" marker-end="url(#arrowFlow)" />
+
+        <!-- ===== Row J — Claude closes the loop ===== -->
+        <rect class="node-claude is-todo" x="130" y="1144" width="740" height="104" rx="7" />
+        <text class="n-tag tag-todo" x="500" y="1168" text-anchor="middle">NOT BUILT YET</text>
+        <text class="n-title" x="500" y="1192" text-anchor="middle">Claude writes it down and closes the loop</text>
+        <text class="n-sub" x="500" y="1216" text-anchor="middle">The records are updated with what was said on the call</text>
+        <text class="n-sub" x="500" y="1238" text-anchor="middle">The referrer is told which of the three it was</text>
 
         <!-- return loop to the referrer -->
-        <polyline class="edge-claude" points="130,954 18,954 18,472 124,472" marker-end="url(#arrowClaude)" />
-        <text class="edge-label" x="34" y="713" text-anchor="middle" transform="rotate(-90 34 713)">the referrer finally hears back</text>
+        <polyline class="edge-todo" points="130,1196 18,1196 18,714 124,714" marker-end="url(#arrowFlow)" />
+        <text class="edge-label" x="34" y="955" text-anchor="middle" transform="rotate(-90 34 955)">the referrer finally hears back</text>
 
       </svg>
     </div>
-    <figcaption>The green run down the middle happens on its own today. The blue step is the phone call your team already makes. Everything drawn with a dashed outline does not exist yet — the two amber boxes at the top, and the three purple steps that turn the call into a record and an answer for the referrer.</figcaption>
+    <figcaption>Three ways in, one shared trunk, three ways out. The website branch on the left costs the team nothing; the other two now cost three short steps instead of being lost. Everything dashed is still to build — the three intake steps at the top, and the three closing steps at the bottom.</figcaption>
   </figure>
 
   <div class="notes">
 
     <section class="note">
-      <h2>What already works</h2>
-      <p>A referral through the website form needs <strong>nobody to do anything</strong> for the first two steps. The records get created, the job lands with the team, the clock starts, and both emails go out — one to the referrer confirming we have it, one to the team saying someone needs to call. That part is running and confirmed reaching the right inboxes.</p>
+      <h2>What these two branches fix</h2>
+      <p>Before this, a referral by email, phone, text or in person had <strong>no path at all</strong>. No record, no job, no clock, no acknowledgement to the person who referred them. It existed only in someone's inbox or memory.</p>
+      <p>The fix is deliberately small. The worker does not have to find a form, log into anything, or remember a process — they tell Claude there's a new referral, Claude hands back the form, they fill it in. From the moment it is submitted, <strong>the referral is indistinguishable from a website one</strong>: same records, same job, same two-hour clock, same acknowledgement email to the referrer.</p>
+      <p>That last point is what makes this worth doing. The support coordinator who phoned you gets the same &ldquo;thanks, we've got it&rdquo; email as one who used the website — and lands in the same reporting, so &ldquo;who refers us the most&rdquo; finally counts everyone.</p>
     </section>
 
     <section class="note">
-      <h2>Where your team comes in</h2>
-      <p>One place, and it should stay that way: <strong>a worker phones the participant</strong>. That is a real conversation, often the first contact a family has with us, and often in a language the worker shares with them. Nothing should automate it.</p>
-      <p>The second team step is new and much smaller — after the call, the worker tells Claude how it went. Not a form to fill in, just saying what happened in ordinary words.</p>
+      <h2>One field the website form doesn't have</h2>
+      <p>The form needs to record <strong>how the referral arrived</strong> — email, phone, text or in person — and who on the team took it. Without that, a phone referral looks like a website one and you lose the ability to ask which channels actually bring people in. Everything else on the form stays exactly as it is.</p>
     </section>
 
     <section class="note">
-      <h2>What's missing</h2>
-      <p>Two separate gaps, and they are different sizes.</p>
-      <p><strong>The top of the tree.</strong> Only one of the three ways a referral arrives is automated. A referral that comes by email, phone, text or in person has no path at all — no record, no job, no clock, no acknowledgement to the person who referred them. It only enters the system if someone types it in, and if they forget, that referral is invisible.</p>
-      <p><strong>The bottom of the tree.</strong> Once the worker has made the call, nothing captures what was said and nothing goes back to the referrer. Whoever sent us that participant never finds out what happened to them — and a referrer who never hears back stops referring.</p>
-      <div class="rail">
-        <p>One thing to settle before the last step is automated: telling a referrer that a participant said no shares that person's decision with someone outside our service. Often the referrer genuinely needs to know so they can help them find someone else. What we say, and what the participant has agreed we can say, is worth deciding deliberately rather than in the wording of an email.</p>
+      <h2>Three things to settle before I build it</h2>
+      <p>These are decisions rather than code, and two of them are yours rather than mine.</p>
+
+      <div class="decisions">
+        <div class="decision">
+          <h3>The consent tick box doesn't work second-hand</h3>
+          <p>The website form makes the referrer tick &ldquo;I have read the Privacy Policy and consent to my own details being held&rdquo;, and the system rejects any referral without it. A worker taking a phone call cannot honestly tick that on someone else's behalf. The form needs its own version — the worker recording that they told the referrer — and the wording is a compliance matter, so it needs approval rather than me writing it.</p>
+        </div>
+        <div class="decision">
+          <h3>Who is allowed to open the form</h3>
+          <p>A form on a public web address can be found and submitted by anyone. This one creates participant records, so it needs to be locked to your team. There are a few ways to do that and they differ in how much they get in a worker's way mid-phone-call.</p>
+        </div>
+        <div class="decision">
+          <h3>The current limit is five submissions per ten minutes</h3>
+          <p>That is sensible for a public form and wrong for an office. Several workers entering referrals from the same internet connection would be blocked. Easy to change, but it should be a deliberate number rather than an accident.</p>
+        </div>
       </div>
     </section>
 
