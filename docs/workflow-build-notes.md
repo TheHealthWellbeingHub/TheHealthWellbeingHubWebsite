@@ -20,11 +20,26 @@ Statuses live on the register, not here — one source, so they cannot disagree.
 | Endpoint | `api/hubspot-submit.js`, `form_name: "referral"` / `"staff_referral"` |
 | Staff form | `/staff/<token>/`, unlisted and noindexed |
 | Email | `02-referral-received.html` — sending |
-| Outcome emails | `10-referral-outcome-considering.html`, `11-referral-outcome-declined.html` |
+| Outcome emails | `10-referral-outcome-considering.html`, `11-referral-outcome-declined.html`, `13-referral-outcome-going-ahead.html` |
 | Reference | `REF-<year>-<dealId>` |
 | Spec | `docs/workflow-01-referral.md` |
-| Deal properties | `referral_outcome`, `referral_outcome_date` |
+| Deal properties | `referral_outcome`, `referral_outcome_date`, `dealstage` (branches by outcome — see below) |
 | Contact properties | `referral_channel`, `referral_taken_by`, `consent_capture_method` |
+
+**Deal stage by outcome, decided 24 August 2026** — Participant / Lead Pipeline (`default`):
+
+| Outcome | `dealstage` |
+|---|---|
+| Going ahead | `Service Agreement Sent` (`3607504324`) — active, not yet onboarded |
+| Wants time to think | unchanged — nothing has been decided |
+| Said no | `Lost / Not Suitable` (`3607504326`) |
+
+`Lost / Not Suitable` is reserved for that one outcome and for a service being
+cancelled later (workflow 08) — never for a yes. Replaces an earlier version of this
+spec that moved every outcome to `Lost / Not Suitable`, going ahead included; that was
+wrong and is corrected here and in `docs/workflow-01-referral-journey.html`. Nothing
+currently writes `Participant Onboarded` (`3607504325`) — the natural candidate is when
+the Welcome email sends, once workflow 03's trigger question is settled.
 
 **Still open:**
 
@@ -36,9 +51,6 @@ Statuses live on the register, not here — one source, so they cannot disagree.
   referrer-detail guard fixed the case where one person's detail was written onto
   another, but a participant referred with no contact detail at all still creates a
   fresh contact on every submission. Worth deciding whether that matters.
-- **Onboarding is undesigned**, so a referrer is told when a participant declines and
-  not told when one signs up. That is backwards — the success is the message most
-  likely to earn the next referral — and belongs in workflow 03.
 
 ## 02 — New enquiry acknowledgement
 
@@ -80,20 +92,22 @@ Welcome email (confirm, then send). No HubSpot writes and no real email sent —
 was never a CRM record — but the mechanics match workflow 01's proven pattern exactly,
 so the confirm-before-send behaviour is not new code, just the existing pattern reused.
 
-**Two things this surfaced, not yet resolved:**
+**Two things this surfaced — both resolved 24 August 2026:**
 
-1. **No referrer notification for "going ahead."** Confirmed again against the actual
-   template library: 10 and 11 exist, there is no third. A referrer whose participant
-   signs up hears nothing — the exact gap workflow 01 already recorded.
-2. **The deal-stage question.** `docs/workflow-01-referral-journey.html` states the deal
-   moves to *Lost / Not Suitable* for all three outcomes, including "going ahead." If
-   that is accurate it is a bug — a participant who said yes should not land in a losing
-   stage — and if it is a documentation error it should be corrected. Either way, unsafe
-   to run for real until someone who can see the actual HubSpot workflow confirms which.
+1. **No referrer notification for "going ahead."** Confirmed against the actual template
+   library: 10 and 11 existed, there was no third. Fixed by building
+   `13-referral-outcome-going-ahead.html`, matching 10 and 11's structure exactly. Now
+   part of workflow 01's outcome step, not workflow 03 — the referrer hears about it the
+   same day as the call, before either of workflow 03's two emails go anywhere.
+2. **The deal-stage question.** Was a real bug, not a documentation error: the spec had
+   every outcome moving the deal to *Lost / Not Suitable*, going ahead included. Checked
+   the actual pipeline (`Participant / Lead Pipeline`) and corrected it — see workflow
+   01's deal-stage table above. A yes now moves the deal to *Service Agreement Sent*;
+   *Lost / Not Suitable* is reserved for a no or a later cancellation.
 
-**Next:** decide the trigger mechanism once, for all four. Resolve the deal-stage
-question and build the missing referrer notification before this runs for a real
-participant. Then write the spec.
+**Next:** decide the trigger mechanism once, for all four. Then write the spec. Once the
+trigger question is settled, decide what moves the deal to `Participant Onboarded` —
+the natural point is the Welcome email actually sending.
 
 ## 04 — Maintaining participants
 

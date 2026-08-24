@@ -42,6 +42,7 @@ LABELS = {
     "10-referral-outcome-considering.html": "Referral outcome — still deciding",
     "11-referral-outcome-declined.html": "Referral outcome — not proceeding",
     "12-welcome-pack.html": "Welcome email",
+    "13-referral-outcome-going-ahead.html": "Referral outcome — going ahead",
 }
 
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.S | re.I)
