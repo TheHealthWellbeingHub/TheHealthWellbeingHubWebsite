@@ -67,6 +67,8 @@ actual send does not exist on Starter.
 
 ## 03 — New participant
 
+Spec: [`docs/workflow-03-new-participant.md`](workflow-03-new-participant.md).
+
 Two emails now, not one — named for what each one does, not for the order they fire in:
 
 | | |
@@ -142,7 +144,7 @@ Not a placeholder waiting on HubSpot Starter to grow a feature — the same deli
 design as workflow 01's outcome step, chosen on purpose rather than defaulted into.
 Applies to 04, 05 and 08 too; none of them need this question asked again.
 
-**Next:** write the spec.
+**Next:** get 04, 12 and 13 through compliance review, then run it once for real.
 
 ## 04 — Maintaining participants
 
