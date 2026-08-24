@@ -192,10 +192,16 @@
       if (submitBtn) submitBtn.disabled = true;
 
       var formName = form.getAttribute('data-form-name');
-      var eventName = formName === 'referral' ? 'referral_submitted' : 'enquiry_submitted';
+      // Third form (workflow 07) added alongside the original two — a lookup
+      // table instead of a third leg on every inline ternary below.
+      var FORM_LABELS = {
+        referral: { event: 'referral_submitted', mailtoSubject: 'NDIS Referral', sentMessage: "Thanks — your enquiry has been sent. We'll be in touch soon." },
+        feedback_complaint: { event: 'feedback_complaint_submitted', mailtoSubject: 'NDIS Feedback / Complaint', sentMessage: "Thanks — this has been recorded. We'll be in touch if you asked for a reply." },
+      };
+      var formLabel = FORM_LABELS[formName] || { event: 'enquiry_submitted', mailtoSubject: 'NDIS Enquiry', sentMessage: "Thanks — your enquiry has been sent. We'll be in touch soon." };
 
       var finish = function (delivered) {
-        window.dataLayer.push({ event: eventName, form_name: formName, delivery_method: delivered });
+        window.dataLayer.push({ event: formLabel.event, form_name: formName, delivery_method: delivered });
         // GA4's recognised recommended-event name for a completed lead —
         // pushed alongside the specific event above (not instead of it)
         // so Google Ads' "import from GA4" conversion flow has a
@@ -203,8 +209,8 @@
         window.dataLayer.push({ event: 'generate_lead', lead_type: formName });
         if (status) {
           status.textContent = delivered === 'server'
-            ? "Thanks — your enquiry has been sent. We'll be in touch soon."
-            : "Opening your email app to send this enquiry to our team — if nothing opens, please call 0433 604 507.";
+            ? formLabel.sentMessage
+            : "Opening your email app to send this to our team — if nothing opens, please call 0433 604 507.";
           status.className = 'form-status ok';
         }
         if (submitBtn) submitBtn.textContent = 'Sent';
@@ -230,13 +236,13 @@
           body: JSON.stringify(payload)
         }).then(function (res) {
           if (res.ok) { form.reset(); finish('server'); }
-          else { window.location.href = buildMailto(form, formName === 'referral' ? 'NDIS Referral' : 'NDIS Enquiry'); finish('mailto'); }
+          else { window.location.href = buildMailto(form, formLabel.mailtoSubject); finish('mailto'); }
         }).catch(function () {
-          window.location.href = buildMailto(form, formName === 'referral' ? 'NDIS Referral' : 'NDIS Enquiry');
+          window.location.href = buildMailto(form, formLabel.mailtoSubject);
           finish('mailto');
         });
       } else {
-        window.location.href = buildMailto(form, formName === 'referral' ? 'NDIS Referral' : 'NDIS Enquiry');
+        window.location.href = buildMailto(form, formLabel.mailtoSubject);
         finish('mailto');
       }
     });

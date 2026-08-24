@@ -87,6 +87,14 @@ const REFERRAL_FORM_GUID =
 // branch below.
 const ENQUIRY_FORM_GUID =
   process.env.HUBSPOT_ENQUIRY_FORM_GUID || '1d577457-30f7-4041-bcb4-4c996103b07a';
+// Feedback and complaint acknowledgements (workflow 07). Two more forms, same
+// Starter one-workflow-per-form reason as ENQUIRY_FORM_GUID above — a single
+// on-page form posts one of two submission_type values, and each type needs
+// its own HubSpot form/workflow so the right template (07 vs 08) sends. No
+// hardcoded fallback GUID: unlike referral/enquiry, neither form has been
+// created in HubSpot yet — see docs/hubspot-manual-setup.md.
+const FEEDBACK_FORM_GUID = process.env.HUBSPOT_FEEDBACK_FORM_GUID || '';
+const COMPLAINT_FORM_GUID = process.env.HUBSPOT_COMPLAINT_FORM_GUID || '';
 
 async function hs(path, options = {}) {
   const res = await fetch(HUBSPOT_BASE + path, {
@@ -680,6 +688,53 @@ function buildReferralNote(f, sourcePage, campaign, isStaffEntry = false, contac
   return lines.join('\n');
 }
 
+function buildFeedbackComplaintNote(f, sourcePage, campaign) {
+  const stamp = new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' });
+  const isComplaint = f.submission_type === 'Complaint';
+  const lines = [
+    `${isComplaint ? 'Complaint' : 'Feedback'} submitted ${stamp}`,
+    sourcePage ? `Submitted from: ${sourcePage}` : null,
+    campaign ? `Campaign: ${campaign}` : null,
+    f.relates_to ? `Relates to: ${f.relates_to}` : null,
+    f.response_wanted ? `Response wanted: ${f.response_wanted}` : null,
+    f.preferred_language ? `Preferred language: ${f.preferred_language}` : null,
+    // Both contact fields are optional on this form (see complaint_form.html) —
+    // NDIS Practice Standards expect an anonymous option. Recorded plainly so
+    // whoever reads the note does not go looking for a reply that cannot be sent.
+    !looksLikeEmail(f.email) && !f.phone ? 'Submitted anonymously — no way to reply.' : null,
+    '',
+    'Details:',
+    f.details || '(none given)',
+  ].filter((l) => l !== null);
+  return lines.join('\n');
+}
+
+function feedbackComplaintTaskSubject(f) {
+  const isComplaint = f.submission_type === 'Complaint';
+  const who = f.name || (isComplaint ? 'anonymous complaint' : 'anonymous feedback');
+  if (!isComplaint) {
+    return f.response_wanted === 'Yes' ? `Reply to feedback: ${who}` : `Review feedback (no reply requested): ${who}`;
+  }
+  return `Investigate complaint: ${who}`;
+}
+
+// A coarse business-day estimate for the "next update by" / feedback response
+// date, computed in Brisbane's calendar regardless of the server's own
+// timezone (Vercel runs in UTC). Deliberately not exact to the hour — this
+// backs a draft compliance sentence, not the confirmed "2 business hour"
+// enquiry response promise, and it is flagged as such in docs/workflow-07.md
+// pending review of what NDIS Practice Standards actually require here.
+function addBusinessDaysBrisbane(date, days) {
+  const d = new Date(date.getTime());
+  let added = 0;
+  while (added < days) {
+    d.setUTCDate(d.getUTCDate() + 1);
+    const weekday = d.toLocaleDateString('en-US', { timeZone: 'Australia/Brisbane', weekday: 'short' });
+    if (weekday !== 'Sat' && weekday !== 'Sun') added += 1;
+  }
+  return d;
+}
+
 module.exports = async (req, res) => {
   // Reflect only an allowlisted origin. Previously this was '*', which let any
   // site on the internet POST here from a browser.
@@ -843,6 +898,19 @@ module.exports = async (req, res) => {
           return null;
         });
       }
+    } else if (formName === 'feedback_complaint') {
+      // No deal here — Pipeline A tracks the journey to becoming a
+      // participant, and a complaint or a compliment is not that journey.
+      // Deliberately narrower than the referral/enquiry paths: Contact + Note
+      // + Task only. dealId stays undefined for the rest of this handler,
+      // and every call below that touches it already tolerates that (see the
+      // `formName !== 'feedback_complaint'` guards further down).
+      contactId = await upsertContact({
+        name: f.name,
+        email: looksLikeEmail(f.email) ? f.email : undefined,
+        phone: f.phone || undefined,
+      });
+      noteBody = buildFeedbackComplaintNote(f, sourcePage, campaign);
     } else {
       // Set on EVERY enquiry, not only on creation. Someone who enquires has
       // asked us a question and is waiting — that is true whether or not we
@@ -869,43 +937,54 @@ module.exports = async (req, res) => {
 
     // Write the triage values as PROPERTIES as well as into the note. Same
     // submission, both destinations — see buildTriageProperties above for why.
-    try {
-      const schema = await getContactSchema();
-      const desired = {
-        ...buildTriageProperties(f, formName, receivedAt, isStaffEntry),
-        // Which page converted them. Schema-filtered like everything else, so
-        // these stay inert until the properties are created and start
-        // populating the moment they are — see docs/hubspot-manual-setup.md.
-        source_page: sourcePage || null,
-        source_page_url: sourceUrl || null,
-        latest_utm_source: utms.utm_source || null,
-        latest_utm_medium: utms.utm_medium || null,
-        latest_utm_campaign: utms.utm_campaign || null,
-        latest_utm_content: utms.utm_content || null,
-      };
-      const writable = filterToWritable(desired, schema);
-      if (Object.keys(writable).length) {
-        await hs(`/crm/v3/objects/contacts/${contactId}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ properties: writable }),
-        });
-      } else {
-        console.info('no triage properties written — none of the target properties exist yet');
+    // Skipped for feedback/complaint: buildTriageProperties assumes referral
+    // or enquiry shape (service lines, plan type, enquirer role) and none of
+    // it applies here — the feedback/complaint-specific merge properties are
+    // written separately, below, alongside the acknowledgement email.
+    if (formName !== 'feedback_complaint') {
+      try {
+        const schema = await getContactSchema();
+        const desired = {
+          ...buildTriageProperties(f, formName, receivedAt, isStaffEntry),
+          // Which page converted them. Schema-filtered like everything else, so
+          // these stay inert until the properties are created and start
+          // populating the moment they are — see docs/hubspot-manual-setup.md.
+          source_page: sourcePage || null,
+          source_page_url: sourceUrl || null,
+          latest_utm_source: utms.utm_source || null,
+          latest_utm_medium: utms.utm_medium || null,
+          latest_utm_campaign: utms.utm_campaign || null,
+          latest_utm_content: utms.utm_content || null,
+        };
+        const writable = filterToWritable(desired, schema);
+        if (Object.keys(writable).length) {
+          await hs(`/crm/v3/objects/contacts/${contactId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ properties: writable }),
+          });
+        } else {
+          console.info('no triage properties written — none of the target properties exist yet');
+        }
+      } catch (err) {
+        // Never fail a referral over reporting metadata. The note still holds
+        // the narrative and the record still exists.
+        console.error('triage property write failed:', err.message, err.data || '');
       }
-    } catch (err) {
-      // Never fail a referral over reporting metadata. The note still holds
-      // the narrative and the record still exists.
-      console.error('triage property write failed:', err.message, err.data || '');
     }
 
-    const existingOpenDealId = await findOpenDealForContact(contactId);
-    const isReturning = !!existingOpenDealId;
-    dealId = existingOpenDealId || (await createDeal({ dealname: dealName, contactId }));
+    // No deal for feedback/complaint — see the branch above. isReturning has
+    // no meaning without a deal to be returning to, so it stays false.
+    let isReturning = false;
+    if (formName !== 'feedback_complaint') {
+      const existingOpenDealId = await findOpenDealForContact(contactId);
+      isReturning = !!existingOpenDealId;
+      dealId = existingOpenDealId || (await createDeal({ dealname: dealName, contactId }));
 
-    if (referrerContactId) {
-      await associateDefault('deals', dealId, 'contacts', referrerContactId).catch((err) => {
-        console.error('referrer association failed:', err.message);
-      });
+      if (referrerContactId) {
+        await associateDefault('deals', dealId, 'contacts', referrerContactId).catch((err) => {
+          console.error('referrer association failed:', err.message);
+        });
+      }
     }
 
     await createNote({ body: noteBody, contactId, dealId });
@@ -916,16 +995,27 @@ module.exports = async (req, res) => {
       // name and a number, and phones a person who never agreed to hear from
       // us. Until the form asks separately the flag is null, which is treated
       // as "not confirmed" — the cautious reading, deliberately.
-      subject: consentTaskSubject(f, formName, isReturning),
+      subject: formName === 'feedback_complaint'
+        ? feedbackComplaintTaskSubject(f)
+        : consentTaskSubject(f, formName, isReturning),
       contactId,
       dealId,
     });
 
-    // The reference needs the deal ID, so it cannot be minted any earlier.
-    // Distinct prefixes because both appear in emails people reply quoting:
-    // "REF-2026-…" on a referral acknowledgement, "ENQ-2026-…" on an enquiry
-    // one. A single prefix would make the two indistinguishable at a glance.
-    const reference = `${formName === 'referral' ? 'REF' : 'ENQ'}-${new Date().getFullYear()}-${dealId}`;
+    // The reference needs the deal ID (or, for feedback/complaint, the
+    // contact ID — there is no deal), so it cannot be minted any earlier.
+    // Distinct prefixes because all three appear in emails people reply
+    // quoting: "REF-2026-…" on a referral acknowledgement, "ENQ-2026-…" on an
+    // enquiry one, "FB-2026-…" / "CMP-2026-…" here. Distinguishable at a glance.
+    let referencePrefix = 'ENQ';
+    let referenceId = dealId;
+    if (formName === 'referral') {
+      referencePrefix = 'REF';
+    } else if (formName === 'feedback_complaint') {
+      referencePrefix = f.submission_type === 'Complaint' ? 'CMP' : 'FB';
+      referenceId = contactId;
+    }
+    const reference = `${referencePrefix}-${new Date().getFullYear()}-${referenceId}`;
 
     // Everything the acknowledgement email renders is written here, on the
     // REFERRER — the contact the Forms API will enrol. These four properties
@@ -1058,6 +1148,88 @@ module.exports = async (req, res) => {
             lastname,
             pageUri: submissionPageUri(req, 'https://www.thehealthwellbeinghub.com/contact/'),
             pageName: submissionPageName(f, req, 'Make an NDIS enquiry'),
+          });
+          acknowledgementStatus = 'pending';
+        } catch (err) {
+          acknowledgementStatus = 'failed';
+          console.error('ACKNOWLEDGEMENT NOT SENT — Forms API failed:', err.message);
+          await createFollowUpTask({
+            subject: `ACKNOWLEDGE MANUALLY — automated email failed: ${f.name || f.email}`,
+            contactId,
+            dealId,
+          }).catch((taskErr) => console.error('fallback task failed:', taskErr.message));
+        }
+      }
+    }
+
+    // Feedback/complaint acknowledgement — workflow 07. Same shape again, with
+    // two more differences: contact details are OPTIONAL (an anonymous
+    // submission is a normal outcome here, not a failure — see the note built
+    // above), and which of the two forms/templates is used depends on the
+    // submission_type the person picked, not on formName itself.
+    if (formName === 'feedback_complaint') {
+      const isComplaint = f.submission_type === 'Complaint';
+      const formGuid = isComplaint ? COMPLAINT_FORM_GUID : FEEDBACK_FORM_GUID;
+
+      if (!looksLikeEmail(f.email)) {
+        acknowledgementStatus = 'no_email';
+      } else if (!formGuid) {
+        // Same fail-loudly reasoning as the enquiry path above — until a
+        // human creates these two forms in HubSpot (docs/hubspot-manual-setup.md)
+        // this is the expected state, not a bug, so it raises a task rather
+        // than an alarm on every submission.
+        acknowledgementStatus = 'not_configured';
+        console.error(`${isComplaint ? 'COMPLAINT' : 'FEEDBACK'} FORM GUID NOT SET — no acknowledgement can send`);
+        await createFollowUpTask({
+          subject: `ACKNOWLEDGE MANUALLY — ${isComplaint ? 'complaint' : 'feedback'} form not configured: ${f.name || f.email}`,
+          contactId,
+          dealId,
+        }).catch((taskErr) => console.error('fallback task failed:', taskErr.message));
+      } else {
+        const now = new Date();
+        // Draft compliance sentence, not the confirmed 2-business-hour promise
+        // — see addBusinessDaysBrisbane's own comment. Feedback with no reply
+        // requested gets the other half of the same bracketed choice that used
+        // to sit unresolved in the template itself.
+        const updateByDisplay = referralDateDisplay(addBusinessDaysBrisbane(now, 5));
+        const mergeProperties = isComplaint
+          ? {
+              latest_complaint_reference: reference,
+              latest_complaint_date_display: referralDateDisplay(now),
+              // The participant's own words, not a paraphrase — nothing here
+              // is invented, so it is safe to send without a human rewriting
+              // it first. Capped the same way UTM tags are, defensively.
+              latest_complaint_description: (f.details || '').slice(0, 300),
+              latest_complaint_update_date_display: updateByDisplay,
+            }
+          : {
+              latest_feedback_reference: reference,
+              latest_feedback_date_display: referralDateDisplay(now),
+              latest_feedback_regarding: f.relates_to || 'your feedback',
+              latest_feedback_response_line: f.response_wanted === 'No'
+                ? 'No response was requested, so no further action is required.'
+                : `We will contact you by ${updateByDisplay} with an update.`,
+            };
+
+        const writable = filterToWritable(mergeProperties, await getContactSchema());
+        if (Object.keys(writable).length) {
+          await hs(`/crm/v3/objects/contacts/${contactId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ properties: writable }),
+          }).catch((err) =>
+            console.error('feedback/complaint merge properties failed:', err.message, err.data || '')
+          );
+        }
+
+        const { firstname, lastname } = splitName(f.name);
+        try {
+          await submitToFormsApi({
+            formGuid,
+            email: f.email,
+            firstname,
+            lastname,
+            pageUri: submissionPageUri(req, 'https://www.thehealthwellbeinghub.com/complaints-feedback/'),
+            pageName: submissionPageName(f, req, 'Complaints & Feedback'),
           });
           acknowledgementStatus = 'pending';
         } catch (err) {

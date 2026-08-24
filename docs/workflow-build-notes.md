@@ -293,15 +293,31 @@ calendar event.
 **Next:** none, design-wise. Build status: content exists (email 05), nothing else to
 build — same shape as 04 and 05.
 
-## 07 — Complaint acknowledgement
+## 07 — Feedback and complaint acknowledgement
 
-Email `08-complaint-acknowledgement.html`. `/complaints-feedback/` is a static page
-with **no form**, so nothing captures a complaint. Of the not-started workflows this is
-the one that is genuinely ready to build — it mirrors the enquiry path exactly.
+Built 24 August 2026. Full spec: [`workflow-07-feedback-complaint.md`](workflow-07-feedback-complaint.md).
+`/complaints-feedback/` now carries a real form (`templates/partials/complaint_form.html`,
+embedded via a new `complaints.html` page template — the old `policy_page.html` raw-string
+mechanism couldn't process an `{% include %}`), routed through the existing endpoint as a
+third `form_name`, `feedback_complaint`, exactly as planned — it does mirror the enquiry path,
+with one deliberate difference: **no deal.** A complaint or a compliment isn't a step toward
+becoming a participant, so this path is Contact + Note + Task only; the reference number comes
+from the contact ID instead of a deal ID. Both templates 07 and 08 are covered — one form, a
+`submission_type` field picks which.
 
-**Next:** build the form and route it through the existing endpoint as a third
-`form_name`. Feedback acknowledgement (`07-feedback-acknowledgement.html`) comes
-almost free once the form exists.
+Also resolved as part of this build: template 07's unsent bracketed "Choose One" conditional
+is now a `{{Response Line}}` merge token the endpoint computes server-side, the same way
+`latest_referral_date_display` already resolves a locale problem the same way.
+
+**Endpoint code is deployed; the HubSpot side is not built yet** — two forms, eight contact
+properties, a subscription type, two workflows, two marketing emails. Checklist in
+`hubspot-manual-setup.md` §"Workflow 07". Until then every real submission records correctly
+and raises an `ACKNOWLEDGE MANUALLY` task, the same fail-loud state 02 was built in before its
+form existed. The 5-business-day "next update" wording the endpoint computes is a placeholder,
+not a confirmed promise — flagged for the same compliance review 04/12/13 are waiting on.
+
+**Next:** the HubSpot-side build (a human, not Claude Code — see `hubspot-manual-setup.md`),
+then a live test.
 
 ## 08 — Service cancellation and exit
 

@@ -590,8 +590,8 @@
 
   <div class="tally">
     <div class="tally-cell"><span class="tally-num is-live">1</span><span class="tally-label">Running</span></div>
-    <div class="tally-cell"><span class="tally-num is-partial">2</span><span class="tally-label">Partly running</span></div>
-    <div class="tally-cell"><span class="tally-num is-idle">5</span><span class="tally-label">Not set up yet</span></div>
+    <div class="tally-cell"><span class="tally-num is-partial">3</span><span class="tally-label">Partly running</span></div>
+    <div class="tally-cell"><span class="tally-num is-idle">4</span><span class="tally-label">Not set up yet</span></div>
   </div>
 
   <section class="constraint">
@@ -834,17 +834,21 @@
     <article class="entry">
       <div class="spine">
         <span class="seq">07</span>
-        <span class="chip is-idle">Not set up yet</span>
+        <span class="chip is-partial">Partly running</span>
       </div>
       <div class="body-col">
-        <h3>Complaint acknowledgement</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>Someone makes a complaint.</span></div>
-        <p>Our complaints page explains how to complain but <strong>has no form on it</strong>. So nothing captures a complaint, nothing acknowledges it, and there is no record that one was made.</p>
-        <p>Of everything not yet set up, this is the one that is ready to build and the one with the most at stake.</p>
+        <h3>Feedback and complaint acknowledgement</h3>
+        <div class="starts"><span class="starts-label">Starts when</span><span>Someone submits the form on our complaints &amp; feedback page.</span></div>
+        <p><strong>Built 24 August 2026.</strong> Our complaints page used to explain how to complain but <strong>had no form on it</strong> — nothing captured a complaint, nothing acknowledged it, no record it happened. It has a real form now, asking whether this is feedback or a complaint, what it's about, and whether a reply is wanted. Anonymous is allowed — leave phone and email blank.</p>
+        <p>One deliberate difference from every other form-triggered workflow here: <strong>this one doesn't create a sales pipeline deal.</strong> A complaint isn't a step toward someone becoming a participant, so it only ever creates a contact record, a note with what they said, and a job for the team. Complaints always get a job raised, whether or not a reply was requested — feedback only when one was.</p>
 
         <div class="flag">
+          <span class="flag-label">Why only partly running</span>
+          <span>The form, the record-keeping and the job creation are live. The email side isn't yet — two more places in HubSpot need building by a person before the acknowledgement actually sends, so today a submission is recorded correctly and a job is raised to reply by hand, the same safety net workflow 02 had before its own email existed.</span>
+        </div>
+        <div class="flag">
           <span class="flag-label">Important</span>
-          <span>NDIS complaint handling carries obligations about timeframes and what a person is told. The wording and the promised response time both need approval before this goes live.</span>
+          <span>NDIS complaint handling carries obligations about timeframes and what a person is told. The wording and the promised response time are both drafted, not approved — the "we'll update you within" line is a placeholder pending Kholoud's review, the same as three other unreviewed templates.</span>
         </div>
       </div>
     </article>

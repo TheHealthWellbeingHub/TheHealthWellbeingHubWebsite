@@ -302,41 +302,14 @@ def _render_privacy(render, SITE):
 
 
 def _render_complaints(render, SITE):
+    # Was policy_page.html's raw policy_html|safe string — that mechanism runs
+    # after the page is compiled, so it can't process a real {% include %} for
+    # a form. Moved to its own template (complaints.html) so the feedback/
+    # complaint form (workflow 07) can be embedded the same way contact.html
+    # embeds enquiry_form.html.
     path = "/complaints-feedback/"
-    html = f"""
-    <h2>We want to hear from you</h2>
-    <p>Whether it's positive feedback or a concern, we want to know. Raising an issue never affects the support you receive from us.</p>
-
-    <h2>How to give feedback or make a complaint</h2>
-    <ol>
-      <li>Speak with your support worker or coordinator directly, if you're comfortable doing so</li>
-      <li>Call us on <a href="tel:{SITE['phone_tel']}">{SITE['phone_display']}</a></li>
-      <li>Email us at <a href="mailto:{SITE['email']}">{SITE['email']}</a></li>
-      <li>Write to us at {SITE['address_full']}</li>
-    </ol>
-    <p>You're welcome to raise a complaint in Arabic, Somali, Dari or Amharic — let us know your preferred language and we'll connect you with a team member who speaks it. You can also ask a family member, advocate or support coordinator to raise it on your behalf.</p>
-
-    <h2>What happens after you raise a concern</h2>
-    <ul>
-      <li>We'll acknowledge your complaint and confirm we've received it</li>
-      <li>We'll look into what happened and, where appropriate, discuss it with the people involved</li>
-      <li>We'll get back to you with an outcome or next steps</li>
-      <li>We'll keep a record of the complaint and how it was resolved, in line with the NDIS Practice Standards</li>
-    </ul>
-
-    <h2>External complaints</h2>
-    <p>If you're not comfortable raising a concern with us directly, or you're not satisfied with our response, you can contact the <strong>NDIS Quality and Safeguards Commission</strong>:</p>
-    <ul>
-      <li>Phone: 1800 035 544 (free call)</li>
-      <li>Website: <a href="https://www.ndiscommission.gov.au" target="_blank" rel="noopener">ndiscommission.gov.au</a></li>
-    </ul>
-    <p>You will never be disadvantaged for making a complaint, to us or to the NDIS Commission.</p>
-    """
     render(
-        "policy_page.html", path,
-        page_h1="Complaints & Feedback",
-        page_sub="How to raise a concern, give feedback, or make a complaint — and what happens next.",
-        policy_html=html,
+        "complaints.html", path,
         title="Complaints & Feedback | The Health & Well-being Hub",
         meta_description="How to give feedback or make a complaint to The Health & Well-being Hub, and how to contact the NDIS Quality and Safeguards Commission.",
         breadcrumbs=[{"name": "Home", "url": "/"}, {"name": "Complaints & Feedback", "url": path}],

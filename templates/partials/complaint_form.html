@@ -1,0 +1,80 @@
+<div class="form-card">
+  <div class="form-title">Give feedback or raise a concern</div>
+  <div class="form-sub">Positive or negative — we want to hear it. Raising a concern never affects the support you receive from us.</div>
+  <form id="complaint-form" class="enquiry-form" data-form-name="feedback_complaint" novalidate>
+    <div class="form-row">
+      <label class="form-label" for="cf-type">This is... <span aria-hidden="true">*</span></label>
+      <select class="form-field" id="cf-type" name="submission_type" required>
+        <option value="">Please select</option>
+        <option value="Feedback">Feedback — a compliment or a suggestion</option>
+        <option value="Complaint">A complaint — something went wrong</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="cf-name">Full name <span aria-hidden="true">*</span></label>
+      <input class="form-field" id="cf-name" type="text" name="name" autocomplete="name" required>
+    </div>
+    <div class="form-row form-row-split">
+      <div>
+        <label class="form-label" for="cf-phone">Phone number (optional)</label>
+        <input class="form-field" id="cf-phone" type="tel" name="phone" autocomplete="tel">
+      </div>
+      <div>
+        <label class="form-label" for="cf-email">Email (optional)</label>
+        <input class="form-field" id="cf-email" type="email" name="email" autocomplete="email">
+      </div>
+    </div>
+    <p class="form-note" style="margin:-6px 0 18px">Leave phone and email blank to submit anonymously. We won't be able to send you an update, but your feedback is still recorded and reviewed.</p>
+    <div class="form-row">
+      <label class="form-label" for="cf-relates">What does this relate to? (optional)</label>
+      <select class="form-field" id="cf-relates" name="relates_to">
+        <option value="">Not sure / general</option>
+        <option>A support worker</option>
+        <option>Support Coordination</option>
+        <option>Community Participation</option>
+        <option>Therapy Services</option>
+        <option>Billing or invoicing</option>
+        <option>Communication from our office</option>
+        <option>Something else</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="cf-details">Tell us what happened <span aria-hidden="true">*</span></label>
+      <textarea class="form-field" id="cf-details" name="details" rows="5" required></textarea>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="cf-response">Would you like us to follow up with a reply?</label>
+      <select class="form-field" id="cf-response" name="response_wanted">
+        <option value="Yes">Yes, please get back to me</option>
+        <option value="No">No, I just wanted this on record</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="cf-lang">Preferred language</label>
+      <select class="form-field" id="cf-lang" name="preferred_language">
+        <option>English</option>
+        <option>Arabic — العربية</option>
+        <option>Somali — Soomaali</option>
+        <option>Dari — دری</option>
+        <option>Amharic — አማርኛ</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <!-- Honeypot. Hidden from people, harvested by naive bots. A submission
+         with this filled in is discarded server-side. aria-hidden and
+         tabindex=-1 keep it away from screen readers and keyboard users;
+         autocomplete=off stops browsers filling it in for real people. -->
+    <div class="hp-field" aria-hidden="true">
+      <label for="cf-company-website">Company website</label>
+      <input type="text" id="cf-company-website" name="company_website"
+             tabindex="-1" autocomplete="off">
+    </div>
+    <label class="form-consent">
+      <input type="checkbox" name="privacy_consent" required>
+      <span>I understand how my information will be used, as set out in the <a href="{{ url('/privacy-policy/') }}">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
+    </label>
+    <button class="form-submit" type="submit">Submit</button>
+    <div class="form-status" role="status" aria-live="polite"></div>
+    <div class="form-note">You can also speak to your support worker directly, call <a href="tel:0433604507">0433 604 507</a>, or contact the <a href="https://www.ndiscommission.gov.au" target="_blank" rel="noopener">NDIS Quality and Safeguards Commission</a> on 1800 035 544.</div>
+  </form>
+</div>
