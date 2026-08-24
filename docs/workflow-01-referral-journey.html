@@ -239,6 +239,14 @@
   }
 
   .decision p { color: var(--ink); font-size: 15px; }
+  .decision p + p { margin-top: 9px; }
+
+  /* Settled items keep their reasoning on the page but stop shouting: the
+     amber rail means "someone still has to decide this". */
+  .decision.is-settled {
+    border-left-color: var(--live);
+    background: var(--live-bg);
+  }
 
   .colophon {
     margin-top: 46px;
@@ -271,7 +279,7 @@
 
   <figure>
     <div class="canvas">
-      <svg class="flow" viewBox="0 0 1000 1290" role="img"
+      <svg class="flow" viewBox="0 0 1000 1430" role="img"
            aria-label="A tree showing the referral journey. Referrals arrive three ways. A website referral is filled in by the referrer with no effort from the team. A referral by direct email, phone, text or in person takes three extra steps: the worker tells Claude there is a new referral, Claude sends back the same referral form used on the website, and the worker fills it in. All three channels then meet at the same point, where the system saves the records, creates a job due within two business hours and starts the reply clock, then sends one email to the referrer and one to the team. A worker phones the participant, tells Claude how the call went, the referral goes one of three ways, and Claude updates the records and tells the referrer the outcome. The three intake steps and the three closing steps are not built yet.">
 
         <defs>
@@ -357,45 +365,62 @@
         <text class="n-title" x="500" y="944" text-anchor="middle">The worker tells Claude how the call went</text>
         <text class="n-sub" x="500" y="967" text-anchor="middle">In plain words, the way you'd tell a colleague</text>
 
-        <line class="edge-todo" x1="500" y1="992" x2="500" y2="1012" />
-        <line class="edge-todo" x1="180" y1="1012" x2="820" y2="1012" />
-        <line class="edge-todo" x1="180" y1="1012" x2="180" y2="1026" marker-end="url(#arrowFlow)" />
-        <line class="edge-todo" x1="500" y1="1012" x2="500" y2="1026" marker-end="url(#arrowFlow)" />
-        <line class="edge-todo" x1="820" y1="1012" x2="820" y2="1026" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="500" y1="992" x2="500" y2="1026" marker-end="url(#arrowFlow)" />
 
-        <!-- ===== Row I — the three outcomes ===== -->
-        <rect class="node-branch" x="40" y="1032" width="280" height="72" rx="7" />
-        <text class="n-branch" x="180" y="1064" text-anchor="middle">They're going ahead</text>
-        <text class="n-sub" x="180" y="1085" text-anchor="middle">with us</text>
+        <!-- ===== Row I — Claude records it, whatever the outcome ===== -->
+        <rect class="node-claude is-todo" x="200" y="1032" width="600" height="76" rx="7" />
+        <text class="n-title" x="500" y="1063" text-anchor="middle">Claude records the outcome</text>
+        <text class="n-sub" x="500" y="1085" text-anchor="middle">What was said on the call goes onto the record. Every outcome.</text>
 
-        <rect class="node-branch" x="360" y="1032" width="280" height="72" rx="7" />
-        <text class="n-branch" x="500" y="1064" text-anchor="middle">They want time</text>
-        <text class="n-sub" x="500" y="1085" text-anchor="middle">to think about it</text>
+        <line class="edge-todo" x1="500" y1="1108" x2="500" y2="1128" />
+        <line class="edge-todo" x1="180" y1="1128" x2="820" y2="1128" />
+        <line class="edge-todo" x1="180" y1="1128" x2="180" y2="1142" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="500" y1="1128" x2="500" y2="1142" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="820" y1="1128" x2="820" y2="1142" marker-end="url(#arrowFlow)" />
 
-        <rect class="node-branch" x="680" y="1032" width="280" height="72" rx="7" />
-        <text class="n-branch" x="820" y="1064" text-anchor="middle">They said no</text>
-        <text class="n-sub" x="820" y="1085" text-anchor="middle">thank you</text>
+        <!-- ===== Row J — the three ways it went ===== -->
+        <rect class="node-branch" x="40" y="1148" width="280" height="72" rx="7" />
+        <text class="n-branch" x="180" y="1180" text-anchor="middle">They're going ahead</text>
+        <text class="n-sub" x="180" y="1201" text-anchor="middle">with us</text>
 
-        <line class="edge-todo" x1="180" y1="1104" x2="180" y2="1124" />
-        <line class="edge-todo" x1="500" y1="1104" x2="500" y2="1124" />
-        <line class="edge-todo" x1="820" y1="1104" x2="820" y2="1124" />
-        <line class="edge-todo" x1="180" y1="1124" x2="820" y2="1124" />
-        <line class="edge-todo" x1="500" y1="1124" x2="500" y2="1138" marker-end="url(#arrowFlow)" />
+        <rect class="node-branch" x="360" y="1148" width="280" height="72" rx="7" />
+        <text class="n-branch" x="500" y="1180" text-anchor="middle">They want time</text>
+        <text class="n-sub" x="500" y="1201" text-anchor="middle">to think about it</text>
 
-        <!-- ===== Row J — Claude closes the loop ===== -->
-        <rect class="node-claude is-todo" x="130" y="1144" width="740" height="104" rx="7" />
-        <text class="n-tag tag-todo" x="500" y="1168" text-anchor="middle">NOT BUILT YET</text>
-        <text class="n-title" x="500" y="1192" text-anchor="middle">Claude writes it down and closes the loop</text>
-        <text class="n-sub" x="500" y="1216" text-anchor="middle">The records are updated with what was said on the call</text>
-        <text class="n-sub" x="500" y="1238" text-anchor="middle">The referrer is told which of the three it was</text>
+        <rect class="node-branch" x="680" y="1148" width="280" height="72" rx="7" />
+        <text class="n-branch" x="820" y="1180" text-anchor="middle">They said no</text>
+        <text class="n-sub" x="820" y="1201" text-anchor="middle">thank you</text>
 
-        <!-- return loop to the referrer -->
-        <polyline class="edge-todo" points="130,1196 18,1196 18,714 124,714" marker-end="url(#arrowFlow)" />
-        <text class="edge-label" x="34" y="955" text-anchor="middle" transform="rotate(-90 34 955)">the referrer finally hears back</text>
+        <line class="edge-todo" x1="180" y1="1220" x2="180" y2="1254" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="500" y1="1220" x2="500" y2="1254" marker-end="url(#arrowFlow)" />
+        <line class="edge-todo" x1="820" y1="1220" x2="820" y2="1254" marker-end="url(#arrowFlow)" />
+
+        <!-- ===== Row K — a different thing happens for each ===== -->
+        <rect class="node-entry is-todo" x="40" y="1260" width="280" height="100" rx="7" />
+        <text class="n-tag tag-meet" x="180" y="1284" text-anchor="middle">A SEPARATE FLOW</text>
+        <text class="n-title" x="180" y="1308" text-anchor="middle">We ask for more details</text>
+        <text class="n-sub" x="180" y="1332" text-anchor="middle">Onboarding — still to design</text>
+
+        <rect class="node-claude is-todo" x="360" y="1260" width="280" height="100" rx="7" />
+        <text class="n-title" x="500" y="1290" text-anchor="middle">Claude emails the referrer</text>
+        <text class="n-sub" x="500" y="1315" text-anchor="middle">Says they're still deciding, and</text>
+        <text class="n-sub" x="500" y="1337" text-anchor="middle">that we'll be in touch either way</text>
+
+        <rect class="node-claude is-todo" x="680" y="1260" width="280" height="100" rx="7" />
+        <text class="n-title" x="820" y="1290" text-anchor="middle">Claude emails the referrer</text>
+        <text class="n-sub" x="820" y="1315" text-anchor="middle">Says they've decided not to</text>
+        <text class="n-sub" x="820" y="1337" text-anchor="middle">go ahead. No reason given.</text>
+
+        <!-- the two email outcomes return to the referrer we wrote to at the start -->
+        <line class="edge-todo" x1="500" y1="1360" x2="500" y2="1390" />
+        <line class="edge-todo" x1="820" y1="1360" x2="820" y2="1390" />
+        <line class="edge-todo" x1="500" y1="1390" x2="820" y2="1390" />
+        <polyline class="edge-todo" points="500,1390 18,1390 18,714 124,714" marker-end="url(#arrowFlow)" />
+        <text class="edge-label" x="34" y="1052" text-anchor="middle" transform="rotate(-90 34 1052)">the referrer hears back</text>
 
       </svg>
     </div>
-    <figcaption>Three ways in, one shared trunk, three ways out. Everything above the trunk is now live: the website branch on the left costs the team nothing, and the other two cost three short steps instead of being lost entirely. What remains dashed is the bottom — turning the worker's phone call into a record, and telling the referrer how it went.</figcaption>
+    <figcaption>Three ways in, one shared trunk, three ways out. Everything above the trunk is live. Below it, the worker's call is recorded whichever way it went, and then the three outcomes part company: one opens a separate onboarding flow, the other two send the referrer an email and close the loop that starts at the top of the page. Everything dashed is still to build.</figcaption>
   </figure>
 
   <div class="notes">
@@ -414,6 +439,14 @@
     </section>
 
     <section class="note">
+      <h2>What happens after the call</h2>
+      <p>The worker tells Claude how it went, in ordinary words. <strong>The outcome is written to the record every time</strong> — that part does not branch, because a call that happened and was never written down is the same as a call that never happened.</p>
+      <p>What differs is what comes next.</p>
+      <p><strong>They're going ahead.</strong> This opens onboarding, which is its own flow and still to be designed. Note what that means for now: the referrer is told when someone declines, and <em>not</em> told when someone signs up. That is backwards, and worth fixing when we build onboarding — a referrer hearing &ldquo;they've joined us&rdquo; is the message most likely to bring you the next referral.</p>
+      <p><strong>They want time to think.</strong> Claude emails the referrer to say so, and that we will come back either way. It sets no deadline and asks nothing of them.</p>
+      <p><strong>They said no.</strong> Claude emails the referrer to say the person is not going ahead, so the referrer can look elsewhere without waiting on us. <strong>No reason is given</strong> — not because we would not know, but because a participant does not owe anyone one, and passing it on would disclose more than the decision itself.</p>
+      <p>Both emails live in the template library as 10 and 11, and <strong>the wording is approved</strong>. What remains is wiring them to fire — the outcome step above does not exist yet, so nothing triggers them.</p>
+
       <h2>The three decisions behind it</h2>
       <p>Settled on 24 August 2026. Recorded here because each one is a judgement that someone will eventually want to re-open, and the reasoning is easier to argue with than to reconstruct.</p>
 
@@ -431,6 +464,11 @@
         <div class="decision">
           <h3>A separate submission limit for the office</h3>
           <p>The public form allows five submissions per ten minutes from one internet connection, which is right for one person filling in one form and wrong for a team sharing an office connection — the second worker of the morning would simply be blocked. Staff submissions get their own ceiling of forty. Still a limit, just a deliberate one.</p>
+        </div>
+        <div class="decision is-settled">
+          <h3>Telling a referrer someone declined — approved 24 Aug 2026</h3>
+          <p>Emails 10 and 11 both disclose a participant's decision to someone outside our service. That was held open on the grounds that <strong>&ldquo;the participant agreed to be referred&rdquo; is not the same as &ldquo;the participant agreed we may report their decision back&rdquo;</strong>. It is now approved: the referrer has a fair reason to know, because a support coordinator has to place that person somewhere, and telling them nothing leaves the participant waiting longer.</p>
+          <p>The limit stays where it was drawn. <strong>Neither email gives a reason</strong>, and email 11 says so in as many words. What the referrer learns is the decision, not the thinking behind it.</p>
         </div>
       </div>
     </section>

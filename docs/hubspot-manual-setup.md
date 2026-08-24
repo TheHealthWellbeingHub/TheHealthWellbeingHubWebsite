@@ -609,3 +609,42 @@ The staff form does **not** get its own HubSpot form or workflow. It submits to
 `REFERRAL_FORM_GUID`, the same form the website referral uses, so the same workflow
 fires and the referrer receives the same acknowledgement email. Starter allows one
 workflow per form, and this deliberately stays inside that budget.
+
+---
+
+## Template tokens vs HubSpot tokens — verified live 24 Aug 2026
+
+Checked directly against the portal because the repo's template library changed to
+Title Case merge fields, and it was not obvious whether that broke anything already
+built. **It does not.** Nothing needs re-mapping.
+
+The reason is that the repo templates are **design source, not the thing HubSpot
+sends**. Each live email holds its own copy with HubSpot-native tokens bound to
+contact properties, so the repo's brace style never survives the build. Verified by
+reading the content of both live automated emails:
+
+| Live email | Object ID | Tokens actually used |
+|---|---|---|
+| 02 — Referral received | `708868075963` | `contact.firstname` · `contact.latest_referral_participant_name` · `contact.latest_referral_reference` · `contact.latest_referral_service` · `personalization_token('contact.latest_referral_date_display', 'today')` |
+| 03 — New enquiry acknowledgement | `709156560372` | `contact.firstname` · `contact.latest_enquiry_reference` · `contact.latest_enquiry_date_display` |
+
+Both use HubSpot's footer module for unsubscribe rather than a token. Both already
+carry the current design — 640px, `#f7f4f7` ground, Georgia headings in `#273963`,
+`#f8f1f8` detail box — so the portal and the repo library now agree visually.
+
+### The repo templates are NOT send-ready
+
+Worth stating plainly, because the two look interchangeable and are not. The live
+HubSpot copies have been corrected in ways the repo files have not:
+
+- Template 02 in this repo still contains
+  `{{Participant First Name / their nominated representative}}`, an editorial note
+  inside token braces. It maps to no property and would render literally. The live
+  email rewrote it as prose — *"the participant or their nominated representative"*.
+- Seven more placeholders across the library are author-instructions of the same
+  shape, e.g. `{{Neutral Reason / At your request}}` and `{{end / be cancelled}}`.
+  One in template 07 nests braces inside braces, which breaks most parsers.
+
+So building a new HubSpot email from a repo template means resolving those by hand,
+exactly as was done for 02 and 03. Do not paste a template in and assume the tokens
+will bind.

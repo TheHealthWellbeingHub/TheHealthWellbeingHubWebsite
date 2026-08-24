@@ -1,0 +1,33 @@
+#!/bin/sh
+# Refuse commits authored directly on the production branch.
+#
+# WHY THIS EXISTS
+# The default branch here IS the production branch — Vercel builds it with no
+# preview or PR gate, so a push to it is a live release. That makes standing on
+# it a normal part of deploying, and standing on it while authoring the next
+# change an easy mistake.
+#
+# It happened twice on 24 Aug 2026, and both times it was silent: the deploy
+# sequence ends with HEAD on production, and `git push origin <working-branch>`
+# from there pushes an unchanged ref and reports success. Nothing in the output
+# says the commit went somewhere else. The second occurrence put unapproved
+# participant-facing email drafts on the production branch.
+#
+# Intent, not paranoia: deploys are still one command, they just have to say so.
+#   ALLOW_PROD_COMMIT=1 git merge --no-ff <working-branch>
+PROD="claude/health-wellbeing-hub-site-f84rj6"
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+if [ "$BRANCH" = "$PROD" ] && [ -z "$ALLOW_PROD_COMMIT" ]; then
+  echo "" >&2
+  echo "  BLOCKED — $PROD is the production branch." >&2
+  echo "  A commit here is a live release, so authoring belongs elsewhere." >&2
+  echo "" >&2
+  echo "  Move your work to the working branch:" >&2
+  echo "      git stash && git checkout <working-branch> && git stash pop" >&2
+  echo "" >&2
+  echo "  Deploying on purpose? Say so:" >&2
+  echo "      ALLOW_PROD_COMMIT=1 git merge --no-ff <working-branch>" >&2
+  echo "" >&2
+  exit 1
+fi

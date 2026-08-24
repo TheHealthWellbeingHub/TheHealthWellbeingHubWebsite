@@ -127,11 +127,23 @@ that does not translate.
   without explicit permission.
 - **Naming:** one scheme per directory, applied consistently. The email template library's
   drift (display labels not matching filenames, one template living outside the directory
-  under a different convention) has been fixed — all nine now live in `email-templates/` as
-  `01-`–`09-` prefixed files with labels matching filenames. Keep it that way.
-- **Merge fields:** the email templates use `{{double brackets}}`. HubSpot uses its own
-  token syntax. Anything intended to sync into HubSpot needs deliberate conversion — do not
-  assume the two are interchangeable.
+  under a different convention) has been fixed — all templates live in `email-templates/` as
+  `01-`-prefixed files with labels matching filenames, now numbered `01-`–`11-`. Keep it that
+  way. The templates are **hand-authored HTML and are the source of truth**: the old
+  `generate.py`, which wrote them from Python, was removed on 24 Aug 2026 when the designs were
+  supplied as finished HTML, because a generator holding a superseded design silently overwrites
+  approved work the next time anyone runs it. `build_index.py` only reads the templates and
+  rebuilds `index.html` from them.
+- **Merge fields:** the email templates use `{{Double Brackets}}` in Title Case. HubSpot uses
+  its own token syntax bound to contact properties, so the repo's style never survives the
+  build — converting is a manual step per email, verified live 24 Aug 2026 and recorded in
+  `docs/hubspot-manual-setup.md`. Repo templates are **design source, not send-ready**: several
+  still carry editorial notes inside token braces (e.g. `{{Neutral Reason / At your request}}`)
+  that would render literally. Resolve them by hand, as was done for live emails 02 and 03.
+- **Git hooks:** `.githooks/pre-commit` blocks commits authored on the production branch,
+  which is also the default branch, so a push to it is a live release. Claude Code enables it
+  automatically via `SessionStart` in `.claude/settings.json`; otherwise run
+  `git config core.hooksPath .githooks` once. Deploys pass `ALLOW_PROD_COMMIT=1`.
 - **Stack:** static Python + Jinja2 site generator (`build.py` renders `templates/` using
   content from `content.py`/`pages.py` into committed static HTML — no build step at serve
   time, no framework). Deployed on Vercel. Don't introduce a different framework or build
