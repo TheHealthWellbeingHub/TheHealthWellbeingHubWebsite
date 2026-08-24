@@ -687,3 +687,105 @@ resembling marketing.
 
 Verified end to end 24 Aug 2026 against a throwaway deal, with the referrer email drafted
 rather than sent.
+
+---
+
+## Workflow 07 — feedback and complaint acknowledgements (24 Aug 2026)
+
+Full spec in [`workflow-07-feedback-complaint.md`](workflow-07-feedback-complaint.md). The
+endpoint side is built and deployed (`form_name: 'feedback_complaint'` in
+`api/hubspot-submit.js`); nothing on the HubSpot side exists yet, so every submission today
+records correctly and raises an `ACKNOWLEDGE MANUALLY` task instead of sending — the same
+fail-loudly pattern workflow 02 used before its form existed.
+
+### Why this one has no deal
+
+Workflows 01/02/03 all create or reuse a deal in the Participant / Lead Pipeline, because each
+represents a step toward someone becoming a participant. A complaint or a piece of feedback is
+not that journey — it can come from an existing participant, a family member, or a stranger who
+never intends to use the service — so filing it as a pipeline deal would misrepresent it in
+every pipeline report. This path writes a **Contact + Note + Task only**. The reference number
+is minted from the contact ID instead of a deal ID for the same reason.
+
+### Two forms, two workflows — same Starter constraint as 02/03
+
+One page, one on-page form (`complaint_form.html`), but a `submission_type` field of
+`Feedback` or `Complaint` decides which of two Forms API GUIDs the endpoint submits to.
+Starter allows exactly one workflow per form, and templates 07 and 08 are different emails, so
+they need separate forms the same way referral and enquiry do.
+
+| | |
+|---|---|
+| Form 1 | **Feedback — API target** → env var `HUBSPOT_FEEDBACK_FORM_GUID` |
+| Form 2 | **Complaint — API target** → env var `HUBSPOT_COMPLAINT_FORM_GUID` |
+| Subscription type | Suggest **Feedback & complaint acknowledgements** — a third type, not reused from referral/enquiry, so a participant can unsubscribe from marketing without losing complaint acknowledgements or vice versa |
+| Marketing emails | Clone from `email-templates/07-feedback-acknowledgement.html` and `08-complaint-acknowledgement.html`, same manual token-binding process as 02/03 (see "Template tokens vs HubSpot tokens" above) |
+
+Neither GUID has a hardcoded fallback in the endpoint (unlike referral/enquiry) — there is no
+form to fall back to yet. Until both env vars are set, every submission returns
+`acknowledgementStatus: "not_configured"` and a task is raised; nothing is silently dropped.
+
+### Contact properties to create
+
+Object: **Contact**. Suggest group "Feedback & complaint acknowledgement", mirroring the
+`latest_referral_*` / `latest_enquiry_*` groups.
+
+| Internal name | Label | Field type |
+|---|---|---|
+| `latest_feedback_reference` | Latest feedback — reference | Single-line text |
+| `latest_feedback_date_display` | Latest feedback — date received | Single-line text |
+| `latest_feedback_regarding` | Latest feedback — regarding | Single-line text |
+| `latest_feedback_response_line` | Latest feedback — response line | Single-line text |
+| `latest_complaint_reference` | Latest complaint — reference | Single-line text |
+| `latest_complaint_date_display` | Latest complaint — date received | Single-line text |
+| `latest_complaint_description` | Latest complaint — description | Single-line text |
+| `latest_complaint_update_date_display` | Latest complaint — next update by | Single-line text |
+
+All eight are **text**, not date-picker, for the same reason `latest_referral_date_display`
+exists — see "Date format — open defect" above. `latest_complaint_description` holds the
+participant's own words (capped to 300 characters by the endpoint), not a paraphrase.
+
+### Bind these tokens as STATIC TEXT, not contact-property tokens
+
+`{{Staff Member}}` (template 07) and `{{Complaints Officer}}` / `{{Escalation Contact}}`
+(template 08) are **not** written by the endpoint, on purpose — see
+`workflow-07-feedback-complaint.md` §Open. No specific person has been confirmed to hold either
+role, and CLAUDE.md is explicit that cultural and staffing claims are the founder's to make, not
+Claude's to invent. Bind them to literal text when building the HubSpot email:
+
+| Template token | Suggested static text |
+|---|---|
+| `{{Staff Member}}` (07, both places) | `The Health & Well-being Hub Team` |
+| `{{Complaints Officer}}` (08, both places) | `The Complaints Team` |
+| `{{Escalation Contact}}` (08) | `our team` |
+
+Replace all three with real names once Kholoud confirms who actually holds the role — at that
+point they become ordinary static text edits in the HubSpot editor, no endpoint change needed.
+
+### Draft compliance sentence — not reviewed
+
+`{{Response Line}}` (07) and `{{Update Date}}` (08) are computed by the endpoint as 5 Brisbane
+business days from receipt (`addBusinessDaysBrisbane` in `api/hubspot-submit.js`). This is a
+placeholder, not a confirmed operational promise — unlike the **2 business hour** enquiry
+response time in CLAUDE.md's canonical facts table, no complaint-handling turnaround has been
+confirmed against H&W's actual policy or the NDIS Practice Standards. Flag for the same
+compliance review templates 04/12/13 are waiting on before this is relied on in a live send.
+
+### Anonymous submissions
+
+Both phone and email are optional on the form — an NDIS participant can raise a concern without
+identifying themselves. When neither is given, `upsertContact` still creates a bare
+name-only contact (or fully anonymous, if name is also blank — the form requires it, so this
+is currently endpoint-reachable but not form-reachable) and the note says so explicitly.
+`acknowledgementStatus` comes back `"no_email"` — a normal outcome, not a failure, matching how
+a phone-only enquiry already behaves.
+
+### Still open
+
+- Neither form, property set, workflow, nor marketing email has been built in HubSpot yet —
+  everything above is what to build, not a record of having built it.
+- **Complaints deserve their own mailbox.** Flagged already, under "Naming convention" above:
+  `complaints@` should be a separate mailbox from `hello@` once this pipeline is live, for
+  retention and access control — a complaint may need to be produced at an NDIS Commission
+  audit. Not yet created.
+- Compliance review of the response-time default, per the section above.

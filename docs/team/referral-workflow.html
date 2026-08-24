@@ -480,9 +480,9 @@
             </div>
           </div>
           <div class="outcome-row">
-            <div class="oc"><b>Going ahead</b>Onboarding starts. Still to be designed.</div>
-            <div class="oc"><b>Wants time to think</b>The referrer is told, and that we'll be in touch either way.</div>
-            <div class="oc"><b>Said no thank you</b>The referrer is told the decision. No reason is given.</div>
+            <div class="oc"><b>Going ahead</b>The referrer is told. Deal moves to Service Agreement Sent — active, not yet onboarded. Sending the Consent email is still a separate step.</div>
+            <div class="oc"><b>Wants time to think</b>The referrer is told, and that we'll be in touch either way. Deal stage is untouched — nothing has been decided yet.</div>
+            <div class="oc"><b>Said no thank you</b>The referrer is told the decision. No reason is given. Deal moves to Lost / Not Suitable.</div>
           </div>
       </div>
     </details>
@@ -537,9 +537,9 @@
             </div>
           </div>
           <div class="outcome-row">
-            <div class="oc"><b>Going ahead</b>Onboarding starts. Still to be designed.</div>
-            <div class="oc"><b>Wants time to think</b>The referrer is told, and that we'll be in touch either way.</div>
-            <div class="oc"><b>Said no thank you</b>The referrer is told the decision. No reason is given.</div>
+            <div class="oc"><b>Going ahead</b>The referrer is told. Deal moves to Service Agreement Sent — active, not yet onboarded. Sending the Consent email is still a separate step.</div>
+            <div class="oc"><b>Wants time to think</b>The referrer is told, and that we'll be in touch either way. Deal stage is untouched — nothing has been decided yet.</div>
+            <div class="oc"><b>Said no thank you</b>The referrer is told the decision. No reason is given. Deal moves to Lost / Not Suitable.</div>
           </div>
       </div>
     </details>
@@ -594,9 +594,9 @@
             </div>
           </div>
           <div class="outcome-row">
-            <div class="oc"><b>Going ahead</b>Onboarding starts. Still to be designed.</div>
-            <div class="oc"><b>Wants time to think</b>The referrer is told, and that we'll be in touch either way.</div>
-            <div class="oc"><b>Said no thank you</b>The referrer is told the decision. No reason is given.</div>
+            <div class="oc"><b>Going ahead</b>The referrer is told. Deal moves to Service Agreement Sent — active, not yet onboarded. Sending the Consent email is still a separate step.</div>
+            <div class="oc"><b>Wants time to think</b>The referrer is told, and that we'll be in touch either way. Deal stage is untouched — nothing has been decided yet.</div>
+            <div class="oc"><b>Said no thank you</b>The referrer is told the decision. No reason is given. Deal moves to Lost / Not Suitable.</div>
           </div>
       </div>
     </details>
@@ -781,17 +781,17 @@
       <h2>What happens after the call</h2>
       <p>The worker tells Claude how it went, in ordinary words. <strong>The outcome is written to the record every time</strong> — that part does not branch, because a call that happened and was never written down is the same as a call that never happened.</p>
       <p>What differs is what comes next.</p>
-      <p><strong>They're going ahead.</strong> This opens onboarding, which is its own flow and still to be designed. Note what that means for now: the referrer is told when someone declines, and <em>not</em> told when someone signs up. That is backwards, and worth fixing when we build onboarding — a referrer hearing &ldquo;they've joined us&rdquo; is the message most likely to bring you the next referral.</p>
-      <p><strong>They want time to think.</strong> Claude emails the referrer to say so, and that we will come back either way. It sets no deadline and asks nothing of them.</p>
-      <p><strong>They said no.</strong> Claude emails the referrer to say the person is not going ahead, so the referrer can look elsewhere without waiting on us. <strong>No reason is given</strong> — not because we would not know, but because a participant does not owe anyone one, and passing it on would disclose more than the decision itself.</p>
-      <p>Both emails live in the template library as 10 and 11, and the wording is approved. The email that sends is built from the template itself rather than retyped alongside it, so the approved wording is the wording that goes out.</p>
+      <p><strong>They're going ahead.</strong> Claude emails the referrer to say so — template 13, added 24 August 2026 to close a gap this page used to flag here: a referrer used to hear nothing when their own referral said yes. The deal moves to <em>Service Agreement Sent</em> — active, not yet onboarded. Actually sending the participant their own paperwork, the Consent email and later the Welcome email, is still a separate, deliberate step; nothing here starts that on its own.</p>
+      <p><strong>They want time to think.</strong> Claude emails the referrer to say so, and that we will come back either way. It sets no deadline and asks nothing of them. Nothing has been decided, so the deal stage is left exactly where it was.</p>
+      <p><strong>They said no.</strong> Claude emails the referrer to say the person is not going ahead, so the referrer can look elsewhere without waiting on us. <strong>No reason is given</strong> — not because we would not know, but because a participant does not owe anyone one, and passing it on would disclose more than the decision itself. The deal moves to <em>Lost / Not Suitable</em> — the only outcome that does, along with a service being cancelled later on.</p>
+      <p>All three emails live in the template library — 10, 11 and 13 — and the wording is approved. The email that sends is built from the template itself rather than retyped alongside it, so the approved wording is the wording that goes out.</p>
 
       <h2>How the outcome step actually works</h2>
       <p>Built and run end to end on 24 August 2026. It is worth being precise about what &ldquo;built&rdquo; means here, because it does not work like the rest of the page.</p>
       <p><strong>Nothing fires on its own.</strong> The steps above the trunk are automatic — a form is submitted and the system reacts. The outcome step has no trigger at all: the worker telling Claude <em>is</em> the trigger. That is deliberate, but it means if nobody says anything, nothing happens and no alarm sounds.</p>
       <p><strong>The email does not come from HubSpot.</strong> On Starter, workflows can only be triggered by a form submission — there is no way to fire one when a deal reaches &ldquo;Lost&rdquo;. Building this as a HubSpot email would have produced an asset nothing could trigger. It sends through the H&amp;W mailbox instead, which also suits it better: this is a one-to-one message to one person, not a marketing send to a list.</p>
-      <p><strong>Claude confirms before it sends.</strong> Every other step in this workflow writes a record you can correct. This one leaves the building. So Claude reads back which referral it has understood — participant, referrer, reference — and waits. Picking the wrong one would disclose the wrong person's decision to someone outside the service, and no amount of care afterwards undoes that.</p>
-      <p>What gets written: the deal moves to <em>Lost / Not Suitable</em>, <code>referral_outcome</code> records which of the three it was, <code>referral_outcome_date</code> records the day of the conversation rather than the day it was typed, and a note keeps the worker's own words.</p>
+      <p><strong>Claude confirms before it sends.</strong> Every other step in this workflow writes a record you can correct. This one leaves the building. So Claude reads back which referral it has understood — participant, referrer, reference — and shows a rendered preview of the actual email, subject line and all, before it waits for a yes. Picking the wrong one would disclose the wrong person's decision to someone outside the service, and no amount of care afterwards undoes that.</p>
+      <p>What gets written: <code>referral_outcome</code> records which of the three it was, <code>referral_outcome_date</code> records the day of the conversation rather than the day it was typed, and a note keeps the worker's own words — all three, every time. The deal stage is the one thing that branches by outcome: <em>Service Agreement Sent</em> for going ahead, left untouched for wants time to think, and <em>Lost / Not Suitable</em> only for a no — never for a yes. Settled 24 August 2026, replacing an earlier version of this page that moved every outcome to <em>Lost / Not Suitable</em>, going ahead included.</p>
 
       <h2>The three decisions behind it</h2>
       <p>Settled on 24 August 2026. Recorded here because each one is a judgement that someone will eventually want to re-open, and the reasoning is easier to argue with than to reconstruct.</p>

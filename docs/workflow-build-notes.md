@@ -12,6 +12,33 @@ Statuses live on the register, not here — one source, so they cannot disagree.
 
 ---
 
+## Standard: a rendered preview before every Claude-sent email
+
+**Decided 24 August 2026, applies everywhere, not just to one workflow.** "Claude
+confirms before it sends" used to mean a text read-back — participant, referrer,
+reference. From here on it also means a **rendered preview image** of the actual
+email body — shown to the worker before the send happens, not described in words.
+
+**Refined 25 August 2026: the subject line and the attachment list are stated as
+text, every time, alongside the image — never left for the worker to infer from
+it.** The rendered image is a screenshot of the HTML body; these templates have no
+"Subject:" line baked into that HTML, so a subject never appears in the picture no
+matter how faithfully it renders. Skipping it is not a smaller version of the
+standard, it is missing the one thing the image structurally cannot show. Same
+reasoning for attachments — list every filename, even when the answer is "none".
+
+Applies to every email Claude sends itself, from the H&W mailbox, on request: workflow
+01's outcome step (templates 10, 11, 13), workflow 03 (the Consent and Welcome
+emails), workflow 05 (support worker introduction), workflow 06 (appointment
+confirmation), and workflow 08 (service exit). Does **not** apply to templates 02, 03
+and 07 — those send automatically from a live HubSpot workflow the moment a form is
+submitted, with no Claude-in-the-loop moment to show anything before it goes.
+
+Individual workflow sections below don't repeat this in full — they note "preview,
+then send" and mean this.
+
+---
+
 ## 01 — Referral received
 
 | | |
@@ -20,11 +47,26 @@ Statuses live on the register, not here — one source, so they cannot disagree.
 | Endpoint | `api/hubspot-submit.js`, `form_name: "referral"` / `"staff_referral"` |
 | Staff form | `/staff/<token>/`, unlisted and noindexed |
 | Email | `02-referral-received.html` — sending |
-| Outcome emails | `10-referral-outcome-considering.html`, `11-referral-outcome-declined.html` |
+| Outcome emails | `10-referral-outcome-considering.html`, `11-referral-outcome-declined.html`, `13-referral-outcome-going-ahead.html` |
 | Reference | `REF-<year>-<dealId>` |
 | Spec | `docs/workflow-01-referral.md` |
-| Deal properties | `referral_outcome`, `referral_outcome_date` |
+| Deal properties | `referral_outcome`, `referral_outcome_date`, `dealstage` (branches by outcome — see below) |
 | Contact properties | `referral_channel`, `referral_taken_by`, `consent_capture_method` |
+
+**Deal stage by outcome, decided 24 August 2026** — Participant / Lead Pipeline (`default`):
+
+| Outcome | `dealstage` |
+|---|---|
+| Going ahead | `Service Agreement Sent` (`3607504324`) — active, not yet onboarded |
+| Wants time to think | unchanged — nothing has been decided |
+| Said no | `Lost / Not Suitable` (`3607504326`) |
+
+`Lost / Not Suitable` is reserved for that one outcome and for a service being
+cancelled later (workflow 08) — never for a yes. Replaces an earlier version of this
+spec that moved every outcome to `Lost / Not Suitable`, going ahead included; that was
+wrong and is corrected here and in `docs/workflow-01-referral-journey.html`. The deal
+stays at `Service Agreement Sent` until the forms come back — see workflow 03 for the
+next stage, `Participant Onboarded`.
 
 **Still open:**
 
@@ -36,9 +78,6 @@ Statuses live on the register, not here — one source, so they cannot disagree.
   referrer-detail guard fixed the case where one person's detail was written onto
   another, but a participant referred with no contact detail at all still creates a
   fresh contact on every submission. Worth deciding whether that matters.
-- **Onboarding is undesigned**, so a referrer is told when a participant declines and
-  not told when one signs up. That is backwards — the success is the message most
-  likely to earn the next referral — and belongs in workflow 03.
 
 ## 02 — New enquiry acknowledgement
 
@@ -55,67 +94,270 @@ actual send does not exist on Starter.
 
 ## 03 — New participant
 
-Two emails now, not one:
+Spec: [`docs/workflow-03-new-participant.md`](workflow-03-new-participant.md).
+
+Two emails now, not one — named for what each one does, not for the order they fire in:
 
 | | |
 |---|---|
-| Stage 1 | `04-participant-welcome-onboarding.html` — attaches `The Health & Well-being Hub - Referral Form (Fillable).pdf` (53 fields) and `NDIS Consent for Your Information (Fillable).pdf` (20 fields, overlaid on the NDIA's own unaltered form) |
-| Stage 2 | `12-welcome-pack.html` — attaches the four easy-read policy guides (privacy, feedback, rights, incident management), unchanged from what was supplied |
+| The Consent email | `04-participant-welcome-onboarding.html` — attaches `The Health & Well-being Hub - Referral Form (Fillable).pdf` (53 fields) and `NDIS Consent for Your Information (Fillable).pdf` (20 fields, overlaid on the NDIA's own unaltered form) |
+| The Welcome email | `12-welcome-pack.html` — attaches the four easy-read policy guides (privacy, feedback, rights, incident management), unchanged from what was supplied |
+
+**The two attachments on the Consent email are fixed, not optional.** Every send carries
+both the referral form and the consent form — there is no version of this email that goes
+out with only one, or with neither. Recorded here because it is a decision, not an
+accident of how the first draft happened to be built.
 
 No trigger for either. A participant becomes a participant when a service agreement is
 signed, which is a **deal stage change**, and Starter cannot trigger on those; stage 2
 starts when the forms come back, which isn't a HubSpot event at all. Both can run the
 way workflow 01's outcome step does — sent from the H&W mailbox on request rather than
-through a HubSpot workflow — but neither has been sent to a real participant yet.
-Whatever is decided on the trigger mechanism sets the pattern for 04, 05 and 08.
+through a HubSpot workflow.
 
-**Next:** decide the trigger mechanism once, for all four. Then write the spec.
+**Dry-run walkthrough, 24 August 2026.** A fictional referral (Jacob, a GP, referring a
+participant by text) run end to end: staff intake link → outcome step (confirm, then
+write) → Consent email (confirm, then send, both attachments) → forms marked back →
+Welcome email (confirm, then send). No HubSpot writes and no real email sent — Sabrina
+was never a CRM record — but the mechanics match workflow 01's proven pattern exactly,
+so the confirm-before-send behaviour is not new code, just the existing pattern reused.
+
+**Two things this surfaced — both resolved 24 August 2026:**
+
+1. **No referrer notification for "going ahead."** Confirmed against the actual template
+   library: 10 and 11 existed, there was no third. Fixed by building
+   `13-referral-outcome-going-ahead.html`, matching 10 and 11's structure exactly. Now
+   part of workflow 01's outcome step, not workflow 03 — the referrer hears about it the
+   same day as the call, before either of workflow 03's two emails go anywhere.
+2. **The deal-stage question.** Was a real bug, not a documentation error: the spec had
+   every outcome moving the deal to *Lost / Not Suitable*, going ahead included. Checked
+   the actual pipeline (`Participant / Lead Pipeline`) and corrected it — see workflow
+   01's deal-stage table above. A yes now moves the deal to *Service Agreement Sent*;
+   *Lost / Not Suitable* is reserved for a no or a later cancellation.
+
+**The rest of the deal-stage path, decided 24 August 2026:** `Service Agreement Sent`
+holds for as long as the forms are outstanding. The moment they come back — the same
+moment that triggers the Welcome email — the deal moves to `Participant Onboarded`
+(`3607504325`). One event, two things happen: the email sends and the stage advances.
+Not automatic yet, same as everything else in this workflow — whoever tells Claude the
+forms are back is telling it both things at once.
+
+**What the forms add to HubSpot, decided 24 August 2026.** The referral and consent
+forms carry roughly 70 fields between them, and none of it was mapped onto individual
+HubSpot properties — that was never built and is not planned. Instead, when the forms
+come back, Claude reads what is on them and writes it as a note: the participant's
+details (NDIS number, DOB, plan information, emergency contacts, all of it) on the
+participant's own contact record, and anything specific to the referrer on theirs. Same
+habit as the outcome step's note, just fuller, and on whichever contact the information
+actually belongs to.
+
+**Three more edges, decided 24 August 2026 — all handled by a person, not a feature:**
+
+1. **A partial return** — only one of the two forms comes back. No system handling for
+   this and none is planned. Staff reply to the participant's email and get the missing
+   one before telling Claude the forms are back. "Forms are back" stays a single event
+   that only ever means both.
+2. **A change of mind after going ahead.** If a participant backs out after the Consent
+   email has gone out but before the Welcome email, it is treated exactly like a decline
+   at the first call: the deal moves to `Lost / Not Suitable`, and the referrer is told.
+   No new template — `11-referral-outcome-declined.html` already says the right thing
+   regardless of when the decline happens, so it is reused rather than duplicated.
+3. **No automatic follow-up if the forms never come back.** Also not a system feature.
+   Instead, when the Consent email sends, Claude leaves a note on the deal as a reminder
+   for staff to follow up — the same record-keeping habit as the outcome step's note,
+   applied one step earlier.
+
+**The trigger mechanism, decided 24 August 2026: stays "tell Claude," permanently.**
+Not a placeholder waiting on HubSpot Starter to grow a feature — the same deliberate
+design as workflow 01's outcome step, chosen on purpose rather than defaulted into.
+Applies to 04, 05 and 08 too; none of them need this question asked again.
+
+**Next:** get 04, 12 and 13 through compliance review, then run it once for real.
 
 ## 04 — Maintaining participants
 
-No template, no spec, no trigger — the only one with nothing behind it, and the only
-recurring one. Plan review reminders, periodic check-ins, agreement renewals and
-re-contacting quiet participants are all plausible readings needing different data.
+**Redefined 24 August 2026 — on-request CRM maintenance, not a scheduled campaign.**
+Every earlier reading (plan review reminders, periodic check-ins, agreement renewals,
+re-contacting quiet participants) assumed a recurring, calendar-driven workflow. Dropped
+in favour of something simpler: a worker asks Claude to create, look up, or update a
+participant's or referrer's HubSpot record, and Claude does it — the same "tell Claude"
+trigger as workflow 03, on request rather than on a schedule. No template, no email,
+nothing to build in HubSpot — this workflow *is* the ask.
 
-**Next:** define what it means before building anything.
+**What's actually available, checked against the real tools:**
+
+| Operation | Possible? |
+|---|---|
+| Create | Yes — `manage_crm_objects`, create request |
+| Get / search | Yes — `search_crm_objects` / `get_crm_objects` |
+| Update | Yes — `manage_crm_objects`, update request |
+| Delete | **No delete or archive tool exists.** Handled as a soft delete instead: a participant's deal moves to `Lost / Not Suitable`; a referrer's contact is marked inactive. |
+
+Every create and update carries HubSpot's own mandatory confirmation — a table of what's
+changing, old value to new, before anything writes. Not built for this workflow
+specifically; it's how the tool already behaves, and it happens to match the
+confirm-before-write habit used everywhere else in this document.
+
+**Proof so far:** a real search has already run this session — `CONTACT`/`DEAL` for
+"Sabrina," correctly returning nothing, since she was never a real record. Create and
+update have not been exercised for real yet.
+
+**Next:** none, design-wise. Use it, and see what comes up.
 
 ## 05 — Support worker introduction
 
-Email `06-support-worker-introduction.html`, which expects a worker's name and
-details. **There are no support worker records in the CRM**, so the merge fields have
-nothing to read.
+**Redefined 24 August 2026 — asked fresh each time, not stored.** The original blocker
+was "no support worker records in the CRM." Rather than deciding how to model support
+workers in HubSpot, that question is dropped: nothing is stored, and nothing needs to
+be. Email `06-support-worker-introduction.html` is filled from what the worker tells
+Claude in the moment, the same "tell Claude" pattern as 03 and 04.
 
-**Next:** decide how support workers are represented in HubSpot first.
+**Trigger:** *"Send the support worker introduction email to [Participant]."*
+
+**Step 1 — Claude asks for exactly what the template needs, nothing more.** Of the
+template's merge fields, `{{Participant First Name}}` is already known from the trigger
+itself, and `{{Phone Number}}` / `{{unsubscribe_url}}` are constants, not questions. What
+actually gets asked:
+
+| Asked | Template token |
+|---|---|
+| Worker's first name | `{{Worker First Name}}` |
+| Worker's full name | `{{Worker Full Name}}` |
+| Support type | `{{Support Type}}` |
+| Role | `{{Role}}` |
+| Relevant experience | `{{Experience}}` |
+| Languages | `{{Languages}}` |
+| Interests or skills | `{{Interests or Skills}}` |
+| First scheduled support — date | `{{Date}}` |
+| First scheduled support — start / end time | `{{Start Time}}` / `{{End Time}}` |
+| First scheduled support — location | `{{Location}}` |
+| Planned support details | `{{Support Details}}` |
+| Coordinator or manager to contact | `{{Coordinator or Manager}}` |
+
+**Step 2 — confirm, then send.** Same habit as every other trigger in this document:
+Claude reads back what it collected — worker, participant, first appointment — and
+shows a rendered preview of the actual email before it leaves the building.
+
+**Step 3 — a note on the participant's contact**, recording who was introduced and
+when, the same reasoning as workflow 03's forms-back note: nothing here is stored as
+structured data, so the note is the only record that this introduction happened at
+all. Confirmed with the user 24 August 2026 — keep doing this by default going forward
+wherever a workflow writes nothing structured but something still happened.
+
+**Next:** none, design-wise. Build status: content exists (email 06), nothing else to
+build — same shape as workflow 04.
 
 ## 06 — Appointment confirmation
 
-Email `05-appointment-confirmation.html`. No trigger. Google Calendar is connected, so
-a calendar event is the natural source rather than a form.
+**Redefined 24 August 2026 — asked fresh each time, not read from a calendar.** The
+original assumption was that Google Calendar, since it's connected, is the natural
+source. Dropped, without confirming where appointments are actually booked today — same
+move as 04 and 05: don't build a dependency on a system when asking directly is simpler
+and needs no answer about where bookings currently live.
 
-**Next:** confirm where appointments are actually booked today before assuming that.
+**Trigger:** *"Set an appointment with [Participant]."*
 
-## 07 — Complaint acknowledgement
+**Step 1 — Claude asks for exactly what the template needs.** `{{First Name}}` is
+already known from the trigger; `{{Email Address}}` and `{{unsubscribe_url}}` are
+constants. What actually gets asked:
 
-Email `08-complaint-acknowledgement.html`. `/complaints-feedback/` is a static page
-with **no form**, so nothing captures a complaint. Of the not-started workflows this is
-the one that is genuinely ready to build — it mirrors the enquiry path exactly.
+| Asked | Template token |
+|---|---|
+| Service | `{{Service}}` |
+| Appointment date | `{{Appointment Date}}` |
+| Start / end time | `{{Start Time}}` / `{{End Time}}` |
+| Duration | `{{Duration}}` |
+| Worker or practitioner | `{{Staff Member}}` |
+| Address or online meeting details | `{{Address / Online Meeting Details}}` |
+| Preparation instructions, if any | `{{Preparation Instructions}}` |
 
-**Next:** build the form and route it through the existing endpoint as a third
-`form_name`. Feedback acknowledgement (`07-feedback-acknowledgement.html`) comes
-almost free once the form exists.
+**Step 2 — preview, then send and create.** Added 24 August 2026: this workflow also
+creates the Google Calendar event, since Google Calendar is genuinely connected — just
+no longer trusted as the *source* of appointment data, only as somewhere to put it once
+collected. The preview (see the standard above) shows both: the rendered email and the
+calendar event's title, time and location, before either is created.
+
+`create_event` fields, mapped from what was already asked in step 1:
+
+| Calendar field | From |
+|---|---|
+| `summary` | `{{Service}} — {{Participant First Name}}` |
+| `startTime` / `endTime` | `{{Appointment Date}}` + `{{Start Time}}` / `{{End Time}}`, `Australia/Brisbane` |
+| `location` | `{{Address / Online Meeting Details}}` |
+| `description` | Staff member, duration, preparation instructions |
+
+**The participant is not added as an attendee — confirmed with the user 24 August
+2026.** `create_event` would email them directly through Google the moment an attendee
+with their address is added — unbranded, unreviewed, and a second, different-looking
+message about the same appointment landing right after the actual confirmation email.
+The calendar event is internal scheduling only; the branded email is the participant's
+actual confirmation.
+
+**Step 3 — a note on the participant's contact**, same default as workflow 05: nothing
+here is stored as structured data beyond the calendar event itself, so the note
+records that the appointment was confirmed, what was in the email, and links the
+calendar event.
+
+**Next:** none, design-wise. Build status: content exists (email 05), nothing else to
+build — same shape as 04 and 05.
+
+## 07 — Feedback and complaint acknowledgement
+
+Built 24 August 2026. Full spec: [`workflow-07-feedback-complaint.md`](workflow-07-feedback-complaint.md).
+`/complaints-feedback/` now carries a real form (`templates/partials/complaint_form.html`,
+embedded via a new `complaints.html` page template — the old `policy_page.html` raw-string
+mechanism couldn't process an `{% include %}`), routed through the existing endpoint as a
+third `form_name`, `feedback_complaint`, exactly as planned — it does mirror the enquiry path,
+with one deliberate difference: **no deal.** A complaint or a compliment isn't a step toward
+becoming a participant, so this path is Contact + Note + Task only; the reference number comes
+from the contact ID instead of a deal ID. Both templates 07 and 08 are covered — one form, a
+`submission_type` field picks which.
+
+Also resolved as part of this build: template 07's unsent bracketed "Choose One" conditional
+is now a `{{Response Line}}` merge token the endpoint computes server-side, the same way
+`latest_referral_date_display` already resolves a locale problem the same way.
+
+**Endpoint code is deployed; the HubSpot side is not built yet** — two forms, eight contact
+properties, a subscription type, two workflows, two marketing emails. Checklist in
+`hubspot-manual-setup.md` §"Workflow 07". Until then every real submission records correctly
+and raises an `ACKNOWLEDGE MANUALLY` task, the same fail-loud state 02 was built in before its
+form existed. The 5-business-day "next update" wording the endpoint computes is a placeholder,
+not a confirmed promise — flagged for the same compliance review 04/12/13 are waiting on.
+
+**Next:** the HubSpot-side build (a human, not Claude Code — see `hubspot-manual-setup.md`),
+then a live test.
 
 ## 08 — Service cancellation and exit
 
-Email `09-service-cancellation-exit.html`. Same deal-stage problem as 03.
+Spec written 25 August 2026: [`workflow-08-service-exit.md`](workflow-08-service-exit.md).
+Email `09-service-cancellation-exit.html`. Same shape as 05/06 — a worker tells Claude, a
+short quick-form asked in conversation collects exactly what the template needs, Claude
+previews then sends. Two decisions settled the same day, both by the person who set the rule
+this whole area runs on:
 
-**Next:** decide automated versus prompted, then follow whatever 03 settles.
+- **Every cancellation is a full exit.** No partial version exists in this workflow — a
+  participant dropping one service while keeping others is a different conversation this
+  workflow does not attempt. So the deal **always** moves to `Lost / Not Suitable`
+  (`3607504326`) on send, no branching needed.
+- **Participant only — the referrer is never told.** Unlike workflow 03's change-of-mind
+  case, which reuses the decline email for the referrer, a service exit can happen long after
+  the referrer's own involvement ended, and notifying them by default risks disclosing a
+  former participant's circumstances to someone no longer part of their care.
+
+The quick-form also resolves the template's own `{{end / be cancelled}}` branch: the reason
+the worker picks (five neutral, non-judgemental options, one free-text) decides the wording,
+so the form asks one question instead of two redundant ones. Full mapping in the spec.
+
+**Next:** compliance review of the wording and the five reason options — this is the most
+sensitive email in the library — then a live test.
 
 ---
 
 ## The constraint behind most of these
 
 HubSpot Starter allows **one simple workflow per form**, triggered by form submission
-only — ten actions, no branching, no webhooks. Four of the eight have no form behind
-them, so each needs either a new form or automation outside HubSpot. Workflow 01's
-outcome step took the second route: it sends from the H&W mailbox, because no HubSpot
-workflow can fire on a deal reaching a closed stage.
+only — ten actions, no branching, no webhooks. Three of the eight (03, 05, 08) have no
+form behind the email they need to send, so each needs either a new form or automation
+outside HubSpot. Workflow 01's outcome step took the second route: it sends from the
+H&W mailbox, because no HubSpot workflow can fire on a deal reaching a closed stage.
+Workflow 04 no longer belongs on this list — redefined 24 August 2026 as on-request CRM
+maintenance, it sends nothing and has no form to be missing.
