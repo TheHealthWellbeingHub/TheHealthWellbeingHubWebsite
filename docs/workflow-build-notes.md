@@ -112,6 +112,15 @@ moment that triggers the Welcome email — the deal moves to `Participant Onboar
 Not automatic yet, same as everything else in this workflow — whoever tells Claude the
 forms are back is telling it both things at once.
 
+**What the forms add to HubSpot, decided 24 August 2026.** The referral and consent
+forms carry roughly 70 fields between them, and none of it was mapped onto individual
+HubSpot properties — that was never built and is not planned. Instead, when the forms
+come back, Claude reads what is on them and writes it as a note: the participant's
+details (NDIS number, DOB, plan information, emergency contacts, all of it) on the
+participant's own contact record, and anything specific to the referrer on theirs. Same
+habit as the outcome step's note, just fuller, and on whichever contact the information
+actually belongs to.
+
 **Three more edges, decided 24 August 2026 — all handled by a person, not a feature:**
 
 1. **A partial return** — only one of the two forms comes back. No system handling for
@@ -128,13 +137,20 @@ forms are back is telling it both things at once.
    for staff to follow up — the same record-keeping habit as the outcome step's note,
    applied one step earlier.
 
-**Next:** decide the trigger mechanism once, for all four. Then write the spec.
+**The trigger mechanism, decided 24 August 2026: stays "tell Claude," permanently.**
+Not a placeholder waiting on HubSpot Starter to grow a feature — the same deliberate
+design as workflow 01's outcome step, chosen on purpose rather than defaulted into.
+Applies to 04, 05 and 08 too; none of them need this question asked again.
+
+**Next:** write the spec.
 
 ## 04 — Maintaining participants
 
-No template, no spec, no trigger — the only one with nothing behind it, and the only
-recurring one. Plan review reminders, periodic check-ins, agreement renewals and
-re-contacting quiet participants are all plausible readings needing different data.
+No template, no spec — the only one with nothing behind it, and the only recurring
+one. Plan review reminders, periodic check-ins, agreement renewals and re-contacting
+quiet participants are all plausible readings needing different data. The trigger
+question is settled (see workflow 03) — whichever of these it turns out to be, it runs
+on someone telling Claude, not a HubSpot workflow.
 
 **Next:** define what it means before building anything.
 
@@ -142,7 +158,8 @@ re-contacting quiet participants are all plausible readings needing different da
 
 Email `06-support-worker-introduction.html`, which expects a worker's name and
 details. **There are no support worker records in the CRM**, so the merge fields have
-nothing to read.
+nothing to read. The trigger question is settled (see workflow 03) — once support
+workers are represented in HubSpot, this fires the same way 03's two emails do.
 
 **Next:** decide how support workers are represented in HubSpot first.
 
@@ -165,9 +182,13 @@ almost free once the form exists.
 
 ## 08 — Service cancellation and exit
 
-Email `09-service-cancellation-exit.html`. Same deal-stage problem as 03.
+Email `09-service-cancellation-exit.html`. The trigger question is answered — prompted,
+not automated, per workflow 03's decision — and the deal-stage side of a cancellation
+is also already settled there: `Lost / Not Suitable`, the same as a participant who
+never went ahead. What is still open is the email itself: sensitive wording that needs
+compliance review before it goes near a participant who is leaving.
 
-**Next:** decide automated versus prompted, then follow whatever 03 settles.
+**Next:** write the spec, then get the wording reviewed.
 
 ---
 
