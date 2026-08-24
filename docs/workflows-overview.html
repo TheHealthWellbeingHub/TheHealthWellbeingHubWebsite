@@ -146,6 +146,11 @@
   .chip.is-live    { color: var(--live);    background: var(--live-bg); }
   .chip.is-partial { color: var(--partial); background: var(--partial-bg); }
   .chip.is-idle    { color: var(--idle);    background: var(--idle-bg); }
+  /* Distinct from is-partial: nothing is missing here — no code, no HubSpot
+     build, nothing to set up. The gap is only that it has never been run for
+     a real person yet. Reuses the navy already in the palette rather than
+     introducing a new hue, since it isn't a warning the way amber is. */
+  .chip.is-ready   { color: var(--navy);    background: var(--navy-bg); }
 
   /* ---------- top-level workflow accordion ---------- */
 
@@ -689,7 +694,7 @@
         <span class="wf-chevron" aria-hidden="true">&#9656;</span>
         <span class="wf-seq">03</span>
         <span class="wf-name">New participant</span>
-        <span class="chip is-idle">Not set up yet</span>
+        <span class="chip is-ready">Ready to test</span>
       </summary>
       <div class="wf-body">
 
@@ -815,7 +820,7 @@
         <span class="wf-chevron" aria-hidden="true">&#9656;</span>
         <span class="wf-seq">05</span>
         <span class="wf-name">Support worker introduction</span>
-        <span class="chip is-idle">Not set up yet</span>
+        <span class="chip is-ready">Ready to test</span>
       </summary>
       <div class="wf-body">
         <details class="chan" open>
@@ -858,7 +863,7 @@
         <span class="wf-chevron" aria-hidden="true">&#9656;</span>
         <span class="wf-seq">06</span>
         <span class="wf-name">Appointment confirmation</span>
-        <span class="chip is-idle">Not set up yet</span>
+        <span class="chip is-ready">Ready to test</span>
       </summary>
       <div class="wf-body">
         <details class="chan" open>
@@ -944,7 +949,7 @@
         <span class="wf-chevron" aria-hidden="true">&#9656;</span>
         <span class="wf-seq">08</span>
         <span class="wf-name">Service cancellation and exit</span>
-        <span class="chip is-idle">Not set up yet</span>
+        <span class="chip is-ready">Ready to test</span>
       </summary>
       <div class="wf-body">
         <details class="chan" open>
