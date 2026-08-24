@@ -24,6 +24,8 @@
     --rule-firm: #D6C9DE;
     --brand: #7B2D8B;
     --navy: #1D3461;
+    --navy-bg: #E7EDF7;
+    --brand-bg: #F5EDF8;
     --live: #3F7135;
     --live-bg: #EAF3DE;
     --partial: #94590A;
@@ -48,6 +50,8 @@
       --rule-firm: #423853;
       --brand: #C77BD4;
       --navy: #9DB4E0;
+      --navy-bg: #1A2438;
+      --brand-bg: #2A1B33;
       --live: #8CC47B;
       --live-bg: #21301C;
       --partial: #E3A951;
@@ -68,6 +72,8 @@
     --rule-firm: #423853;
     --brand: #C77BD4;
     --navy: #9DB4E0;
+    --navy-bg: #1A2438;
+    --brand-bg: #2A1B33;
     --live: #8CC47B;
     --live-bg: #21301C;
     --partial: #E3A951;
@@ -438,6 +444,69 @@
     color: var(--ink-soft);
   }
 
+
+  /* ---------- per-channel accordions (mirrors the workflow-01 page) ---------- */
+
+  .chan { border: 1px solid var(--rule); background: var(--surface); margin-bottom: 7px; }
+  .chan[open] { border-color: var(--rule-firm); }
+
+  .chan summary {
+    list-style: none; cursor: pointer;
+    padding: 13px 15px;
+    display: grid; grid-template-columns: 22px minmax(0, 1fr) auto;
+    align-items: center; gap: 12px;
+    font-size: 14.5px; color: var(--ink-soft);
+  }
+  .chan summary::-webkit-details-marker { display: none; }
+  .chan summary:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+  .chan summary b { color: var(--ink); font-weight: 700; }
+
+  .chevron {
+    width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: var(--sunk); color: var(--ink-faint);
+    font-size: 11px; transition: transform .15s ease;
+  }
+  .chan[open] .chevron { transform: rotate(90deg); }
+
+  .chan-body { padding: 2px 15px 16px; border-top: 1px solid var(--rule); }
+
+  .step {
+    display: grid; grid-template-columns: 24px 86px minmax(0, 1fr);
+    gap: 2px 12px; padding: 10px 0;
+    border-bottom: 1px dashed var(--rule); align-items: start;
+  }
+  .step:last-of-type { border-bottom: none; }
+
+  .step-n {
+    font-family: var(--fd); font-size: 15px; font-weight: 700;
+    color: var(--rule-firm); font-variant-numeric: tabular-nums; line-height: 1.6;
+  }
+
+  .who {
+    font-size: 9.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 3px; text-align: center; margin-top: 3px;
+  }
+  .who.auto   { color: var(--live);  background: var(--live-bg); }
+  .who.team   { color: var(--navy);  background: var(--navy-bg); }
+  .who.claude { color: var(--brand); background: var(--brand-bg); }
+
+  .step-text { font-size: 14px; color: var(--ink-soft); min-width: 0; }
+  .step-text strong { color: var(--ink); font-weight: 700; }
+  .step-text em { color: var(--ink-faint); font-style: normal; font-size: 12.5px; display: block; margin-top: 2px; }
+
+  .shared-mark {
+    display: flex; align-items: center; gap: 11px; margin: 14px 0 0;
+    font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .shared-mark::after { content: ""; flex: 1; height: 1px; background: var(--rule-firm); }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 22px minmax(0, 1fr); }
+    .who { grid-column: 2; justify-self: start; margin-bottom: 3px; }
+    .step-text { grid-column: 2; }
+  }
+
   /* ---------- closing ---------- */
 
   .closing {
@@ -564,18 +633,132 @@
         <p>Referrals arrive through <strong>three channels</strong>, and only one of them is automated. The other two reach the team as ordinary messages, so nothing enters the CRM unless a person puts it there.</p>
 
         <div class="channels">
-          <div class="channel">
-            <div><span class="channel-name">Website form</span> <span class="channel-note">— endpoint captures it, both emails fire</span></div>
-            <span class="chip is-live">Running</span>
-          </div>
-          <div class="channel">
-            <div><span class="channel-name">Direct email</span> <span class="channel-note">— worker asks Claude for the form, then fills it in</span></div>
-            <span class="chip is-live">Running</span>
-          </div>
-          <div class="channel">
-            <div><span class="channel-name">Phone, text and in person</span> <span class="channel-note">— same path as direct email</span></div>
-            <span class="chip is-live">Running</span>
-          </div>
+          <details class="chan">
+            <summary>
+              <span class="chevron" aria-hidden="true">&#9656;</span>
+              <span><b>Website form</b> — nothing for you to do</span>
+              <span class="chip is-live">Running</span>
+            </summary>
+            <div class="chan-body">
+            <div class="step">
+              <span class="step-n">1</span><span class="who auto">Automatic</span>
+              <span class="step-text"><strong>They fill in the form themselves.</strong><em>The endpoint captures it. No one here lifts a finger.</em></span>
+            </div>
+            <div class="shared-mark">Same for all three from here</div>
+            <div class="step">
+              <span class="step-n">2</span><span class="who auto">Automatic</span>
+              <span class="step-text"><strong>The system saves it.</strong> Records for the participant and the referrer, a job for the team due within 2 business hours, and the reply clock starts.</span>
+            </div>
+            <div class="step">
+              <span class="step-n">3</span><span class="who auto">Automatic</span>
+              <span class="step-text"><strong>Two emails go out</strong> — the referrer's acknowledgement, and the team notification.</span>
+            </div>
+            <div class="step">
+              <span class="step-n">4</span><span class="who team">You</span>
+              <span class="step-text"><strong>A worker phones the participant.</strong><em>The one part that should never be automated.</em></span>
+            </div>
+            <div class="step">
+              <span class="step-n">5</span><span class="who claude">Claude</span>
+              <span class="step-text"><strong>Tell Claude how the call went.</strong> Claude writes the outcome to the deal and keeps your words in a note.</span>
+            </div>
+            <div class="step">
+              <span class="step-n">6</span><span class="who claude">Claude</span>
+              <span class="step-text"><strong>Claude reads the details back, then emails the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
+            </div>
+            </div>
+          </details>
+          <details class="chan">
+            <summary>
+              <span class="chevron" aria-hidden="true">&#9656;</span>
+              <span><b>Direct email</b> — 3 extra steps, about 2 minutes</span>
+              <span class="chip is-live">Running</span>
+            </summary>
+            <div class="chan-body">
+            <div class="step">
+              <span class="step-n">1</span><span class="who team">You</span>
+              <span class="step-text"><strong>An email arrives</strong> about someone.<em>Until step 2, this referral is not in the system at all.</em></span>
+            </div>
+            <div class="step">
+              <span class="step-n">2</span><span class="who team">You</span>
+              <span class="step-text"><strong>Tell Claude you have a new referral.</strong></span>
+            </div>
+            <div class="step">
+              <span class="step-n">3</span><span class="who claude">Claude</span>
+              <span class="step-text"><strong>Claude sends back the referral form</strong> — the same one the website uses.</span>
+            </div>
+            <div class="step">
+              <span class="step-n">4</span><span class="who team">You</span>
+              <span class="step-text"><strong>Fill it in from their email.</strong><em>You need the referrer's email address — that is where the acknowledgement goes.</em></span>
+            </div>
+            <div class="shared-mark">Same for all three from here</div>
+            <div class="step">
+              <span class="step-n">5</span><span class="who auto">Automatic</span>
+              <span class="step-text"><strong>The system saves it.</strong> Records for the participant and the referrer, a job for the team due within 2 business hours, and the reply clock starts.</span>
+            </div>
+            <div class="step">
+              <span class="step-n">6</span><span class="who auto">Automatic</span>
+              <span class="step-text"><strong>Two emails go out</strong> — the referrer's acknowledgement, and the team notification.</span>
+            </div>
+            <div class="step">
+              <span class="step-n">7</span><span class="who team">You</span>
+              <span class="step-text"><strong>A worker phones the participant.</strong><em>The one part that should never be automated.</em></span>
+            </div>
+            <div class="step">
+              <span class="step-n">8</span><span class="who claude">Claude</span>
+              <span class="step-text"><strong>Tell Claude how the call went.</strong> Claude writes the outcome to the deal and keeps your words in a note.</span>
+            </div>
+            <div class="step">
+              <span class="step-n">9</span><span class="who claude">Claude</span>
+              <span class="step-text"><strong>Claude reads the details back, then emails the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
+            </div>
+            </div>
+          </details>
+          <details class="chan">
+            <summary>
+              <span class="chevron" aria-hidden="true">&#9656;</span>
+              <span><b>Phone, text and in person</b> — 3 extra steps, do it while you talk</span>
+              <span class="chip is-live">Running</span>
+            </summary>
+            <div class="chan-body">
+            <div class="step">
+              <span class="step-n">1</span><span class="who team">You</span>
+              <span class="step-text"><strong>They call, message or drop in.</strong><em>Until step 2, this referral exists only in your memory.</em></span>
+            </div>
+            <div class="step">
+              <span class="step-n">2</span><span class="who team">You</span>
+              <span class="step-text"><strong>Tell Claude you have a new referral</strong> — you can do this mid-call.</span>
+            </div>
+            <div class="step">
+              <span class="step-n">3</span><span class="who claude">Claude</span>
+              <span class="step-text"><strong>Claude sends back the referral form.</strong></span>
+            </div>
+            <div class="step">
+              <span class="step-n">4</span><span class="who team">You</span>
+              <span class="step-text"><strong>Fill it in while you talk.</strong><em>Ask for the referrer's email before they hang up.</em></span>
+            </div>
+            <div class="shared-mark">Same for all three from here</div>
+            <div class="step">
+              <span class="step-n">5</span><span class="who auto">Automatic</span>
+              <span class="step-text"><strong>The system saves it.</strong> Records for the participant and the referrer, a job for the team due within 2 business hours, and the reply clock starts.</span>
+            </div>
+            <div class="step">
+              <span class="step-n">6</span><span class="who auto">Automatic</span>
+              <span class="step-text"><strong>Two emails go out</strong> — the referrer's acknowledgement, and the team notification.</span>
+            </div>
+            <div class="step">
+              <span class="step-n">7</span><span class="who team">You</span>
+              <span class="step-text"><strong>A worker phones the participant.</strong><em>The one part that should never be automated.</em></span>
+            </div>
+            <div class="step">
+              <span class="step-n">8</span><span class="who claude">Claude</span>
+              <span class="step-text"><strong>Tell Claude how the call went.</strong> Claude writes the outcome to the deal and keeps your words in a note.</span>
+            </div>
+            <div class="step">
+              <span class="step-n">9</span><span class="who claude">Claude</span>
+              <span class="step-text"><strong>Claude reads the details back, then emails the referrer</strong> — going ahead, wants time, or not proceeding.<em>It always checks first. An email cannot be unsent.</em></span>
+            </div>
+            </div>
+          </details>
         </div>
 
         <p>All three channels now have a route in. For the other two the worker tells Claude there is a new referral, Claude hands back the same form the website uses, and the worker fills it in. <strong>From submission onwards all three are identical</strong> — same records, same job, same clock, same acknowledgement. Built and deployed 24 August 2026.</p>
