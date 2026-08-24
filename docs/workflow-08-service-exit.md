@@ -27,12 +27,17 @@ once, nothing inferred from a data source that doesn't exist.
 | Asked | Required? | Feeds |
 |---|---|---|
 | Participant name | Yes | Identifies the contact/deal, `{{Participant First Name / Nominee}}` |
-| Services being exited | Yes | `{{Service Name}}` — free text; a full exit can name more than one service |
 | Reason (neutral) | Yes, pick one | `{{Neutral Reason / At your request}}` and drives the end/cancelled wording below |
 | Final service date | Yes | `{{Final Service Date}}` |
 | Final scheduled appointment | No — "none" is a valid answer | `{{Date and Time / None}}` |
 | Notice received date | Yes | `{{Date}}` |
 | Staff member (sign-off) | Yes | `{{Staff Member}}`, both places it appears |
+
+**Not asked: which service.** Corrected 25 August 2026 — it is not a question, because
+every exit through this workflow is a full one. `{{Service Name}}` is fixed text —
+**"your services with The Health &amp; Well-being Hub"** — the same wording on every
+send, never a specific service line the worker names. Asking "which service" would
+imply a partial cancellation exists here, and per the decision above it doesn't.
 
 ### Reason options, and why the wording is derived, not asked twice
 
