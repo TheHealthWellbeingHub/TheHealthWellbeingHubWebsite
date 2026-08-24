@@ -869,13 +869,15 @@
       </div>
       <div class="body-col">
         <h3>Service cancellation and exit</h3>
-        <div class="starts"><span class="starts-label">Starts when</span><span>A service ends.</span></div>
-        <p>The email is written. Same problem as workflow 03 — a service ending is not something our email system can react to.</p>
-        <p><strong>The most sensitive email of the eight.</strong> It reaches someone as they leave, sometimes unhappily, and it is the last thing they will remember. Worth asking whether it should send automatically at all, or prompt a person to send it deliberately.</p>
+        <div class="starts"><span class="starts-label">Starts when</span><span>A worker tells Claude a participant is ending their services.</span></div>
+        <p><strong>Designed 25 August 2026 — a worker tells Claude, same as 05 and 06.</strong> A service ending is not something our email system can react to on its own, so it stays deliberate: someone decides to send it, the same way a person would decide to make that phone call.</p>
+        <p>Claude asks a short set of questions first — which service, why, the final service date, whether there's one more appointment on the books, who's signing it — and shows a preview before anything goes.</p>
+        <p><strong>Every cancellation here is a full exit.</strong> There's no partial version — keeping some services while dropping one is a different conversation this workflow doesn't try to have. So the deal always moves to Lost / Not Suitable, no branching to get wrong.</p>
+        <p><strong>Participant only.</strong> Unlike workflow 03's change-of-mind case, the referrer isn't told. A service exit can happen long after a referrer's own involvement ended, and telling them by default risks sharing a former participant's circumstances with someone no longer part of their care.</p>
 
         <div class="flag">
           <span class="flag-label">Important</span>
-          <span>Exit wording touches notice periods and service agreement terms. Compliance review before it sends to anyone.</span>
+          <span><strong>The most sensitive email of the eight.</strong> It reaches someone as they leave, sometimes unhappily, and it may be the last thing they remember about us. The wording — including the five neutral reason options the form offers — needs Kholoud's review before this sends to a real person.</span>
         </div>
       </div>
     </article>

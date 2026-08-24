@@ -17,14 +17,21 @@ Statuses live on the register, not here — one source, so they cannot disagree.
 **Decided 24 August 2026, applies everywhere, not just to one workflow.** "Claude
 confirms before it sends" used to mean a text read-back — participant, referrer,
 reference. From here on it also means a **rendered preview image** of the actual
-email: subject line, body as it will actually look, and every attachment — shown to
-the worker before the send happens, not described in words.
+email body — shown to the worker before the send happens, not described in words.
+
+**Refined 25 August 2026: the subject line and the attachment list are stated as
+text, every time, alongside the image — never left for the worker to infer from
+it.** The rendered image is a screenshot of the HTML body; these templates have no
+"Subject:" line baked into that HTML, so a subject never appears in the picture no
+matter how faithfully it renders. Skipping it is not a smaller version of the
+standard, it is missing the one thing the image structurally cannot show. Same
+reasoning for attachments — list every filename, even when the answer is "none".
 
 Applies to every email Claude sends itself, from the H&W mailbox, on request: workflow
 01's outcome step (templates 10, 11, 13), workflow 03 (the Consent and Welcome
 emails), workflow 05 (support worker introduction), workflow 06 (appointment
-confirmation), and workflow 08 once it exists. Does **not** apply to templates 02 and
-03 — those send automatically from a live HubSpot workflow the moment a form is
+confirmation), and workflow 08 (service exit). Does **not** apply to templates 02, 03
+and 07 — those send automatically from a live HubSpot workflow the moment a form is
 submitted, with no Claude-in-the-loop moment to show anything before it goes.
 
 Individual workflow sections below don't repeat this in full — they note "preview,
@@ -321,13 +328,27 @@ then a live test.
 
 ## 08 — Service cancellation and exit
 
-Email `09-service-cancellation-exit.html`. The trigger question is answered — prompted,
-not automated, per workflow 03's decision — and the deal-stage side of a cancellation
-is also already settled there: `Lost / Not Suitable`, the same as a participant who
-never went ahead. What is still open is the email itself: sensitive wording that needs
-compliance review before it goes near a participant who is leaving.
+Spec written 25 August 2026: [`workflow-08-service-exit.md`](workflow-08-service-exit.md).
+Email `09-service-cancellation-exit.html`. Same shape as 05/06 — a worker tells Claude, a
+short quick-form asked in conversation collects exactly what the template needs, Claude
+previews then sends. Two decisions settled the same day, both by the person who set the rule
+this whole area runs on:
 
-**Next:** write the spec, then get the wording reviewed.
+- **Every cancellation is a full exit.** No partial version exists in this workflow — a
+  participant dropping one service while keeping others is a different conversation this
+  workflow does not attempt. So the deal **always** moves to `Lost / Not Suitable`
+  (`3607504326`) on send, no branching needed.
+- **Participant only — the referrer is never told.** Unlike workflow 03's change-of-mind
+  case, which reuses the decline email for the referrer, a service exit can happen long after
+  the referrer's own involvement ended, and notifying them by default risks disclosing a
+  former participant's circumstances to someone no longer part of their care.
+
+The quick-form also resolves the template's own `{{end / be cancelled}}` branch: the reason
+the worker picks (five neutral, non-judgemental options, one free-text) decides the wording,
+so the form asks one question instead of two redundant ones. Full mapping in the spec.
+
+**Next:** compliance review of the wording and the five reason options — this is the most
+sensitive email in the library — then a live test.
 
 ---
 
