@@ -144,23 +144,44 @@ endpoint-reachable, not form-reachable, and not a case anyone has tested.
 
 ## Verification
 
-**Not yet tested against a real submission.** The endpoint code path was written and passed a
-Node syntax check; it has not been exercised against the live HubSpot portal, because
-`HUBSPOT_FEEDBACK_FORM_GUID` and `HUBSPOT_COMPLAINT_FORM_GUID` are both unset — see
-`hubspot-manual-setup.md` for what a human needs to build first. Until then, every real
-submission through `/complaints-feedback/` creates a correct Contact/Note/Task and returns
-`acknowledgementStatus: "not_configured"`, which is the same fail-loud state workflow 02 was
-built in before its form existed.
+**Live, proven end to end — 25 August 2026.** The full HubSpot side was built in a guided
+session (both forms, all eight properties, the subscription type, both marketing emails, both
+simple workflows) and both chains were then fired for real through the live site endpoint
+with throwaway `@hwtest.example.com` contacts:
+
+- **Feedback:** `FB-2026-347567754737` — contact + note + task created, all four
+  `latest_feedback_*` properties written (response line quoted `01/09/2026`, correctly
+  5 Brisbane business days from a Tuesday), Forms API enrolment
+  (`hs_marketable_reason_type: FORM_SUBMISSION`), workflow fired, email 07 **SENT**
+  (per-recipient analytics timeline).
+- **Complaint:** `CMP-2026-347569619440` — same chain, all four `latest_complaint_*`
+  properties written including the next-update-by date, email 08 **SENT**.
+
+Delivery shows as bounced/pending only because the probe domain is fictional — the send is
+the thing under test. One earlier diagnosis mirrored workflow 02's history exactly: a first
+probe produced a correct record and `recipient: false` because the simple workflow's Send
+email action had not been saved/turned on yet; the form's "Update" button publishes the
+form, not the workflow.
+
+Marketing-email writes through the connector are **still** refused (same lost scope as
+19 Aug 2026) — both emails were built by cloning email 02 in the HubSpot UI and pasting the
+paste-ready HTML blocks, the process workflow 02's doc records. Reads (`GET_CONTENT`,
+`GET_EMAIL_DETAILS`, per-recipient analytics) worked throughout and were how every step was
+verified.
 
 ---
 
 ## Open
 
-- **HubSpot side entirely unbuilt** — two forms, eight contact properties, a subscription
-  type, two workflows, two marketing emails. Full checklist in
-  `hubspot-manual-setup.md` §"Workflow 07".
+- ~~**HubSpot side entirely unbuilt**~~ **Built and live, 25 August 2026** — see
+  Verification above. Both form GUIDs are set in Vercel
+  (`HUBSPOT_FEEDBACK_FORM_GUID`, `HUBSPOT_COMPLAINT_FORM_GUID`).
 - ~~**Compliance review**~~ **Approved 25 August 2026** — see above.
 - **A dedicated `complaints@` mailbox** — flagged in `hubspot-manual-setup.md` under "Naming
   convention" as the one address that should not share `hello@`'s mailbox, for retention and
   audit reasons. Not yet created.
-- **A live send**, once the above exists — nothing here has reached a real person yet.
+- ~~**A live send**~~ **Done, 25 August 2026** — both emails sent for real (to test
+  contacts). The next real participant submission is the first to a genuine inbox.
+- **Cosmetic only:** email 07's body block sits inside the grey footer band rather than its
+  own white section (the two colours are near-identical); email 08 is structured correctly.
+  Fix whenever the email is next edited.

@@ -327,16 +327,16 @@ Also resolved as part of this build: template 07's unsent bracketed "Choose One"
 is now a `{{Response Line}}` merge token the endpoint computes server-side, the same way
 `latest_referral_date_display` already resolves a locale problem the same way.
 
-**Endpoint code is deployed; the HubSpot side is not built yet** — two forms, eight contact
-properties, a subscription type, two workflows, two marketing emails. Checklist in
-`hubspot-manual-setup.md` §"Workflow 07". Until then every real submission records correctly
-and raises an `ACKNOWLEDGE MANUALLY` task, the same fail-loud state 02 was built in before its
-form existed. The 5-business-day "next update" wording the endpoint computes is now a
-confirmed operational promise, not a placeholder — approved 25 August 2026 alongside the rest
-of templates 07 and 08's wording.
+The 5-business-day "next update" wording the endpoint computes is now a confirmed
+operational promise, not a placeholder — approved 25 August 2026 alongside the rest of
+templates 07 and 08's wording.
 
-**Next:** the HubSpot-side build (a human, not Claude Code — see `hubspot-manual-setup.md`),
-then a live test.
+**Outcome — live, 25 August 2026.** The HubSpot side was built the next day in a guided
+session (two forms, eight properties, subscription type, two marketing emails cloned from
+02 in the UI because the connector's marketing-email write scope is still lost, two simple
+workflows) and both chains were proven with real sends to test contacts — email 07 and 08
+both show SENT in per-recipient analytics. Run record in
+`workflow-07-feedback-complaint.md` §Verification. The register now marks 07 **Running**.
 
 ## 08 — Service cancellation and exit
 

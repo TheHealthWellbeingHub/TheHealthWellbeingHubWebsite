@@ -692,11 +692,27 @@ rather than sent.
 
 ## Workflow 07 — feedback and complaint acknowledgements (24 Aug 2026)
 
+> **Built and live, 25 August 2026.** Everything below was completed in a guided session
+> and both chains proven with real sends — see `workflow-07-feedback-complaint.md`
+> §Verification for the run record. The built values:
+>
+> | | |
+> |---|---|
+> | Feedback form GUID | `266e7c13-ad4f-43c7-b699-f9f47a3c4a60` (env var set in Vercel) |
+> | Complaint form GUID | `53202e21-5d16-4bc8-b29a-9b4434c06d2d` (env var set in Vercel) |
+> | Subscription type | Feedback & complaint acknowledgements, id `3472468568` |
+> | Email 07 | `07 — Feedback acknowledgement`, object `711373711807` |
+> | Email 08 | `08 — Complaint acknowledgement`, object `711135235520` |
+> | Workflows | One simple workflow per form (Send email → enrolled contact), both On |
+>
+> The eight contact properties exist with the exact internal names below (created with
+> plain labels, e.g. "Latest feedback reference", rather than the em-dash labels
+> suggested — the internal names are what the endpoint writes to, and they match).
+> The section is kept as the build spec it was.
+
 Full spec in [`workflow-07-feedback-complaint.md`](workflow-07-feedback-complaint.md). The
 endpoint side is built and deployed (`form_name: 'feedback_complaint'` in
-`api/hubspot-submit.js`); nothing on the HubSpot side exists yet, so every submission today
-records correctly and raises an `ACKNOWLEDGE MANUALLY` task instead of sending — the same
-fail-loudly pattern workflow 02 used before its form existed.
+`api/hubspot-submit.js`).
 
 ### Why this one has no deal
 
@@ -781,10 +797,11 @@ a phone-only enquiry already behaves.
 
 ### Still open
 
-- Neither form, property set, workflow, nor marketing email has been built in HubSpot yet —
-  everything above is what to build, not a record of having built it.
+- ~~Neither form, property set, workflow, nor marketing email has been built in HubSpot
+  yet~~ — **all built and proven live, 25 August 2026** (see the box at the top of this
+  section).
 - **Complaints deserve their own mailbox.** Flagged already, under "Naming convention" above:
-  `complaints@` should be a separate mailbox from `hello@` once this pipeline is live, for
+  `complaints@` should be a separate mailbox from `hello@` now this pipeline is live, for
   retention and access control — a complaint may need to be produced at an NDIS Commission
   audit. Not yet created.
 - ~~Compliance review of the response-time default~~ — done, per the section above.
