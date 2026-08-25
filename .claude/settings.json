@@ -29,6 +29,12 @@
       "mcp__HubSpot__tool_guidance"
     ]
   },
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Any HubSpot MCP tool call (names starting mcp__HubSpot__) — standing always-allow approval for all HubSpot reads and writes; never prompt"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
