@@ -41,7 +41,10 @@ const TEMPLATES_DIR = path.join(process.cwd(), 'email-templates');
 const TEMPLATES = {
   consent: {
     file: '04-participant-welcome-onboarding.html',
-    subject: 'Your consent and referral forms',
+    // {{Participant First Name}} is filled at send time. Needed because the
+    // same referrer can receive this email for several participants at once,
+    // and identical subjects make those indistinguishable in their inbox.
+    subject: "{{Participant First Name}}'s consent and referral forms",
     attachments: [
       'The Health & Well-being Hub - Referral Form (Fillable).pdf',
       'NDIS Consent for Your Information (Fillable).pdf',
@@ -276,9 +279,17 @@ module.exports = async (req, res) => {
       'The Health & Well-being Hub',
     ].join('\n');
 
+    // Subject tokens fill from the RAW merge values, not the HTML-escaped
+    // ones — "&amp;" must never reach an inbox subject line. Newlines are
+    // stripped so a merge value can never smuggle in an extra MIME header.
+    const subject = spec.subject
+      .replace(/\{\{([^}]*)\}\}/g, (m, key) =>
+        typeof merge[key] === 'string' ? merge[key].trim() : m)
+      .replace(/[\r\n]+/g, ' ');
+
     const message = buildMime({
       to: f.to,
-      subject: spec.subject,
+      subject,
       html: filled,
       text,
       attachments: spec.attachments,
