@@ -1,7 +1,32 @@
 {
   "permissions": {
     "allow": [
-      "mcp__HubSpot"
+      "mcp__HubSpot",
+      "mcp__HubSpot__discover_hubspot_schema",
+      "mcp__HubSpot__get_campaign_attribution_reports",
+      "mcp__HubSpot__get_content_analytics_report",
+      "mcp__HubSpot__get_conversation_channel_metadata",
+      "mcp__HubSpot__get_crm_objects",
+      "mcp__HubSpot__get_marketing_email_analytics",
+      "mcp__HubSpot__get_organization_details",
+      "mcp__HubSpot__get_properties",
+      "mcp__HubSpot__get_user_details",
+      "mcp__HubSpot__import-claude-design-from-url",
+      "mcp__HubSpot__manage_blog_post",
+      "mcp__HubSpot__manage_campaign_objects",
+      "mcp__HubSpot__manage_crm_objects",
+      "mcp__HubSpot__manage_landing_page",
+      "mcp__HubSpot__manage_marketing_email",
+      "mcp__HubSpot__manage_onboarding",
+      "mcp__HubSpot__query_crm_data",
+      "mcp__HubSpot__read_campaign_data",
+      "mcp__HubSpot__render_asset",
+      "mcp__HubSpot__search_conversations",
+      "mcp__HubSpot__search_crm_objects",
+      "mcp__HubSpot__search_owners",
+      "mcp__HubSpot__search_properties",
+      "mcp__HubSpot__show_feedback_form",
+      "mcp__HubSpot__tool_guidance"
     ]
   },
   "hooks": {
