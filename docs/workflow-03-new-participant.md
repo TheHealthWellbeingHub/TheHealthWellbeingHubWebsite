@@ -125,6 +125,18 @@ trigger 1 is the only system assist, and following it up is a person's job.
 
 ## Verification
 
+**Live run, 25 August 2026 — proven end to end with a real send.** A test participant
+(Bambang Durrani) went through the whole journey for real: outcome recorded as going
+ahead, Consent email sent from `hello@` with both fillable PDFs attached (via
+`api/send-participant-email`, built the same day precisely because attachments could
+not be carried session-side), both forms returned and their full contents written as
+a note on the participant's contact, Welcome email sent with all four guides
+attached, deal moved to `Participant Onboarded`, referrer notified with template 13.
+The run also exercised the safety checks for real: returned forms in a *different
+person's name* were caught and refused before anything touched the record, and a
+participant email misfiled on the referrer's contact was found and corrected. The
+dry-run record below stands as the design history.
+
 **Dry run only, 24 August 2026.** A fictional referral — Jacob, a GP, referring a
 participant named Sabrina by text — walked all the way through: staff intake link,
 outcome step, Consent email (confirm, then send, both attachments), forms marked back,
@@ -142,6 +154,5 @@ pattern reused, not new code — but "matches a proven pattern" is not the same 
   (the Consent email) and 12 (the Welcome email) alongside 10, 11 and 13 — all five
   are now approved wording, not drafts. The one item this workflow's spec flagged
   for a human is closed.
-- **A live send.** Everything here is proven by dry run and by workflow 01's precedent,
-  not by an actual send to an actual participant. Worth doing once, deliberately, before
-  trusting this at volume.
+- ~~**A live send.**~~ **Done, 25 August 2026** — see Verification above. Nothing on
+  this workflow remains open.

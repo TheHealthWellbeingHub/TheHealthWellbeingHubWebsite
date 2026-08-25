@@ -68,6 +68,11 @@ wrong and is corrected here and in `docs/workflow-01-referral-journey.html`. The
 stays at `Service Agreement Sent` until the forms come back — see workflow 03 for the
 next stage, `Participant Onboarded`.
 
+**Outcome step proven live, 25 August 2026.** Two real referrer notifications sent
+the same day — template 13 for Ashley Rothfuss's referral (to James Paterson) and for
+Bambang Durrani's (to Merzouq) — each previewed, confirmed, sent from the H&W mailbox
+and noted on the deal. The one thing 01's "partly running" ever stood for is now done.
+
 **Still open:**
 
 - **Endpoint hardening** — CORS origin allowlist, honeypot and rate limiting were
@@ -172,7 +177,10 @@ design as workflow 01's outcome step, chosen on purpose rather than defaulted in
 Applies to 04, 05 and 08 too; none of them need this question asked again.
 
 **Next:** ~~get 04, 12 and 13 through compliance review~~ — done, approved 25 August
-2026 (see workflow 03's spec). Run it once for real.
+2026 (see workflow 03's spec). ~~Run it once for real~~ — done the same day, end to
+end with real sends (see the spec's Verification section): Consent email with both
+PDFs via the new `api/send-participant-email` endpoint, forms back and noted, Welcome
+email with all four guides, deal to `Participant Onboarded`. Nothing open.
 
 ## 04 — Maintaining participants
 
@@ -198,9 +206,11 @@ changing, old value to new, before anything writes. Not built for this workflow
 specifically; it's how the tool already behaves, and it happens to match the
 confirm-before-write habit used everywhere else in this document.
 
-**Proof so far:** a real search has already run this session — `CONTACT`/`DEAL` for
-"Sabrina," correctly returning nothing, since she was never a real record. Create and
-update have not been exercised for real yet.
+**Proof so far:** all three operations proven live 25 August 2026 — searches
+throughout the day's live test, creates at volume (20 contacts, 10 deals, plus notes
+on every workflow step), and updates including a real mis-filed-email correction
+(a participant's address recorded on the referrer's contact, moved to the right
+record). This workflow is running.
 
 **Next:** none, design-wise. Use it, and see what comes up.
 
