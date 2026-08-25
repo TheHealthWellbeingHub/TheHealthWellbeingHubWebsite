@@ -1,7 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "mcp__HubSpot__manage_crm_objects"
+      "mcp__HubSpot"
     ]
   },
   "hooks": {
