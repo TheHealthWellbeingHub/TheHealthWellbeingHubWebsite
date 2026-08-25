@@ -1,4 +1,9 @@
 {
+  "permissions": {
+    "allow": [
+      "mcp__HubSpot__manage_crm_objects"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
