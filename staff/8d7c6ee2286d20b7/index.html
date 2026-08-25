@@ -241,40 +241,49 @@
       </div>
     </div>
 
-    <div class="form-row form-row-split">
-      <div>
-        <label class="form-label" for="sf-referrer-name">Referrer's name <span aria-hidden="true">*</span></label>
-        <input class="form-field" id="sf-referrer-name" type="text" name="referrer_name" required>
-      </div>
-      <div>
-        <label class="form-label" for="sf-org">Their organisation</label>
-        <input class="form-field" id="sf-org" type="text" name="referrer_organisation">
-      </div>
-    </div>
+    <details class="form-optional-section" style="margin:14px 0;border:1px solid var(--border,#ddd);border-radius:10px;padding:0 14px;">
+      <summary style="cursor:pointer;padding:12px 0;font-weight:600;">Referrer details <span style="font-weight:400;opacity:.75;">— optional. Skip if the participant came to us directly.</span></summary>
 
-    <div class="form-row form-row-split">
-      <div>
-        <label class="form-label" for="sf-referrer-phone">Their phone</label>
-        <input class="form-field" id="sf-referrer-phone" type="tel" name="referrer_phone">
+      <div class="form-row form-row-split">
+        <div>
+          <label class="form-label" for="sf-referrer-name">Referrer's name</label>
+          <input class="form-field" id="sf-referrer-name" type="text" name="referrer_name">
+        </div>
+        <div>
+          <label class="form-label" for="sf-org">Their organisation</label>
+          <input class="form-field" id="sf-org" type="text" name="referrer_organisation">
+        </div>
       </div>
-      <div>
-        <label class="form-label" for="sf-referrer-email">Their email <span aria-hidden="true">*</span></label>
-        <input class="form-field" id="sf-referrer-email" type="email" name="referrer_email" required>
-        <div class="form-hint">The acknowledgement goes here. Without it, the referrer hears nothing back.</div>
-      </div>
-    </div>
 
-    <div class="form-row">
-      <label class="form-label" for="sf-referrer-role">Their role</label>
-      <select class="form-field" id="sf-referrer-role" name="referrer_role">
-        <option>Support Coordinator</option>
-        <option>Plan Manager</option>
-        <option>GP</option>
-        <option>Allied health professional</option>
-        <option>NDIA planner / LAC</option>
-        <option>Other</option>
-      </select>
-    </div>
+      <div class="form-row form-row-split">
+        <div>
+          <label class="form-label" for="sf-referrer-phone">Their phone</label>
+          <input class="form-field" id="sf-referrer-phone" type="tel" name="referrer_phone">
+        </div>
+        <div>
+          <label class="form-label" for="sf-referrer-email">Their email</label>
+          <input class="form-field" id="sf-referrer-email" type="email" name="referrer_email">
+          <div class="form-hint">The acknowledgement goes here. Without it, the referrer hears nothing back.</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="sf-referrer-role">Their role</label>
+        <select class="form-field" id="sf-referrer-role" name="referrer_role">
+          <option>Support Coordinator</option>
+          <option>Plan Manager</option>
+          <option>GP</option>
+          <option>Allied health professional</option>
+          <option>NDIA planner / LAC</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <label class="form-consent" style="margin-bottom:12px;">
+        <input type="checkbox" name="participant_consent_confirmed">
+        <span>The referrer told me the participant, or their nominee, has agreed to this referral. <span class="form-consent-opt">Optional — if they haven't, leave this unticked and we'll go back to the referrer first.</span></span>
+      </label>
+    </details>
 
     <div class="form-row form-row-split">
       <div>
@@ -323,11 +332,7 @@
 
     <label class="form-consent form-consent-tight">
       <input type="checkbox" name="staff_consent_attested" required>
-      <span>I told this referrer that we store their contact details so we can respond to the referral, and where to find our <a href="/privacy-policy/">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
-    </label>
-    <label class="form-consent">
-      <input type="checkbox" name="participant_consent_confirmed">
-      <span>The referrer told me the participant, or their nominee, has agreed to this referral. <span class="form-consent-opt">Optional — if they haven't, leave this unticked and we'll go back to the referrer first.</span></span>
+      <span>I told the person who gave me these details that we store their contact details so we can respond, and where to find our <a href="/privacy-policy/">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
     </label>
 
     <button class="form-submit" type="submit">Submit referral</button>
