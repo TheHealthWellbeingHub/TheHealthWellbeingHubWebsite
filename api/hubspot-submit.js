@@ -258,6 +258,10 @@ const REFERRAL_CHANNEL_MAP = {
   'Phone call': 'Phone call',
   'Text message': 'Text message',
   'In person': 'In person',
+  // A participant who came to us themselves, no referrer. The property
+  // option must exist in HubSpot with this exact value or filterToWritable
+  // drops it (logged, not fatal) — created 25 Aug 2026.
+  'Came directly': 'Came directly',
 };
 
 function buildTriageProperties(f, formName, receivedAt, isStaffEntry = false) {
