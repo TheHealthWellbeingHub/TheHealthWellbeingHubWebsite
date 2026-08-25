@@ -633,12 +633,22 @@ async function submitToFormsApi({ formGuid, email, firstname, lastname, pageUri,
   throw lastErr || new Error('Forms API submission failed');
 }
 
+// A staff entry with no referrer at all is a participant who came to us
+// directly — the referrer section of the intake form is optional for exactly
+// that case. No referrer to acknowledge, no referrer to go back to.
+function isDirectEntry(f) {
+  return f.form_name === 'staff_referral' && !(f.referrer_name || '').trim() && !(f.referrer_email || '').trim();
+}
+
 function consentTaskSubject(f, formName, isReturning) {
   const who = f.name || f.participant_name || 'lead';
   if (formName !== 'referral') {
     return `Contact ${isReturning ? 'returning' : 'new'} enquiry: ${who}`;
   }
-  if (isAffirmative(f.participant_consent_confirmed)) {
+  // Direct contact: the participant supplied their own details, which is
+  // consent to hear from us — the "go back to the referrer" branch would
+  // point workers at a referrer who does not exist.
+  if (isDirectEntry(f) || isAffirmative(f.participant_consent_confirmed)) {
     return `Contact participant: ${who}`;
   }
   return `Contact REFERRER — participant consent not confirmed: ${who}`;
@@ -671,7 +681,9 @@ function buildReferralNote(f, sourcePage, campaign, isStaffEntry = false, contac
     isStaffEntry ? `Taken by: ${f.referral_taken_by || '(not given)'}` : null,
     sourcePage && !isStaffEntry ? `Submitted from: ${sourcePage}` : null,
     campaign ? `Campaign: ${campaign}` : null,
-    `Referred by: ${f.referrer_name || '(not given)'}${f.referrer_organisation ? ' — ' + f.referrer_organisation : ''}`,
+    isDirectEntry(f)
+      ? 'Direct enquiry — the participant contacted us themselves, no referrer.'
+      : `Referred by: ${f.referrer_name || '(not given)'}${f.referrer_organisation ? ' — ' + f.referrer_organisation : ''}`,
     f.referrer_role ? `Referrer role: ${f.referrer_role}` : null,
     f.referrer_phone ? `Referrer phone: ${f.referrer_phone}` : null,
     f.referrer_email ? `Referrer email: ${f.referrer_email}` : null,
@@ -853,7 +865,9 @@ module.exports = async (req, res) => {
         email: looksLikeEmail(contact) ? contact : undefined,
         phone: looksLikeEmail(contact) ? undefined : contact,
       });
-      dealName = `${f.participant_name || 'Referral'} — referred by ${f.referrer_name || 'unknown'}`;
+      dealName = isDirectEntry(f)
+        ? `${f.participant_name || 'Participant'} — came to us directly`
+        : `${f.participant_name || 'Referral'} — referred by ${f.referrer_name || 'unknown'}`;
       noteBody = buildReferralNote(f, sourcePage, campaign, isStaffEntry, contactBelongsToReferrer);
 
       // The referrer is UPSERTED every time, not merely looked up. Without
