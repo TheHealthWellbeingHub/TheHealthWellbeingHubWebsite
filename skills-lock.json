@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "skills": {
+    "shiftcare-action-items": {
+      "source": "shiftcare/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/shiftcare-action-items/SKILL.md",
+      "computedHash": "11726926f8bb336534799fcac40a9b5fd81d2a9f89348677b5dde74899c06444"
+    },
+    "shiftcare-basics": {
+      "source": "shiftcare/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/shiftcare-basics/SKILL.md",
+      "computedHash": "cc30a2aa048a5725d4d3030aad84e20385cdf4533e7ea1acd1ce2f301f401967"
+    },
+    "shiftcare-cancel-shift": {
+      "source": "shiftcare/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/shiftcare-cancel-shift/SKILL.md",
+      "computedHash": "94def282a2b7f4e74c586b5d643b3d05fa739074729138c9f7a3dc37848500c5"
+    },
+    "shiftcare-client-summary": {
+      "source": "shiftcare/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/shiftcare-client-summary/SKILL.md",
+      "computedHash": "8fcc5ee027c3f0f29bfc46d64690eb5d9616f0a86fa113b1d3aa037fa7af74c9"
+    },
+    "shiftcare-complaints": {
+      "source": "shiftcare/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/shiftcare-complaints/SKILL.md",
+      "computedHash": "874d51af0a7c9f84a7a139df01e63245be07ce381f821f1ce375da7ff5c4eaf1"
+    },
+    "shiftcare-create-note": {
+      "source": "shiftcare/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/shiftcare-create-note/SKILL.md",
+      "computedHash": "cb84658f24fc19570654601b3e933c716f1edba5d2f472a07395c56648483439"
+    },
+    "shiftcare-create-shift": {
+      "source": "shiftcare/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/shiftcare-create-shift/SKILL.md",
+      "computedHash": "3c4d189f64e2a1277f9cdbde0e79b65ca9b5dc581e8232ce1e691712825a37c0"
+    },
+    "shiftcare-daily-rundown": {
+      "source": "shiftcare/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/shiftcare-daily-rundown/SKILL.md",
+      "computedHash": "88b0aad9eae81cad80233431116cea44535d7151a253626fe4b2f48fdcfc03b9"
+    },
+    "shiftcare-mcp": {
+      "source": "shiftcare/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/shiftcare-mcp/SKILL.md",
+      "computedHash": "85ab0c759bd2eb19ef98ee83887f083cf38fa48d3fa56b5fef65bd316a40637b"
+    },
+    "shiftcare-onboarding-check": {
+      "source": "shiftcare/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/shiftcare-onboarding-check/SKILL.md",
+      "computedHash": "7e8ee28e84672035d110fc598da8f82e426c80d9950db33e3d2108abd47cb252"
+    },
+    "shiftcare-staff-compliance-check": {
+      "source": "shiftcare/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/shiftcare-staff-compliance-check/SKILL.md",
+      "computedHash": "b7a1e6a92d5ac7041f8be2427ebf77fb0e0e2240cd073067e1199dfb798c2904"
+    }
+  }
+}
