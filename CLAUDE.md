@@ -86,26 +86,38 @@ publishing.
 
 ## Which Claude surface can do what
 
-No single session sees both the live data and the code. Verified by checking connectors in
-this environment:
+Connectors are attached per session, so check what the session in front of you actually has
+rather than assuming. As of 15 Sep 2026, Claude Code sessions on this repo carry Gmail,
+Google Calendar, Google Drive, HubSpot, Supabase and Vercel alongside files, git and GitHub.
+The earlier note here — that Claude Code could not reach HubSpot — is out of date.
 
-| Surface | Can reach | Cannot reach |
+| System | How Claude reaches it | Notes |
 |---|---|---|
-| **Claude Code** (this repo) | files, git, GitHub | HubSpot, Google Analytics |
-| **claude.ai chat** (Command Centre artifact) | HubSpot, GA via connectors | this git repo |
+| Files, git, GitHub | direct | always available |
+| HubSpot, Supabase, Vercel, Google Workspace | connectors | attached to this session |
+| ShiftCare | custom connector, `https://mcp.au.shiftcare.com/mcp` | an org admin adds it once; each user then signs in with their own ShiftCare login |
+| Google Analytics | claude.ai chat only | no GA connector in Claude Code |
 
-Do not design a process that assumes one session has both. The repo is the meeting point:
-analytics findings are committed as dated summaries under `docs/analytics/`, and work in
-Claude Code proceeds from those committed files.
+Analytics findings are still committed as dated summaries under `docs/analytics/`, so that a
+session without a GA connector can work from them.
 
 ---
 
 ## Guardrails
 
-**Participant data never enters this repository.** HubSpot holds real people's health and
-disability information. Only aggregate, non-identifying counts cross into git — no names,
-contact details, NDIS numbers, plan details, case notes or anything traceable to an
-individual. This is not a style preference; it is the line that matters most here.
+**Participant data lives in the source systems, not in git.** ShiftCare and HubSpot hold
+real people's health and disability information, and Claude is authorised to work with it
+there. Reading a participant record, creating one, updating a plan or a shift, closing a
+record — all of that is expected work through the ShiftCare and HubSpot connectors, and does
+not need separate approval each time.
+
+What does not change is where that data comes to rest. It stays in ShiftCare and HubSpot.
+Only aggregate, non-identifying counts are committed to this repository — no names, contact
+details, NDIS numbers, plan details or case notes in source files, fixtures, sample data,
+logs, commit messages or documentation. Git history here is permanent and mirrored to every
+org member and to GitHub; a participant's record committed once cannot meaningfully be
+withdrawn. If a task appears to need real participant data in a file, use invented data or a
+count instead, and say which was used.
 
 **Compliance wording is reviewed, not generated.** Operational and compliance language must
 be checked against H&W's approved policies, service agreement and current NDIS requirements
