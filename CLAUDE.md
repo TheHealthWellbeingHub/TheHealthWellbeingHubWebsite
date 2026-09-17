@@ -75,14 +75,20 @@ publishing.
    Australia. Strategically this is a traffic and positioning play: being the helpful hub
    that lists competitors, rather than only selling.
 3. **Lead-Gen Command Centre** — an internal Claude Artifact pulling live Google Analytics
-   and HubSpot data, to track the site as a lead source.
+   and HubSpot data, to track the site as a lead source. Now has a second workstream —
+   bringing participant profile data in Supabase in line with source documents — documented
+   in [`docs/command-centre-participant-data.md`](docs/command-centre-participant-data.md).
+   Read that file before touching the `participants`/`participant_documents`/
+   `document_findings`/`participant_profile_updates` tables: it sets out the staged
+   propose → human sign-off → promote workflow. Live participant clinical/risk fields are
+   never written directly; only `document_findings` (an append-only audit log) is.
 4. **Email template library** — nine branded, responsive NDIS email templates covering the
    participant lifecycle from referral through to exit.
 
 > **Repo status:** the site, provider directory and all nine email templates have now been
 > imported (see `README-SEO.md` for the tracking/GTM/GA4/HubSpot implementation status). The
-> Command Centre artifact and the `docs/analytics/` handoff described below are still
-> outstanding — nothing has been committed there yet.
+> analytics-side Command Centre artifact and the `docs/analytics/` handoff described below are
+> still outstanding. The participant-data workstream above is documented and underway.
 
 ## Which Claude surface can do what
 
@@ -94,7 +100,7 @@ The earlier note here — that Claude Code could not reach HubSpot — is out of
 | System | How Claude reaches it | Notes |
 |---|---|---|
 | Files, git, GitHub | direct | always available |
-| HubSpot, Supabase, Vercel, Google Workspace | connectors | attached to this session |
+| HubSpot, Supabase, Vercel, Google Workspace | connectors | attached to this session; Supabase connector is the participant-data project (`azzvzegudhdgwlrinije`) — see `docs/command-centre-participant-data.md` |
 | ShiftCare | custom connector, `https://mcp.au.shiftcare.com/mcp` | an org admin adds it once; each user then signs in with their own ShiftCare login |
 | Google Analytics | claude.ai chat only | no GA connector in Claude Code |
 
@@ -111,13 +117,20 @@ there. Reading a participant record, creating one, updating a plan or a shift, c
 record — all of that is expected work through the ShiftCare and HubSpot connectors, and does
 not need separate approval each time.
 
-What does not change is where that data comes to rest. It stays in ShiftCare and HubSpot.
-Only aggregate, non-identifying counts are committed to this repository — no names, contact
-details, NDIS numbers, plan details or case notes in source files, fixtures, sample data,
-logs, commit messages or documentation. Git history here is permanent and mirrored to every
-org member and to GitHub; a participant's record committed once cannot meaningfully be
-withdrawn. If a task appears to need real participant data in a file, use invented data or a
-count instead, and say which was used.
+What does not change is where that data comes to rest. It stays in ShiftCare, HubSpot and the
+participant-data Supabase project — never in this git repository. Only aggregate,
+non-identifying counts are committed here — no names, contact details, NDIS numbers, plan
+details or case notes in source files, fixtures, sample data, logs, commit messages or
+documentation. Git history here is permanent and mirrored to every org member and to GitHub;
+a participant's record committed once cannot meaningfully be withdrawn. If a task appears to
+need real participant data in a file, use invented data or a count instead, and say which was
+used.
+
+The Supabase project mirrors ShiftCare documents into structured profiles that staff read
+directly, so edits there carry the same weight as editing ShiftCare itself — reading and
+logging findings is unrestricted, but changes to a live profile's clinical/risk fields go
+through the staged propose → human sign-off → promote workflow in
+`docs/command-centre-participant-data.md` rather than being written straight to the field.
 
 **Compliance wording is reviewed, not generated.** Operational and compliance language must
 be checked against H&W's approved policies, service agreement and current NDIS requirements
