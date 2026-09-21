@@ -97,7 +97,7 @@
        3) always fall back to opening a pre-filled mailto: to the studio
           inbox if that call fails, so an enquiry is never silently lost. */
   var FORM_ENDPOINT = '/api/hubspot-submit';
-  var ENQUIRY_EMAIL = 'thehealthwellbeinghub@gmail.com';
+  var ENQUIRY_EMAIL = 'officethehealthwellbeinghub@gmail.com';
 
   /* Campaign attribution. A referrer clicks a link in the outreach email,
      lands on /referrals/?utm_campaign=..., and may well read a page or two

@@ -71,8 +71,8 @@ const TEMPLATES = {
 // sends — there is no subscription-preference page behind them.
 const CONSTANT_TOKENS = {
   'Phone Number': '0433 604 507',
-  'Email Address': 'thehealthwellbeinghub@gmail.com',
-  'unsubscribe_url': 'mailto:thehealthwellbeinghub@gmail.com?subject=Unsubscribe',
+  'Email Address': 'officethehealthwellbeinghub@gmail.com',
+  'unsubscribe_url': 'mailto:officethehealthwellbeinghub@gmail.com?subject=Unsubscribe',
 };
 
 // Same best-effort, per-instance rate limiting as hubspot-submit.js, sized
@@ -273,7 +273,7 @@ module.exports = async (req, res) => {
         : 'Welcome to The Health & Well-being Hub — your welcome pack of four short guides is attached. Your primary contact is ' +
           `${merge['Staff Member']} (${merge['Role']}).`,
       '',
-      'Contact: 0433 604 507 · thehealthwellbeinghub@gmail.com',
+      `Contact: 0433 604 507 · ${CONSTANT_TOKENS['Email Address']}`,
       '',
       'Kind regards,',
       'The Health & Well-being Hub',

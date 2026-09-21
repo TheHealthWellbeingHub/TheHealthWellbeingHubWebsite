@@ -25,7 +25,7 @@ SITE = {
     "phone_display": "0433 604 507",
     "phone_tel": "0433604507",
     "phone_e164": "+61433604507",
-    "email": "thehealthwellbeinghub@gmail.com",
+    "email": "officethehealthwellbeinghub@gmail.com",
     "whatsapp_url": "https://wa.me/61433604507",
     "address_street": "73 Jacaranda Avenue",
     "address_locality": "Logan",
