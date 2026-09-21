@@ -69,6 +69,14 @@ untouched for now).
 `hubspot-personalisation-properties.md` describe the retired system and are kept only as
 historical reference — nothing in them should be actioned.
 
+**Workflows 03, 04, 05, 06 and 08 also depended on HubSpot, more narrowly** — not for
+sending (04 sends nothing; 03/05/06/08's emails were always sent directly, HubSpot never
+in that path) but for the CRM side-effects: a deal-stage change, a note on a contact, or (04
+only) create/search/update/deactivate. Every one of those is now the same `leads` /
+`referrers` / `lead_notes` operation described in the table above — see each workflow's own
+section below for the specific mapping. `referrers.is_active` (added 21 Sep 2026) is the new
+home for "mark this referrer inactive."
+
 ## 01 — Referral received
 
 | | |
@@ -128,6 +136,15 @@ and noted on the deal. The one thing 01's "partly running" ever stood for is now
 actual send does not exist on Starter.
 
 ## 03 — New participant
+
+**Updated 21 Sep 2026 — CRM writes now go to Supabase, not HubSpot.** Every "deal stage"
+reference below (`Service Agreement Sent`, `Participant Onboarded`) means
+`update leads set stage = 'service_agreement_sent' | 'participant_onboarded' where id = …`
+(`lib/leads.js`'s `updateLeadStage` in the `command_centre` repo, or the same via Supabase
+directly). Every "note on the contact" means an insert into `lead_notes` against that lead's
+id, not a HubSpot Note. The email-sending mechanics below (`api/send-participant-email.js`,
+the Consent and Welcome emails with their PDF attachments) were never HubSpot-dependent and
+are unchanged.
 
 Spec: [`docs/workflow-03-new-participant.md`](workflow-03-new-participant.md).
 
@@ -214,6 +231,22 @@ email with all four guides, deal to `Participant Onboarded`. Nothing open.
 
 ## 04 — Maintaining participants
 
+**Updated 21 Sep 2026 — the CRM is Supabase now, not HubSpot.** The "what's actually
+available" table below described HubSpot's `manage_crm_objects`/`search_crm_objects` tools;
+the Supabase equivalent (available to any Claude session with Supabase access, or via
+`lib/leads.js` in `command_centre`):
+
+| Operation | How |
+|---|---|
+| Create | `insert into leads (...)` / `insert into referrers (...)` |
+| Get / search | `select` on `leads` / `referrers` (by name, email, phone, reference) |
+| Update | `update leads set ...` / `update referrers set ...` |
+| Delete | Still soft: a lead's `stage` → `lost_not_suitable`; a referrer's `is_active` → `false` (column added 21 Sep 2026 specifically for this) |
+
+No confirmation step is built into a raw SQL write the way HubSpot's UI provided one — **show
+the change (old value → new) before running it, every time**, the same habit as everywhere
+else in this document, just no longer enforced by the tool itself.
+
 **Redefined 24 August 2026 — on-request CRM maintenance, not a scheduled campaign.**
 Every earlier reading (plan review reminders, periodic check-ins, agreement renewals,
 re-contacting quiet participants) assumed a recurring, calendar-driven workflow. Dropped
@@ -284,6 +317,10 @@ structured data, so the note is the only record that this introduction happened 
 all. Confirmed with the user 24 August 2026 — keep doing this by default going forward
 wherever a workflow writes nothing structured but something still happened.
 
+*(Updated 21 Sep 2026: "a note on the contact" is now an insert into `lead_notes` against
+that participant's `leads` row in Supabase, not a HubSpot Note. The email itself was never
+HubSpot-dependent — unchanged.)*
+
 **Next:** none, design-wise. Build status: content exists (email 06), nothing else to
 build — same shape as workflow 04.
 
@@ -338,6 +375,9 @@ here is stored as structured data beyond the calendar event itself, so the note
 records that the appointment was confirmed, what was in the email, and links the
 calendar event.
 
+*(Updated 21 Sep 2026: same `lead_notes` change as workflow 05. The calendar event
+(Google Calendar) and the email were never HubSpot-dependent — unchanged.)*
+
 **Next:** none, design-wise. Build status: content exists (email 05), nothing else to
 build — same shape as 04 and 05.
 
@@ -378,8 +418,9 @@ this whole area runs on:
 
 - **Every cancellation is a full exit.** No partial version exists in this workflow — a
   participant dropping one service while keeping others is a different conversation this
-  workflow does not attempt. So the deal **always** moves to `Lost / Not Suitable`
-  (`3607504326`) on send, no branching needed.
+  workflow does not attempt. So the lead **always** moves to `lost_not_suitable` on send, no
+  branching needed. *(Updated 21 Sep 2026: was HubSpot deal stage `Lost / Not Suitable`
+  (`3607504326`); now `update leads set stage = 'lost_not_suitable'`.)*
 - **Participant only — the referrer is never told.** Unlike workflow 03's change-of-mind
   case, which reuses the decline email for the referrer, a service exit can happen long after
   the referrer's own involvement ended, and notifying them by default risks disclosing a
@@ -394,7 +435,7 @@ so the form asks one question instead of two redundant ones. Full mapping in the
 
 ---
 
-## The constraint behind most of these
+## The constraint behind most of these (historical — HubSpot retired 21 Sep 2026)
 
 HubSpot Starter allows **one simple workflow per form**, triggered by form submission
 only — ten actions, no branching, no webhooks. Three of the eight (03, 05, 08) have no
@@ -403,3 +444,8 @@ outside HubSpot. Workflow 01's outcome step took the second route: it sends from
 H&W mailbox, because no HubSpot workflow can fire on a deal reaching a closed stage.
 Workflow 04 no longer belongs on this list — redefined 24 August 2026 as on-request CRM
 maintenance, it sends nothing and has no form to be missing.
+
+This constraint is why several workflows route around HubSpot for *sending* — and is exactly
+why routing around it entirely, for the CRM side too, cost so little once the decision was
+made. Nothing above needs to be re-litigated; it's kept as the record of why each workflow
+is shaped the way it is.

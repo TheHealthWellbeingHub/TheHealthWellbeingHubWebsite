@@ -6,6 +6,12 @@ things quietly rotting between sessions.
 Business facts and guardrails live in [`../CLAUDE.md`](../CLAUDE.md). This file is about
 process: what happens, how often, and on which surface.
 
+**HubSpot retired 21 Sep 2026 — every reference to it below is historical.** The CRM is
+Supabase now (`leads`, `referrers`, `lead_notes`, `tasks`, `feedback_submissions`); the
+Command Centre is the real `command_centre` Next.js app, not a claude.ai Artifact. See
+`workflow-build-notes.md`'s "HubSpot retired" section for the mapping before acting on
+anything in this file that mentions HUBSPOT_TOKEN, HubSpot connectors, or the artifact.
+
 ---
 
 ## The problem this solves

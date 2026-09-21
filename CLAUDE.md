@@ -31,15 +31,16 @@ alter any of them, stop and confirm with the user rather than guessing.
 | Street address | 73 Jacaranda Avenue, Logan QLD 4114 |
 | Public domain | thehealthwellbeinghub.com |
 | Phone | 0433 604 507 |
-| Enquiry email | thehealthwellbeinghub@gmail.com |
+| Enquiry email | officethehealthwellbeinghub@gmail.com |
 | Service lines | Support Coordination · Core Supports & Daily Living · Community Participation · Therapy Services |
 | Languages spoken | English · Arabic · Somali · Dari · Amharic |
 | Gender-matched workers | Available on request |
 | Enquiry response time | Within **2 business hours** |
 | Plan types accepted | Agency-managed · Plan-managed · Self-managed |
-| HubSpot portal ID | **443542186** |
-| HubSpot tier | Starter Customer Platform (A$16/seat/mo) |
-| HubSpot data region | **ap1** (Asia-Pacific) — use region-specific API hosts |
+| CRM | **Retired 21 Sep 2026 — HubSpot is no longer used.** Referrals/enquiries/leads/tasks/feedback live in Supabase (`leads`, `referrers`, `lead_notes`, `tasks`, `feedback_submissions`) — see `docs/workflow-build-notes.md`. The rows below are historical only. |
+| ~~HubSpot portal ID~~ | ~~443542186~~ retired |
+| ~~HubSpot tier~~ | ~~Starter Customer Platform (A$16/seat/mo)~~ retired |
+| ~~HubSpot data region~~ | ~~ap1 (Asia-Pacific)~~ retired |
 | GA4 Measurement ID | `G-66FG6SCSL0` |
 
 ### Two different service footprints
@@ -74,29 +75,32 @@ publishing.
 2. **Provider Directory** — searchable database of ~47,848 real NDIS providers across
    Australia. Strategically this is a traffic and positioning play: being the helpful hub
    that lists competitors, rather than only selling.
-3. **Lead-Gen Command Centre** — an internal Claude Artifact pulling live Google Analytics
-   and HubSpot data, to track the site as a lead source.
+3. **Lead-Gen Command Centre** — now a real Next.js app, a separate repo
+   (`TheHealthWellbeingHub/command_centre`, deployed on Vercel), not a claude.ai Artifact —
+   the Artifact was the original prototype and is superseded. It reads Supabase directly
+   (`participants`, `leads`, `referrers`, `tasks`, `lead_notes`, `feedback_submissions`, …)
+   and Shiftcare live. See that repo's own `README.md`.
 4. **Email template library** — nine branded, responsive NDIS email templates covering the
    participant lifecycle from referral through to exit.
 
 > **Repo status:** the site, provider directory and all nine email templates have now been
-> imported (see `README-SEO.md` for the tracking/GTM/GA4/HubSpot implementation status). The
-> Command Centre artifact and the `docs/analytics/` handoff described below are still
-> outstanding — nothing has been committed there yet.
+> imported (see `README-SEO.md` for the tracking/GTM/GA4 implementation status — the HubSpot
+> parts of that doc are historical, HubSpot is retired). `docs/analytics/` handoff described
+> below is still outstanding — nothing committed there yet.
 
 ## Which Claude surface can do what
 
-No single session sees both the live data and the code. Verified by checking connectors in
-this environment:
+**Updated 21 Sep 2026 — this used to be true, isn't any more.** A single Claude Code session
+can now hold this repo, the `command_centre` repo, Supabase, Vercel, Gmail, Google Calendar
+and GitHub connectors at once (verified in the session that retired HubSpot). Don't assume
+the old split below still applies — it's kept only because some workflow docs still refer to
+the pattern it describes (committing analytics findings as dated summaries for a
+code-only session to pick up).
 
-| Surface | Can reach | Cannot reach |
+| Surface (historical) | Could reach | Could not reach |
 |---|---|---|
 | **Claude Code** (this repo) | files, git, GitHub | HubSpot, Google Analytics |
-| **claude.ai chat** (Command Centre artifact) | HubSpot, GA via connectors | this git repo |
-
-Do not design a process that assumes one session has both. The repo is the meeting point:
-analytics findings are committed as dated summaries under `docs/analytics/`, and work in
-Claude Code proceeds from those committed files.
+| **claude.ai chat** (Command Centre artifact, now superseded) | HubSpot, GA via connectors | this git repo |
 
 ---
 
