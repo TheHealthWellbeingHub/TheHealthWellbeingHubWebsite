@@ -29,10 +29,13 @@ reasoning for attachments — list every filename, even when the answer is "none
 
 Applies to every email Claude sends itself, from the H&W mailbox, on request: workflow
 01's outcome step (templates 10, 11, 13), workflow 03 (the Consent and Welcome
-emails), workflow 05 (support worker introduction), workflow 06 (appointment
-confirmation), and workflow 08 (service exit). Does **not** apply to templates 02, 03
+emails), and workflow 08 (service exit). Does **not** apply to templates 02, 03
 and 07 — those send automatically from a live HubSpot workflow the moment a form is
 submitted, with no Claude-in-the-loop moment to show anything before it goes.
+
+*(Updated 21 Sep 2026: workflows 05 and 06 moved into this "no Claude-in-the-loop"
+group too — they now send directly from a staff-filled form in the Command Centre,
+not from asking Claude in conversation. See their sections below.)*
 
 Individual workflow sections below don't repeat this in full — they note "preview,
 then send" and mean this.
@@ -321,8 +324,31 @@ wherever a workflow writes nothing structured but something still happened.
 that participant's `leads` row in Supabase, not a HubSpot Note. The email itself was never
 HubSpot-dependent — unchanged.)*
 
-**Next:** none, design-wise. Build status: content exists (email 06), nothing else to
-build — same shape as workflow 04.
+**Superseded 21 Sep 2026 — live in the Command Centre, no Claude conversation needed.**
+Everything above (steps 1–3) described asking Claude in chat each time. That's gone.
+The participant's own profile page (`/participants/[id]`, Profile tab, "Support Worker
+Introduction" section) now carries the same fields as a real form — worker name, role,
+experience, languages, interests, first scheduled support, coordinator — right under the
+participant's contact details, which already have the email address. Submitting it:
+
+1. Fills `email-templates/06-support-worker-introduction.html` (converted to
+   `{{Double Brackets}}` the same day) and sends it via the same raw-SMTP mechanism as
+   workflows 1/2/7 (`command_centre`'s `lib/mailer.js`), no HTTP hop to this repo.
+2. Writes a row to `sent_emails` (kind `support_worker_intro`) and stamps
+   `participants.support_worker_intro_sent_at` / `support_worker_intro_worker_name` —
+   this is the structured record step 3 above described as impossible without a CRM
+   object to hang it on. The participant record itself is that place now.
+3. The form disappears once sent, replaced by "Sent: introduced {worker} to
+   {participant} on {date}" — the closest thing to the old preview-before-send habit
+   this repo's standard called for, except here the confirmation is after the fact
+   rather than a rendered image before it, since a staff member is filling the form
+   directly rather than asking Claude to compose it blind.
+
+There is no live-appointment-source problem here to redefine around any more — the
+person filling the form is looking at the participant's own record while they do it.
+
+**Next:** none, design-wise. Build status: live (`command_centre` commit
+`9c07a30`).
 
 ## 06 — Appointment confirmation
 
@@ -378,8 +404,31 @@ calendar event.
 *(Updated 21 Sep 2026: same `lead_notes` change as workflow 05. The calendar event
 (Google Calendar) and the email were never HubSpot-dependent — unchanged.)*
 
-**Next:** none, design-wise. Build status: content exists (email 05), nothing else to
-build — same shape as 04 and 05.
+**Superseded 21 Sep 2026 — live in the Command Centre's own `/calendar`, not Google
+Calendar.** The "which calendar is the source" question above is moot now: the shared
+team calendar is `command_centre`'s `calendar_events` Supabase table, shown at
+`/calendar`, not Google Calendar (that connector is still used elsewhere, just not
+here). Adding an event there now takes the same fields as the old "asked fresh"
+table above (participant email/first name, service, worker, duration, prep
+instructions) as optional extras on the existing add-event form. Once an event has a
+participant email, its row in the Upcoming list grows a "Send confirmation email"
+button:
+
+1. Fills `email-templates/05-appointment-confirmation.html` (also converted to
+   `{{Double Brackets}}`) with the event's own fields and sends it the same way as
+   workflow 05, via `lib/mailer.js`.
+2. Stamps `calendar_events.confirmation_sent_at` and writes a `sent_emails` row
+   (kind `appointment_confirmation`) — this is the structured record step 3 described;
+   the calendar event row is the "CRM object" it needed, same idea as workflow 05
+   using the participant row itself.
+3. The button is replaced by a "Confirmation sent {date}" badge, so it can't be
+   double-sent by accident.
+
+The participant is still never added as a Google Calendar attendee — that reasoning
+doesn't change, and no longer applies anyway since the event isn't a Google Calendar
+event at all.
+
+**Next:** none, design-wise. Build status: live (`command_centre` commit `9c07a30`).
 
 ## 07 — Feedback and complaint acknowledgement
 
