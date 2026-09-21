@@ -2,6 +2,9 @@
   "functions": {
     "api/send-participant-email.js": {
       "includeFiles": "{participant-documents,email-templates}/**"
+    },
+    "api/lead-submit.js": {
+      "includeFiles": "email-templates/**"
     }
   },
   "redirects": [

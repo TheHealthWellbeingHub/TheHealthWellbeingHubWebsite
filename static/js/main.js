@@ -92,11 +92,12 @@
      On submit we:
        1) push an `enquiry_submitted`/`referral_submitted` dataLayer event
           (GTM/GA4/Ads hook),
-       2) POST to FORM_ENDPOINT — a serverless function (api/hubspot-submit.js)
-          that creates the Contact/Deal/Note/follow-up Task in HubSpot,
+       2) POST to FORM_ENDPOINT — a serverless function (api/lead-submit.js)
+          that writes the referrer/lead/note/follow-up task to Supabase and
+          sends the acknowledgement directly (HubSpot retired 21 Sep 2026),
        3) always fall back to opening a pre-filled mailto: to the studio
           inbox if that call fails, so an enquiry is never silently lost. */
-  var FORM_ENDPOINT = '/api/hubspot-submit';
+  var FORM_ENDPOINT = '/api/lead-submit';
   var ENQUIRY_EMAIL = 'officethehealthwellbeinghub@gmail.com';
 
   /* Campaign attribution. A referrer clicks a link in the outreach email,

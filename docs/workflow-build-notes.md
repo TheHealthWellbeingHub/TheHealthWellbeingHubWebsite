@@ -39,6 +39,36 @@ then send" and mean this.
 
 ---
 
+## HubSpot retired, 21 September 2026
+
+**Decision: HubSpot is being retired, not migrated.** Workflows 01, 02 and 07 — the
+three that wrote to HubSpot Contacts/Deals/Notes/Tasks and (for 02/07) fired a HubSpot
+Starter workflow to send the acknowledgement — are rebuilt on Supabase instead:
+
+| HubSpot object | Supabase table |
+|---|---|
+| Contact (referrer) | `referrers` (already existed, 273 rows synced from HubSpot; reused, `hubspot_contact_id` now nullable for new rows) |
+| Deal | `leads` — same 4-stage model (`new` / `service_agreement_sent` / `participant_onboarded` / `lost_not_suitable`), reference format unchanged (`REF-<year>-<seq>` / `ENQ-<year>-<seq>`) |
+| Note | `lead_notes` |
+| Task | `tasks` |
+| Contact + Note + Task (feedback/complaint, no deal) | `feedback_submissions` (own table, own reference series `FB-`/`CMP-`) |
+
+`api/hubspot-submit.js` is deleted; `api/lead-submit.js` replaces it, same anti-abuse
+layer (origin allowlist, honeypot, rate limit), same consent gating, same triage-value
+mapping and note text. The one real behaviour change: **the acknowledgement email
+(templates 02, 03, 07, 08) now sends directly over SMTP the moment the record is
+written** (`api/_lib/mailer.js`, same raw-TLS mechanism as `send-participant-email.js`),
+not via HubSpot Starter's one-workflow-per-form trigger — there is no workflow to
+trigger any more. Templates 02/03/07/08/10/11/13 had their merge fields converted from
+HubSpot's `{{ personalization_token('contact.x', 'fallback') }}` syntax to the plain
+`{{Token Name}}` syntax `send-participant-email.js` already used for 04/05/09/12 (10/11/13
+not yet converted — still Claude-composed-and-sent in the moment, not machine-filled, so
+untouched for now).
+
+`docs/hubspot-configuration.md`, `hubspot-manual-setup.md` and
+`hubspot-personalisation-properties.md` describe the retired system and are kept only as
+historical reference — nothing in them should be actioned.
+
 ## 01 — Referral received
 
 | | |

@@ -190,7 +190,22 @@ Once someone with access is found: **GTM → Admin → User Management → +** �
 
 ---
 
-## 6. HubSpot — cannot be changed, new user required
+## 6. HubSpot — no longer applicable
+
+**Decision (21 Sep 2026): HubSpot is being retired**, not migrated. Workflows 1, 2, 4 and 7 are
+being rebuilt on Supabase + this site's own serverless functions instead — see
+`docs/workflow-build-notes.md`. Skip this section; there is no login to migrate on a system
+being decommissioned.
+
+The email address change itself is done independently of HubSpot: `officethehealthwellbeinghub@gmail.com`
+is now both the displayed contact address (`build.py`'s `SITE["email"]`) and the SMTP sending
+account for `api/send-participant-email.js` (`SMTP_USER`/`SMTP_APP_PASSWORD` on Vercel), updated
+and verified live 21 Sep 2026.
+
+<details>
+<summary>Original HubSpot migration steps (kept for reference, not to be actioned)</summary>
+
+## 6a. HubSpot — cannot be changed, new user required
 
 Leave a clear day for this one. It is the most consequential and it holds participant data.
 
@@ -213,6 +228,8 @@ second user may add cost while both exist. Check the billing screen first.
 8. Only once all of that passes: **Settings → Users & Teams → the old user → Deactivate**.
 
 Do not delete the old user until at least a week has passed without problems.
+
+</details>
 
 ---
 
