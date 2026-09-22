@@ -60,7 +60,14 @@ const TEMPLATES = {
       'Feedback & Complaints (Easy Read Guide).pdf',
       'Your Rights & Responsibilities (Easy Read Guide).pdf',
       'Incident Management (Easy Read Guide).pdf',
+      'NDIS Service Agreement (Fillable).pdf',
     ],
+    required: ['Participant First Name', 'Staff Member', 'Role'],
+  },
+  'service-agreement-followup': {
+    file: '13-service-agreement-followup.html',
+    subject: "Sorry, {{Participant First Name}} — your Service Agreement",
+    attachments: ['NDIS Service Agreement (Fillable).pdf'],
     required: ['Participant First Name', 'Staff Member', 'Role'],
   },
 };
@@ -264,14 +271,20 @@ module.exports = async (req, res) => {
       return res.status(500).json({ ok: false, error: 'Template has unresolved tokens', tokens: missing });
     }
 
+    const plainIntro = spec.file.startsWith('04')
+      ? 'Before we can start supporting you, we need two quick forms — both are attached to this email. Your primary contact is ' +
+        `${merge['Staff Member']} (${merge['Role']}).`
+      : spec.file.startsWith('12')
+      ? 'Welcome to The Health & Well-being Hub — your welcome pack of four short guides, plus your Service Agreement to sign ' +
+        `and return, is attached. Your primary contact is ${merge['Staff Member']} (${merge['Role']}).`
+      : 'Sorry — when we sent your consent and referral forms, we forgot to attach your Service Agreement. It is attached to ' +
+        `this email now. Please read it over, sign the sections that apply to you, and return it. Your primary contact is ` +
+        `${merge['Staff Member']} (${merge['Role']}).`;
+
     const text = [
       `Hi ${merge['Participant First Name']},`,
       '',
-      spec.file.startsWith('04')
-        ? 'Before we can start supporting you, we need two quick forms — both are attached to this email. Your primary contact is ' +
-          `${merge['Staff Member']} (${merge['Role']}).`
-        : 'Welcome to The Health & Well-being Hub — your welcome pack of four short guides is attached. Your primary contact is ' +
-          `${merge['Staff Member']} (${merge['Role']}).`,
+      plainIntro,
       '',
       `Contact: 0433 604 507 · ${CONSTANT_TOKENS['Email Address']}`,
       '',
