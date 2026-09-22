@@ -301,7 +301,7 @@ doc.checkbox(
     "will claim payment for those supports from the NDIA.",
     "pay_ndia_managed",
 )
-doc.para("AND / OR", bold=True, space_after=1.6 * mm)
+doc.para("AND / OR", bold=True, space_after=2.4 * mm)
 doc.checkbox(
     "You have chosen to self-manage the funding for some or all your NDIS supports "
     "provided under this Service Agreement. The Health and Wellbeing Hub will provide "
@@ -310,7 +310,7 @@ doc.checkbox(
     "pay_self_managed",
 )
 doc.field_line("Payment Method (cheque / cash / EFT)", "pay_self_managed_method", width=80 * mm)
-doc.para("OR", bold=True, space_after=1.6 * mm)
+doc.para("OR", bold=True, space_after=2.4 * mm)
 doc.checkbox(
     "Your Plan Nominee manages the funding for NDIS supports provided under this Service "
     "Agreement. After providing those supports, The Health and Wellbeing Hub will send "
@@ -320,7 +320,7 @@ doc.checkbox(
 )
 doc.field_line("Plan Nominee Name", "pay_nominee_name", width=90 * mm)
 doc.field_line("Payment Method (cash / cheque / EFT)", "pay_nominee_method", width=80 * mm)
-doc.para("OR", bold=True, space_after=1.6 * mm)
+doc.para("OR", bold=True, space_after=2.4 * mm)
 doc.checkbox(
     "Your Plan Management Provider manages the funding for NDIS supports provided under "
     "this Service Agreement. After providing those supports, The Health and Wellbeing "
@@ -572,7 +572,7 @@ doc.signature_block(
 )
 doc.spacer(1.5 * mm)
 doc.checkbox("I confirm that I have received a copy of the Service Agreement.", "confirm_received_copy")
-doc.para("OR", bold=True, space_after=1.6 * mm)
+doc.para("OR", bold=True, space_after=2.4 * mm)
 doc.checkbox("I have opted not to receive a copy of the Service Agreement, for the reasons below:", "confirm_opted_out_copy")
 doc.field_line("Reason", "opted_out_reason", width=140 * mm)
 doc.spacer(4 * mm)
@@ -893,7 +893,8 @@ class Renderer:
         c.restoreState()
 
     def section_heading(self, number, title):
-        self.ensure_space(14 * mm)
+        self.ensure_space(22 * mm)
+        self.y -= 4.5 * mm
         c = self.c
         badge_r = 3.6 * mm
         badge_cx = MARGIN_L + badge_r
@@ -919,7 +920,8 @@ class Renderer:
         self.y -= 5.4 * mm
 
     def subheading(self, text):
-        self.ensure_space(9 * mm)
+        self.ensure_space(13 * mm)
+        self.y -= 3.2 * mm
         c = self.c
         c.setFont("DMSans-Bold", 11.5)
         c.setFillColor(PURPLE_DARK)
@@ -942,13 +944,15 @@ class Renderer:
         max_w = CONTENT_W - 4 * mm
         lines = wrap_text(text, "DMSans", 9.2, max_w)
         c = self.c
+        self.ensure_space(13.6)
+        self.y -= 0.8 * mm
         for line in lines:
-            self.ensure_space(13.2)
+            self.ensure_space(13.6)
             c.setFont("DMSans", 9.2)
             c.setFillColor(MUTED)
-            c.drawString(MARGIN_L + 4 * mm, self.y - 13.2 + 3.2, line)
-            self.y -= 13.2
-        self.y -= 2.4 * mm
+            c.drawString(MARGIN_L + 4 * mm, self.y - 13.6 + 3.2, line)
+            self.y -= 13.6
+        self.y -= 3.2 * mm
 
     def bullet_item(self, text):
         max_w = CONTENT_W - BULLET_INDENT
@@ -964,7 +968,7 @@ class Renderer:
             c.setFillColor(BODY)
             c.drawString(MARGIN_L + BULLET_INDENT, self.y - BODY_LEADING + 3.2, line)
             self.y -= BODY_LEADING
-        self.y -= 1.6 * mm
+        self.y -= 2.4 * mm
 
     def static_line(self, label, value):
         max_w = CONTENT_W
@@ -986,29 +990,21 @@ class Renderer:
             c.setFillColor(BODY)
             c.drawString(MARGIN_L + lw + 2.2 * mm, self.y - BODY_LEADING + 3.2, extra)
             self.y -= BODY_LEADING
-        self.y -= 0.6 * mm
+        self.y -= 1.8 * mm
 
-    def field_line(self, label, field_name, width, height):
-        self.ensure_space(height + 2.5 * mm)
+    def _draw_field_box(self, field_name, label, x, y, width, height):
         c = self.c
-        c.setFont("DMSans-Bold", BODY_SIZE)
-        c.setFillColor(NAVY)
-        label_txt = label + ":"
-        c.drawString(MARGIN_L, self.y - 3.6 * mm, label_txt)
-        lw = pdfmetrics.stringWidth(label_txt, "DMSans-Bold", BODY_SIZE)
-        field_x = MARGIN_L + lw + 3.5 * mm
-        field_y = self.y - height
         c.saveState()
         c.setFillColor(PURPLE_TINT)
         c.setStrokeColor(PURPLE_LIGHT)
         c.setLineWidth(0.7)
-        c.roundRect(field_x, field_y, width, height, 1.4, stroke=1, fill=1)
+        c.roundRect(x, y, width, height, 1.4, stroke=1, fill=1)
         c.restoreState()
         self.form.textfield(
             name=self._unique(field_name),
             tooltip=label,
-            x=field_x + 1.2,
-            y=field_y + 1.2,
+            x=x + 1.2,
+            y=y + 1.2,
             width=width - 2.4,
             height=height - 2.4,
             borderStyle="underlined",
@@ -1019,6 +1015,34 @@ class Renderer:
             fontSize=9.5,
             forceBorder=False,
         )
+
+    def field_line(self, label, field_name, width, height):
+        c = self.c
+        label_txt = label + ":"
+        lw = pdfmetrics.stringWidth(label_txt, "DMSans-Bold", BODY_SIZE)
+
+        # If the label + field wouldn't fit on one line within the page's
+        # content width, stack the field on its own line below the label
+        # instead of letting it run off the right edge of the page.
+        if lw + 3.5 * mm + width > CONTENT_W:
+            effective_width = min(width, CONTENT_W)
+            self.ensure_space(6.2 * mm + height + 3.0 * mm)
+            c.setFont("DMSans-Bold", BODY_SIZE)
+            c.setFillColor(NAVY)
+            c.drawString(MARGIN_L, self.y - 3.6 * mm, label_txt)
+            self.y -= 6.2 * mm
+            field_y = self.y - height
+            self._draw_field_box(field_name, label, MARGIN_L, field_y, effective_width, height)
+            self.y = field_y - 3.0 * mm
+            return
+
+        self.ensure_space(height + 2.5 * mm)
+        c.setFont("DMSans-Bold", BODY_SIZE)
+        c.setFillColor(NAVY)
+        c.drawString(MARGIN_L, self.y - 3.6 * mm, label_txt)
+        field_x = MARGIN_L + lw + 3.5 * mm
+        field_y = self.y - height
+        self._draw_field_box(field_name, label, field_x, field_y, width, height)
         self.y = field_y - 3.0 * mm
 
     def checkbox_item(self, text, field_name):
@@ -1049,7 +1073,7 @@ class Renderer:
             c.setFillColor(BODY)
             c.drawString(MARGIN_L + 8 * mm, self.y - BODY_LEADING + 3.2, line)
             self.y -= BODY_LEADING
-        self.y -= 1.6 * mm
+        self.y -= 2.6 * mm
 
     def table_block(self, headers, widths, rows_count, field_prefix, row_h):
         total_w = sum(widths)
