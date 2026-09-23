@@ -7,19 +7,19 @@
 // accounting API call still needs an `xero-tenant-id` header, and the only
 // way to learn that id is this same /connections call).
 //
-// Auth: Authorization: Bearer <SEND_EMAIL_TOKEN> — reusing the existing
-// internal-ops token rather than minting a fourth secret for one status
-// endpoint. Revisit if Xero endpoints grow enough to want their own.
+// Auth: Authorization: Bearer <XERO_STATUS_TOKEN> — its own secret rather
+// than reusing SEND_EMAIL_TOKEN, so rotating one Xero endpoint's access
+// never touches the unrelated email-sending endpoint's.
 const crypto = require('crypto');
 
 const XERO_CLIENT_ID = process.env.XERO_CLIENT_ID || '';
 const XERO_CLIENT_SECRET = process.env.XERO_CLIENT_SECRET || '';
-const SEND_EMAIL_TOKEN = process.env.SEND_EMAIL_TOKEN || '';
+const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
 
 function tokenMatches(header) {
   if (typeof header !== 'string' || !header.startsWith('Bearer ')) return false;
   const given = Buffer.from(header.slice(7).trim());
-  const want = Buffer.from(SEND_EMAIL_TOKEN);
+  const want = Buffer.from(XERO_STATUS_TOKEN);
   return given.length === want.length && crypto.timingSafeEqual(given, want);
 }
 
@@ -51,7 +51,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'GET') {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
-  if (!SEND_EMAIL_TOKEN || !tokenMatches(req.headers.authorization)) {
+  if (!XERO_STATUS_TOKEN || !tokenMatches(req.headers.authorization)) {
     return res.status(401).json({ ok: false, error: 'Unauthorized' });
   }
   if (!XERO_CLIENT_ID || !XERO_CLIENT_SECRET) {
