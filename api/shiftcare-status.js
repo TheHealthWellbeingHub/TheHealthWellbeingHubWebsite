@@ -51,16 +51,24 @@ module.exports = async (req, res) => {
     const topLevelKeys = keysOnly(body);
     const itemsKey = Array.isArray(body) ? null : Object.keys(body).find((k) => Array.isArray(body[k]));
     const items = Array.isArray(body) ? body : (itemsKey ? body[itemsKey] : []);
-    const firstItemKeys = items[0] ? keysOnly(items[0]) : null;
+    const firstItem = items[0] || null;
+    const firstItemKeys = firstItem ? keysOnly(firstItem) : null;
+    const totalsKeys = firstItem && firstItem.totals ? keysOnly(firstItem.totals) : null;
+    const lineItems = firstItem && firstItem.line_items;
+    const firstLineItemKeys = Array.isArray(lineItems) && lineItems[0] ? keysOnly(lineItems[0]) : null;
 
     return res.status(200).json({
       ok: true,
       connected: true,
       dateRangeUsed: { from: fmt(weekAgo), to: fmt(today) },
       topLevelKeys,
+      paginationKeys: body.pagination ? keysOnly(body.pagination) : null,
       itemsFieldName: itemsKey,
       itemCount: items.length,
       firstItemKeys,
+      totalsKeys,
+      lineItemsCount: Array.isArray(lineItems) ? lineItems.length : null,
+      firstLineItemKeys,
     });
   } catch (err) {
     return res.status(502).json({ ok: false, connected: false, error: 'shiftcare_error', detail: err.message });
