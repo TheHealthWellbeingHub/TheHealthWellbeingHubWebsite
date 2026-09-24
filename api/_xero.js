@@ -83,4 +83,12 @@ function tokenMatches(given, want) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-module.exports = { isConfigured, getAccessToken, xeroApiFetch, tokenMatches };
+// Small orgs rarely have more than a page of contacts, so one fetch (Xero
+// defaults to 100/page) covers matching without dealing with query-string
+// escaping for a server-side "where" filter per lookup.
+async function listAllContacts() {
+  const body = await xeroApiFetch('/Contacts');
+  return body.Contacts || [];
+}
+
+module.exports = { isConfigured, getAccessToken, xeroApiFetch, listAllContacts, tokenMatches };

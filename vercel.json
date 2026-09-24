@@ -4,6 +4,12 @@
       "includeFiles": "{participant-documents,email-templates}/**"
     }
   },
+  "crons": [
+    {
+      "path": "/api/weekly-invoice-draft",
+      "schedule": "0 22 * * 0"
+    }
+  ],
   "redirects": [
     {
       "source": "/:path*",
