@@ -39,14 +39,16 @@ module.exports = async (req, res) => {
   }
 
   const today = new Date();
-  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const days = Math.min(Number(req.query.days) || 7, 60);
+  const perPage = Math.min(Number(req.query.per_page) || 1, 50);
+  const daysAgo = new Date(today.getTime() - days * 24 * 60 * 60 * 1000);
   const fmt = (d) => d.toISOString().slice(0, 10);
 
   try {
     const body = await shiftcareApiFetch('/api/v3/invoiceable_items', {
-      start_date_in_account_time_zone: fmt(weekAgo),
+      start_date_in_account_time_zone: fmt(daysAgo),
       end_date_in_account_time_zone: fmt(today),
-      per_page: 1,
+      per_page: perPage,
     });
     const topLevelKeys = keysOnly(body);
     const itemsKey = Array.isArray(body) ? null : Object.keys(body).find((k) => Array.isArray(body[k]));
@@ -54,20 +56,32 @@ module.exports = async (req, res) => {
     const firstItem = items[0] || null;
     const firstItemKeys = firstItem ? keysOnly(firstItem) : null;
     const totalsKeys = firstItem && firstItem.totals ? keysOnly(firstItem.totals) : null;
-    const lineItems = firstItem && firstItem.line_items;
-    const firstLineItemKeys = Array.isArray(lineItems) && lineItems[0] ? keysOnly(lineItems[0]) : null;
+
+    // Search across every returned client for the first non-empty
+    // line_items array — shape only (keys), never real amounts/descriptions.
+    let firstLineItemKeys = null;
+    let lineItemsCount = null;
+    let clientsWithNonZeroTotal = 0;
+    for (const item of items) {
+      if (item.totals && Number(item.totals.sub_total) > 0) clientsWithNonZeroTotal += 1;
+      if (!firstLineItemKeys && Array.isArray(item.line_items) && item.line_items.length) {
+        firstLineItemKeys = keysOnly(item.line_items[0]);
+        lineItemsCount = item.line_items.length;
+      }
+    }
 
     return res.status(200).json({
       ok: true,
       connected: true,
-      dateRangeUsed: { from: fmt(weekAgo), to: fmt(today) },
+      dateRangeUsed: { from: fmt(daysAgo), to: fmt(today) },
       topLevelKeys,
       paginationKeys: body.pagination ? keysOnly(body.pagination) : null,
       itemsFieldName: itemsKey,
       itemCount: items.length,
+      clientsWithNonZeroTotal,
       firstItemKeys,
       totalsKeys,
-      lineItemsCount: Array.isArray(lineItems) ? lineItems.length : null,
+      lineItemsCount,
       firstLineItemKeys,
     });
   } catch (err) {
