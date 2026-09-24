@@ -70,9 +70,15 @@ async function fetchAllInvoiceableItems(start, end) {
   return clients;
 }
 
-function findContactMatch(clientName, contacts) {
-  const target = clientName.trim().toLowerCase();
-  const matches = contacts.filter((c) => (c.Name || '').trim().toLowerCase() === target);
+// Xero invoices go to the participant's plan manager organisation, not the
+// participant by name — confirmed against real ShiftCare records, where
+// the plan manager is (inconsistently, if at all) buried in free-text
+// notes alongside unrelated clinical content this code must never parse.
+// The reliable fix: each Xero contact's AccountNumber field is set, once,
+// to the matching ShiftCare client_id — an exact key, not a name guess.
+function findContactMatch(clientId, contacts) {
+  const target = String(clientId).trim();
+  const matches = contacts.filter((c) => (c.AccountNumber || '').trim() === target);
   if (matches.length === 1) return { status: 'matched', contact: matches[0] };
   if (matches.length > 1) return { status: 'ambiguous', count: matches.length };
   return { status: 'unmatched' };
@@ -115,11 +121,11 @@ module.exports = async (req, res) => {
         skipped.push({ client_id: c.client_id, client_name: c.client_name, reason: 'nothing to invoice' });
         continue;
       }
-      const match = findContactMatch(c.client_name, contacts);
+      const match = findContactMatch(c.client_id, contacts);
       const warnings = [];
       if (c.excluded_count > 0) warnings.push(`${c.excluded_count} item(s) excluded by ShiftCare — check before invoicing`);
-      if (match.status === 'unmatched') warnings.push('No matching Xero contact found — needs manual mapping');
-      if (match.status === 'ambiguous') warnings.push(`${match.count} Xero contacts share this name — needs manual mapping`);
+      if (match.status === 'unmatched') warnings.push(`No Xero contact has Account Number = ${c.client_id} — set it on the right contact, then re-run`);
+      if (match.status === 'ambiguous') warnings.push(`${match.count} Xero contacts share Account Number ${c.client_id} — fix the duplicate, then re-run`);
 
       draft.push({
         client_id: c.client_id,
