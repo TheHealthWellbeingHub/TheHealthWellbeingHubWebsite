@@ -1,7 +1,8 @@
-// Read-only health check: confirms the stored refresh token still works and
-// shows which Xero organisation it's connected to, without touching any
-// invoice, contact or accounting data. Safe to call as often as needed.
-const { isConfigured, getAccessContext, canPersistToVercel, xeroApiFetch, tokenMatches } = require('./_xero');
+// Read-only health check: confirms the Custom Connection credentials still
+// work and shows which Xero organisation they're scoped to, without
+// touching any invoice, contact or accounting data. Safe to call as often
+// as needed.
+const { isConfigured, xeroApiFetch, tokenMatches } = require('./_xero');
 
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
 
@@ -18,22 +19,14 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { tenantId } = await getAccessContext();
     const org = await xeroApiFetch('/Organisation');
     return res.status(200).json({
       ok: true,
       connected: true,
-      tenantId,
       organisationName: org.Organisations?.[0]?.Name,
-      selfPersisting: await canPersistToVercel(),
+      organisationId: org.Organisations?.[0]?.OrganisationID,
     });
   } catch (err) {
-    const notConnected = err.message.startsWith('not_connected');
-    return res.status(notConnected ? 409 : 502).json({
-      ok: false,
-      connected: false,
-      error: notConnected ? 'not_connected' : 'xero_error',
-      detail: err.message,
-    });
+    return res.status(502).json({ ok: false, connected: false, error: 'xero_error', detail: err.message });
   }
 };
