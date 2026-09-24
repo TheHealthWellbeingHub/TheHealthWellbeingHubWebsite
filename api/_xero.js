@@ -91,4 +91,14 @@ async function listAllContacts() {
   return body.Contacts || [];
 }
 
-module.exports = { isConfigured, getAccessToken, xeroApiFetch, listAllContacts, tokenMatches };
+// The org's default revenue account, used when creating an invoice line
+// item that doesn't specify one. Picks the first active REVENUE-class
+// account rather than guessing a code, and fails loudly if none exists.
+async function getDefaultRevenueAccountCode() {
+  const body = await xeroApiFetch('/Accounts');
+  const account = (body.Accounts || []).find((a) => a.Class === 'REVENUE' && a.Status === 'ACTIVE');
+  if (!account) throw new Error('No active REVENUE account found in the Xero chart of accounts');
+  return account.Code;
+}
+
+module.exports = { isConfigured, getAccessToken, xeroApiFetch, listAllContacts, getDefaultRevenueAccountCode, tokenMatches };
