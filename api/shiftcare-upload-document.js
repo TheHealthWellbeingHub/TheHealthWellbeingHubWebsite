@@ -20,7 +20,15 @@ const crypto = require('crypto');
 const SHIFTCARE_ACCOUNT_ID = process.env.SHIFTCARE_ACCOUNT_ID || '291708';
 const SHIFTCARE_API_KEY = process.env.SHIFTCARE_API_KEY || '';
 const SHIFTCARE_UPLOAD_TOKEN = process.env.SHIFTCARE_UPLOAD_TOKEN || '';
-const SHIFTCARE_BASE = 'https://app.shiftcare.com';
+// api.shiftcare.com is the real API host, confirmed from ShiftCare's own
+// public spec (host: "api.shiftcare.com", basePath: "/api/") — NOT
+// app.shiftcare.com, which is the login-gated web app. Using the wrong host
+// was the first bug found here: it returned a plausible-looking JSON
+// {"error":"Not Found"} for every client_id, real or fake, which passed an
+// earlier safety test (a deliberately nonexistent id) without proving
+// anything — the endpoint was 404ing regardless of which client it asked
+// for. Caught by re-testing against a client just confirmed to exist.
+const SHIFTCARE_BASE = 'https://api.shiftcare.com/api';
 
 // Exactly ShiftCare's own accepted list (their API spec, verified 24 Sep
 // 2026) — images are explicitly NOT accepted, so a photo of a document has
