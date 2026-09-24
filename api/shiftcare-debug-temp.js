@@ -14,12 +14,36 @@ module.exports = async (req, res) => {
     headers: { Authorization: `Basic ${basic}` },
   });
   const text = await scRes.text();
+
+  // Now the same POST the real endpoint attempts, with a tiny sample file,
+  // so we can see ShiftCare's exact response to the multipart request.
+  const boundary = '----debug' + require('crypto').randomBytes(8).toString('hex');
+  const fileContent = Buffer.from('diagnostic test file');
+  const body = Buffer.concat([
+    Buffer.from(
+      `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="diagnostic.txt"\r\nContent-Type: text/plain\r\n\r\n`,
+      'utf-8'
+    ),
+    fileContent,
+    Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8'),
+  ]);
+  const postRes = await fetch('https://api.shiftcare.com/api/v3/clients/1170019/documents', {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${basic}`,
+      'Content-Type': `multipart/form-data; boundary=${boundary}`,
+    },
+    body,
+  });
+  const postText = await postRes.text();
+
   return res.status(200).json({
     account_id_len: SHIFTCARE_ACCOUNT_ID.length,
     api_key_len: SHIFTCARE_API_KEY.length,
-    api_key_first4: SHIFTCARE_API_KEY.slice(0, 4),
-    api_key_last4: SHIFTCARE_API_KEY.slice(-4),
-    shiftcare_status: scRes.status,
-    shiftcare_body: text.slice(0, 500),
+    shiftcare_get_status: scRes.status,
+    shiftcare_get_body: text.slice(0, 200),
+    shiftcare_post_status: postRes.status,
+    shiftcare_post_body: postText.slice(0, 500),
+    post_url_tried: 'https://api.shiftcare.com/api/v3/clients/1170019/documents',
   });
 };
