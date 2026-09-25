@@ -43,6 +43,18 @@ alter any of them, stop and confirm with the user rather than guessing.
 | ~~HubSpot data region~~ | ~~ap1 (Asia-Pacific)~~ retired |
 | GA4 Measurement ID | `G-66FG6SCSL0` |
 
+### Referrers vs leads — two different things
+
+- **Referrer:** someone who has actually sent us a participant, whatever happened with that
+  participant.
+- **Lead:** a *potential* referrer — a contact we'd like referrals from who hasn't sent anyone
+  yet. A lead becomes a referrer automatically when their first referral is logged.
+
+Both live in the Supabase `referrers` table (a referrer has `has_referred`, a count, or a linked
+referral). The database's `leads` table is neither: it holds the referrals and enquiries
+themselves — the name predates this distinction. In anything a person reads, say "referrals"
+or "enquiries" for those rows, never "leads".
+
 ### Two different service footprints
 
 This is easy to get wrong, and getting it wrong misleads participants:
