@@ -14,6 +14,37 @@ only what is **different**, and what still has to be built.
 
 ---
 
+## Current triggers and outcomes — updated 25 Sep 2026
+
+HubSpot is retired; the sections below are mostly historical. An enquiry enters through one of
+three triggers, and **all three go through `api/lead-submit.js`**:
+
+| # | Trigger | How |
+|---|---|---|
+| 1 | Enquiry form on `/` and `/contact/` | `form_name: "enquiry"` from the browser |
+| 2 | Command Centre → Create New Referral → "Enquiry" | `form_name: "staff_enquiry"`, `referral_taken_by: "Command Centre"` |
+| 3 | Claude, when a worker asks it to log an enquiry | POST `https://www.thehealthwellbeinghub.com/api/lead-submit` with `form_name: "staff_enquiry"`, `staff_consent_attested: "Yes"` (only once the worker confirms the person was told how their details will be used), `referral_taken_by: "Claude"` |
+
+Each creates an `ENQ-<year>-<seq>` lead and a 2-hour "Contact new enquiry" task, and — **whenever
+an email is given — sends email 03 "We received your enquiry"** (a failed send raises
+`ACKNOWLEDGE MANUALLY`). Someone whose last enquiry is still open (same email or phone) is a
+returning enquirer: the open enquiry is reused and a "Contact returning enquiry" task raised.
+A **support coordinator, plan manager or GP / health professional** who enquires is also saved
+as a **lead** (potential referrer) in the Command Centre's Referrers → Leads, with their latest
+enquiry. Never insert an enquiry into `leads` directly.
+
+Staff-route fields: `name` (required), `email`, `phone`, `enquirer_role` (`NDIS Participant` ·
+`Parent / Family member / Carer` · `Support Coordinator` · `Plan Manager` ·
+`GP / Health professional` · `Other`), `service_needed`, `suburb`, `enquiry_channel`.
+
+**After the call**, the outcome is recorded on the Command Centre's outcome page
+(`/dashboard/leads/<id>/outcome`): Going ahead (→ Service Agreement Sent and the Consent email
+task, workflow 03), Wants time to think (7-day follow-up), Said no, **Not a fit for us** (with
+a reason: outside our service area · a service we don't offer · other), or Withdrew. **No
+outcome email goes to an enquirer** (decided 25 Sep 2026) — they are told on the call.
+
+---
+
 ## Why this is not just workflow 01 with different words
 
 Four differences, each of which changes behaviour rather than copy.

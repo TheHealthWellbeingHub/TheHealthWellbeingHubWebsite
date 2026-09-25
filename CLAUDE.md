@@ -202,9 +202,10 @@ The worker is trying to complete a task. Get them to the next action and stop.
   `api/send-participant-email.js`, which reads the required fields from the template itself
   and fills `{{Phone Number}}`, `{{Email Address}}` and the unsubscribe link itself.
   Field list per template: `docs/email-merge-fields.md`.
-- **Creating a referral:** always through `api/lead-submit.js` (`form_name: "staff_referral"`),
-  never a direct insert into `leads` — that is what sends the referrer email 02 and raises the
-  call task. Details: `docs/workflow-01-referral.md`, "Current triggers".
+- **Creating a referral or an enquiry:** always through `api/lead-submit.js`
+  (`form_name: "staff_referral"` / `"staff_enquiry"`), never a direct insert into `leads` —
+  that is what sends email 02 / 03 and raises the call task. Details:
+  `docs/workflow-01-referral.md` and `docs/workflow-02-enquiry.md`, "Current triggers".
 - **Git hooks:** `.githooks/pre-commit` blocks commits authored on the production branch,
   which is also the default branch, so a push to it is a live release. Claude Code enables it
   automatically via `SessionStart` in `.claude/settings.json`; otherwise run
