@@ -13,9 +13,12 @@ const { isConfigured, sendEmail } = require('./_mail');
 const SEND_DOCUMENTS_TOKEN = process.env.SEND_DOCUMENTS_TOKEN || '';
 const ALLOWED_RECIPIENTS = ['officethehealthwellbeinghub@gmail.com', 'thehealthwellbeinghub@gmail.com'];
 
+// Literal paths, not built from a variable: Vercel's bundler traces
+// path.join(process.cwd(), <variable>) as "anything under the project" and
+// the build fails.
 const FOLDERS = [
-  { dir: 'participant-documents', label: 'Sent to participants' },
-  { dir: 'staff-documents', label: 'For staff and contractors' },
+  { dir: path.join(process.cwd(), 'participant-documents'), label: 'Sent to participants' },
+  { dir: path.join(process.cwd(), 'staff-documents'), label: 'For staff and contractors' },
 ];
 
 function tokenMatches(header) {
@@ -43,9 +46,8 @@ module.exports = async (req, res) => {
   }
 
   const groups = FOLDERS.map(({ dir, label }) => {
-    const full = path.join(process.cwd(), dir);
-    const files = fs.existsSync(full) ? fs.readdirSync(full).filter((f) => f.toLowerCase().endsWith('.pdf')).sort() : [];
-    return { label, files: files.map((f) => ({ path: path.join(full, f), filename: f })) };
+    const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.toLowerCase().endsWith('.pdf')).sort() : [];
+    return { label, files: files.map((f) => ({ path: path.join(dir, f), filename: f })) };
   });
   const attachments = groups.flatMap((g) => g.files);
   if (!attachments.length) return res.status(500).json({ ok: false, error: 'No documents found' });
