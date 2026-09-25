@@ -1,6 +1,6 @@
 // ShiftCare REST API helper. Not a route itself (Vercel skips files
-// prefixed with "_"). Used by shiftcare-status.js and, later, the weekly
-// invoiceable-items pull.
+// prefixed with "_"). Used by the weekly invoiceable-items pull
+// (weekly-invoice-draft.js) and the Xero create-invoice action.
 //
 // ShiftCare's public API uses HTTP Basic Auth with the numeric account ID
 // as username and the API key as password (help.shiftcare.com — Managing
