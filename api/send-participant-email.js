@@ -1,8 +1,9 @@
-// Vercel serverless function — sends any of the 13 lifecycle emails in
+// Vercel serverless function — sends any of the 14 emails in
 // email-templates/ from the H&W mailbox. HubSpot is no longer used, so this
-// is the one send path for every template. Two carry fixed PDF attachments:
-// the Consent email (04, two fillable forms and the service agreement) and
-// the Welcome pack (12, four easy-read guides).
+// is the one send path for every template. Three carry fixed PDF attachments:
+// the Consent email (04, two fillable forms and the service agreement), the
+// Welcome pack (12, four easy-read guides) and the new support worker
+// welcome (14, the support worker agreement).
 //
 // One recipient per call, and only the templates listed below. Attachments
 // are fixed per template and never chosen by the caller.
@@ -25,6 +26,7 @@ const SMTP_APP_PASSWORD = process.env.SMTP_APP_PASSWORD || '';
 const SEND_EMAIL_TOKEN = process.env.SEND_EMAIL_TOKEN || '';
 
 const DOCS_DIR = path.join(process.cwd(), 'participant-documents');
+const STAFF_DOCS_DIR = path.join(process.cwd(), 'staff-documents');
 const TEMPLATES_DIR = path.join(process.cwd(), 'email-templates');
 
 // A mailto because these are one-to-one operational sends from the mailbox —
@@ -70,6 +72,14 @@ const TEMPLATES = {
     required: ['Participant First Name', 'Staff Member', 'Role'],
   },
   'referral-going-ahead': { file: '13-referral-outcome-going-ahead.html' },
+  // Sent to a new support worker, not a participant — its attachment lives
+  // in staff-documents/, which is never served on the public site.
+  'worker-welcome': {
+    file: '14-new-support-worker-welcome.html',
+    subject: 'Welcome to the team, {{Worker First Name}}',
+    docsDir: STAFF_DOCS_DIR,
+    attachments: ['The Health & Well-being Hub - Support Worker Agreement (Fillable).pdf'],
+  },
 };
 
 const TOKEN_RE = /\{\{\s*([^{}|]+?)\s*(?:\|([^{}]*))?\}\}/g;
@@ -208,7 +218,7 @@ module.exports = async (req, res) => {
       subject,
       html: filled,
       text: htmlToText(filled),
-      attachments: attachments.map((name) => ({ path: path.join(DOCS_DIR, name), filename: name })),
+      attachments: attachments.map((name) => ({ path: path.join(spec.docsDir || DOCS_DIR, name), filename: name })),
     });
     return res.status(200).json({ ok: true, template: f.template, to: f.to, subject, attachments });
   } catch (err) {

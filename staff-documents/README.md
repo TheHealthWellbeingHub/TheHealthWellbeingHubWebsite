@@ -1,8 +1,10 @@
 # Staff documents
 
 Documents for staff and contractors, not participants. Kept here so any session can
-attach them from the H&W mailbox — `api/send-document-pack.js` emails the whole set
-(with `participant-documents/`) to an H&W inbox.
+attach them from the H&W mailbox. The Support Worker Agreement goes out with email 14
+(`worker-welcome`, the new support worker welcome) through `api/send-participant-email.js`,
+and `api/send-document-pack.js` emails the whole set (with `participant-documents/`) to an
+H&W inbox.
 
 | File | Fields | Source |
 |---|---|---|

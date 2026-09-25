@@ -185,3 +185,12 @@ File `13-referral-outcome-going-ahead.html` · subject: Referral update
 | `Participant First Name` | no | the participant |
 | `First Name` | no | there |
 | `Service` | no | NDIS supports |
+
+## `worker-welcome` — 14
+
+File `14-new-support-worker-welcome.html` · subject: Welcome to the team, {{Worker First Name}} · attachments: Support Worker Agreement (from `staff-documents/`) · sent to a new support worker, not a participant
+
+| Field | Required | Fallback |
+|---|---|---|
+| `Worker First Name` | yes | — |
+| `Staff Member` | yes | — |

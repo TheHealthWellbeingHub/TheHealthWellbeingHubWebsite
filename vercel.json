@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/send-participant-email.js": {
-      "includeFiles": "{participant-documents,email-templates}/**",
+      "includeFiles": "{participant-documents,staff-documents,email-templates}/**",
       "maxDuration": 60
     },
     "api/send-document-pack.js": {
