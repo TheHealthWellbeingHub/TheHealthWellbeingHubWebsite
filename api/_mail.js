@@ -37,7 +37,7 @@ function smtpSend({ to, message }) {
 
     const authPlain = Buffer.from(`\u0000${SMTP_USER}\u0000${SMTP_APP_PASSWORD}`).toString('base64');
     const script = [
-      [220, `EHLO weekly-invoice-draft\r\n`],
+      [220, `EHLO thehealthwellbeinghub.com\r\n`],
       [250, `AUTH PLAIN ${authPlain}\r\n`],
       [235, `MAIL FROM:<${SMTP_USER}>\r\n`],
       [250, `RCPT TO:<${to}>\r\n`],
@@ -107,4 +107,4 @@ async function sendPlainEmail({ to, subject, text, html }) {
   return smtpSend({ to, message });
 }
 
-module.exports = { isConfigured, sendPlainEmail, smtpSend };
+module.exports = { isConfigured, sendPlainEmail, smtpSend, b64lines };

@@ -55,11 +55,13 @@ again here — it holds at that stage for as long as the forms are outstanding.
 | `{{Staff Member}}` | Whoever is named as the primary contact |
 | `{{Role}}` | Their role, e.g. Support Coordinator |
 | `{{Service}}` | The requested service from the referral |
-| `{{Date}}` | Proposed start — `TBC` if not yet set |
+| `{{Start Date}}` | Proposed start — `TBC` if not yet set |
 | `{{Schedule}}` | Preferred schedule — `TBC` if not yet set |
 | `{{Location}}` | Where support happens |
-| `{{Phone Number}}` / `{{Email Address}}` | H&W's own contact details, not the participant's |
-| `{{unsubscribe_url}}` | Resolved by HubSpot when this is actually sent through it; a literal `#` in a dry run |
+
+Phone and email are written into the template, not merge fields. `{{Unsubscribe Link}}`
+is filled by `api/send-participant-email` itself. Full field list for every template:
+`docs/email-merge-fields.md`.
 
 ---
 
@@ -91,8 +93,6 @@ four attachments.
 | `{{Participant First Name}}` | The participant |
 | `{{Staff Member}}` | Same primary contact as the Consent email |
 | `{{Role}}` | Their role |
-| `{{Phone Number}}` / `{{Email Address}}` | H&W's own contact details |
-| `{{unsubscribe_url}}` | As above |
 
 ---
 

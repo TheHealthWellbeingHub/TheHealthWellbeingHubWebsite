@@ -176,12 +176,11 @@ The worker is trying to complete a task. Get them to the next action and stop.
   supplied as finished HTML, because a generator holding a superseded design silently overwrites
   approved work the next time anyone runs it. `build_index.py` only reads the templates and
   rebuilds `index.html` from them.
-- **Merge fields:** the email templates use `{{Double Brackets}}` in Title Case. HubSpot uses
-  its own token syntax bound to contact properties, so the repo's style never survives the
-  build — converting is a manual step per email, verified live 24 Aug 2026 and recorded in
-  `docs/hubspot-manual-setup.md`. Repo templates are **design source, not send-ready**: several
-  still carry editorial notes inside token braces (e.g. `{{Neutral Reason / At your request}}`)
-  that would render literally. Resolve them by hand, as was done for live emails 02 and 03.
+- **Merge fields:** the email templates use `{{Title Case}}` — `{{Key}}` is required,
+  `{{Key|fallback}}` renders the fallback when no value is given. HubSpot is no longer used;
+  every template sends through `api/send-participant-email.js`, which reads the required
+  fields from the template itself (plus a stricter list for the Consent and Welcome emails).
+  Field list per template: `docs/email-merge-fields.md`.
 - **Git hooks:** `.githooks/pre-commit` blocks commits authored on the production branch,
   which is also the default branch, so a push to it is a live release. Claude Code enables it
   automatically via `SessionStart` in `.claude/settings.json`; otherwise run
