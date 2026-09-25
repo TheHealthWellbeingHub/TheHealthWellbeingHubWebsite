@@ -15,7 +15,36 @@ the marketing email and the simple workflow are not yet built.
 
 ---
 
-## Trigger
+## Current triggers — updated 25 Sep 2026
+
+HubSpot is retired; most of this file below is historical. A referral now enters through
+one of three triggers, and **all three go through `api/lead-submit.js`**, so they behave the
+same way: a `leads` row with a `REF-<year>-<seq>` reference, the referrer reused if already
+on file (matched by email or phone), a 2-hour call task, and — **whenever a referrer email is
+given — email 02 "Referral received" to the referrer**. A failed send raises an
+`ACKNOWLEDGE MANUALLY` task instead.
+
+| # | Trigger | How it reaches `lead-submit.js` |
+|---|---|---|
+| 1 | Website referral form (`/referrals/`), and the staff form at `/staff/<token>/` | `form_name: "referral"` / `"staff_referral"` from the browser |
+| 2 | Command Centre → "+ Create New Referral" | Server-side POST, `form_name: "staff_referral"`, `referral_taken_by: "Command Centre"` |
+| 3 | Claude, when a worker asks it to log a referral | POST `https://www.thehealthwellbeinghub.com/api/lead-submit` with `form_name: "staff_referral"`, `staff_consent_attested: "Yes"` (only once the worker confirms they told the referrer how their details will be used), `referral_taken_by: "Claude"` |
+
+**Never create a referral by inserting into `leads` directly** — that skips the referrer
+match, the call task and email 02. Fields: `participant_name` (required),
+`participant_contact`, `service_needed`, `suburb`, `referrer_name`, `referrer_email`,
+`referrer_phone`, `referrer_organisation`, `referral_channel` (`Phone call` · `Direct email` ·
+`Text message` · `In person`), `participant_consent_confirmed` (`Yes`/`No`). The response
+gives `reference` and `acknowledgementStatus` (`sent` · `failed` · `not_applicable`); tell the
+worker which.
+
+After the call, the outcome (going ahead · wants time to think · said no · withdrew) is
+recorded on the Command Centre's outcome page, `/dashboard/leads/<id>/outcome`, which
+previews and sends email 13, 10 or 11 through `api/send-participant-email.js`.
+
+---
+
+## Trigger (historical — HubSpot era)
 
 `referrals/index.html` → `<form data-form-name="referral">` → `static/js/main.js`
 (`FORM_ENDPOINT = '/api/hubspot-submit'`) → `api/hubspot-submit.js`.
