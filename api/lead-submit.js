@@ -195,6 +195,56 @@ async function findOpenLeadForReferrer(referrerId, participantName) {
   return rows[0] || null;
 }
 
+// Someone who enquires again while their last enquiry is still open is the
+// same enquiry, matched on their email or phone.
+async function findOpenEnquiry(email, phone) {
+  const open = 'type=eq.enquiry&stage=not.in.(participant_onboarded,lost_not_suitable)&order=created_at.desc&limit=1';
+  if (looksLikeEmail(email)) {
+    const [byEmail] = await selectMany('leads', `participant_contact=ilike.${ilikeExact(email)}&${open}`);
+    if (byEmail) return byEmail;
+  }
+  if (phone && String(phone).trim()) {
+    const [byPhone] = await selectMany('leads', `participant_contact=eq.${encodeURIComponent(String(phone).trim())}&${open}`);
+    if (byPhone) return byPhone;
+  }
+  return null;
+}
+
+// A support coordinator, plan manager or health professional who enquires
+// is a potential referrer: they're saved as a lead in the Referrers
+// directory (contact_type Referral partner, has_referred untouched), with
+// their latest enquiry. Never fails the submission.
+const PROFESSIONAL_ENQUIRERS = {
+  'Support Coordinator': 'Support Coordinator',
+  'Plan Manager': 'Plan Manager',
+  'GP / Health professional': null,
+};
+async function saveProfessionalAsLead(f, lead, serviceNeeded) {
+  if (!Object.prototype.hasOwnProperty.call(PROFESSIONAL_ENQUIRERS, f.enquirer_role)) return null;
+  const email = looksLikeEmail(f.email) ? f.email : '';
+  if (!email && !f.phone && !(f.name || '').trim()) return null;
+  const role = PROFESSIONAL_ENQUIRERS[f.enquirer_role];
+  try {
+    return await upsertReferrer({
+      name: f.name,
+      email,
+      phone: f.phone,
+      company: f.organisation,
+      extra: {
+        contact_type: 'Referral partner',
+        ...(role ? { referrer_role: role } : { jobtitle: f.enquirer_role }),
+        contact_status: 'We_owe_a_reply',
+        latest_enquiry_date: new Date().toISOString().slice(0, 10),
+        latest_enquiry_reference: lead.reference || null,
+        latest_enquiry_service: serviceNeeded || null,
+      },
+    });
+  } catch (err) {
+    console.error('professional enquirer save failed:', err.message);
+    return null;
+  }
+}
+
 // Keeps the Referral Partners directory current: how many people this
 // partner has referred and the latest one. Never fails the submission.
 async function recordReferralOnReferrer(referrerId, lead, serviceNeeded) {
@@ -252,7 +302,9 @@ function consentTaskSubject(f, formName, isReturning) {
 
 function buildEnquiryNote(f, sourcePage, campaign) {
   const lines = [
-    `Website enquiry submitted ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}`,
+    f.form_name === 'staff_enquiry'
+      ? `Enquiry logged by ${f.referral_taken_by || 'staff'}${f.enquiry_channel ? ` (${f.enquiry_channel})` : ''} ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}`
+      : `Website enquiry submitted ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}`,
     sourcePage ? `Submitted from: ${sourcePage}` : null,
     campaign ? `Campaign: ${campaign}` : null,
     f.enquirer_role ? `I am a: ${f.enquirer_role}` : null,
@@ -381,7 +433,7 @@ module.exports = async (req, res) => {
   }
 
   const ip = clientIp(req);
-  const staffEntry = (req.body || {}).form_name === 'staff_referral';
+  const staffEntry = ['staff_referral', 'staff_enquiry'].includes((req.body || {}).form_name);
   if (isRateLimited(ip, staffEntry ? STAFF_RATE_LIMIT_MAX : RATE_LIMIT_MAX)) {
     console.warn('rate limited submission from', ip);
     return res.status(429).json({ ok: false, error: 'Too many submissions. Please try again shortly.' });
@@ -398,20 +450,25 @@ module.exports = async (req, res) => {
       return res.status(413).json({ ok: false, error: 'Submission too large' });
     }
 
-    const isStaffEntry = f.form_name === 'staff_referral';
+    // Staff routes: staff_referral / staff_enquiry are the same as the public
+    // forms, logged by a worker (Command Centre or Claude) who attests the
+    // person was told how their details will be used.
+    const isStaffEntry = f.form_name === 'staff_referral' || f.form_name === 'staff_enquiry';
     if (!isAffirmative(isStaffEntry ? f.staff_consent_attested : f.privacy_consent)) {
       console.warn('rejected submission without privacy consent from', ip);
       return res.status(400).json({
         ok: false,
         error: isStaffEntry
-          ? 'Please confirm you told the referrer how their details will be used.'
+          ? `Please confirm you told the ${f.form_name === 'staff_enquiry' ? 'person enquiring' : 'referrer'} how their details will be used.`
           : 'Please confirm you have read the Privacy Policy before submitting.',
       });
     }
 
-    const formName = isStaffEntry
+    const formName = f.form_name === 'staff_referral'
       ? 'referral'
-      : f.form_name || (f.participant_name ? 'referral' : 'enquiry');
+      : f.form_name === 'staff_enquiry'
+        ? 'enquiry'
+        : f.form_name || (f.participant_name ? 'referral' : 'enquiry');
 
     const sourcePage = submissionPageName(f, req, '');
     const sourceUrl = submissionPageUri(req, '');
@@ -549,7 +606,7 @@ module.exports = async (req, res) => {
 
     const existingOpenLead = formName === 'referral'
       ? await findOpenLeadForReferrer(referrer && referrer.id, f.participant_name)
-      : null;
+      : await findOpenEnquiry(f.email, f.phone);
     const isReturning = !!existingOpenLead;
 
     const serviceLine = SERVICE_LINE_MAP[(f.service_needed || '').replace('&amp;', '&')] || null;
@@ -594,6 +651,9 @@ module.exports = async (req, res) => {
     if (formName === 'referral' && referrer) {
       await recordReferralOnReferrer(referrer.id, lead, serviceLine || f.service_needed);
     }
+    const professionalLead = formName === 'enquiry'
+      ? await saveProfessionalAsLead(f, lead, serviceLine || f.service_needed)
+      : null;
 
     const noteBody = formName === 'referral'
       ? buildReferralNote(f, sourcePage, campaign, isStaffEntry, contactBelongsToReferrer)
@@ -677,6 +737,7 @@ module.exports = async (req, res) => {
       reference,
       isReturning,
       acknowledgementStatus,
+      savedAsLeadContact: Boolean(professionalLead),
     });
   } catch (err) {
     console.error('lead-submit error:', err.message, err.data || '');
