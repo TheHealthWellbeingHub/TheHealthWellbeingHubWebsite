@@ -13,7 +13,3 @@ H&W inbox.
 **Not public.** `vercel.json` redirects `/staff-documents/*` away from the site, because
 this folder holds contractor pay rates. The send function reads the files from its own
 bundle, so the redirect doesn't affect it.
-
-The agreement states its own ABN (57 580 962 488) in section 1, which differs from the
-ABN on the rest of H&W's material (91 643 237 045). Its footer omits an ABN so the
-document never shows two different ones — confirm which is correct before it's signed.
