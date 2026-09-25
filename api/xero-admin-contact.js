@@ -5,10 +5,13 @@
 // ShiftCare client_id — see weekly-invoice-draft.js for why Account Number
 // is the matching key instead of a name guess.
 //
-// POST body: { name, accountNumber, contactId? }
-// - No contactId: creates a new contact with that name + Account Number.
-// - contactId given: updates just that contact's Account Number (name is
-//   ignored — Xero's POST /Contacts upserts by ContactID when included).
+// POST body: { name, accountNumber?, contactId?, status? }
+// - No contactId: creates a new contact with that name + Account Number
+//   (accountNumber required in this case).
+// - contactId given: updates just that contact (Account Number and/or
+//   status — ContactStatus "ACTIVE" or "ARCHIVED", Xero's only form of
+//   contact deletion). Name is ignored when contactId is given — Xero's
+//   POST /Contacts upserts by ContactID.
 const { isConfigured, xeroApiFetch, tokenMatches } = require('./_xero');
 
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
@@ -25,14 +28,19 @@ module.exports = async (req, res) => {
     return res.status(401).json({ ok: false, error: 'Unauthorized' });
   }
 
-  const { name, accountNumber, contactId } = req.body || {};
-  if (!accountNumber || (!contactId && !name)) {
-    return res.status(400).json({ ok: false, error: 'name (or contactId) and accountNumber are required' });
+  const { name, accountNumber, contactId, status } = req.body || {};
+  if (!contactId && (!accountNumber || !name)) {
+    return res.status(400).json({ ok: false, error: 'name and accountNumber are required to create a contact' });
+  }
+  if (contactId && !accountNumber && !status) {
+    return res.status(400).json({ ok: false, error: 'accountNumber and/or status are required when updating by contactId' });
   }
 
-  const contact = { AccountNumber: String(accountNumber) };
+  const contact = {};
   if (contactId) contact.ContactID = contactId;
-  if (name) contact.Name = name;
+  if (name && !contactId) contact.Name = name;
+  if (accountNumber) contact.AccountNumber = String(accountNumber);
+  if (status) contact.ContactStatus = status;
 
   try {
     const body = await xeroApiFetch('/Contacts', {
@@ -43,7 +51,9 @@ module.exports = async (req, res) => {
     const saved = body.Contacts?.[0];
     return res.status(200).json({
       ok: true,
-      contact: saved ? { id: saved.ContactID, name: saved.Name, accountNumber: saved.AccountNumber } : null,
+      contact: saved
+        ? { id: saved.ContactID, name: saved.Name, accountNumber: saved.AccountNumber, status: saved.ContactStatus }
+        : null,
     });
   } catch (err) {
     console.error('xero-admin-contact failed:', err.message);
