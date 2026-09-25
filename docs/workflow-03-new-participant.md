@@ -30,15 +30,18 @@ their own paperwork.
 
 Said after the outcome step has already recorded "going ahead." Confirm first, the same
 way workflow 01's outcome step does — read back the participant's name and which deal,
-and show a rendered preview of the email itself (subject, body, both attachments listed)
+and show a rendered preview of the email itself (subject, body, all three attachments listed)
 — before anything leaves the building.
 
 1. Fill the Consent email (`04-participant-welcome-onboarding.html`) with the participant
    and staff details.
-2. Attach both PDFs from `participant-documents/` — **always both, never one**:
+2. Attach all three PDFs from `participant-documents/` — **always all three, never a subset**
+   (the sender enforces this):
    - `The Health & Well-being Hub - Referral Form (Fillable).pdf` (53 fields)
    - `NDIS Consent for Your Information (Fillable).pdf` (20 fields, overlaid on the
      NDIA's own unaltered form — nothing in its content is ours to edit)
+   - `The Health & Well-being Hub - Service Agreement (Fillable).pdf` (239 fields — the
+     25 Sep 2026 wording, rebuilt as a branded fillable PDF on 25 Sep 2026)
 3. Send from the H&W mailbox.
 4. Leave a note on the deal: sent, date, and a reminder to follow up if nothing comes
    back. This is the only system response to "what if the forms never come back" — see
@@ -67,7 +70,7 @@ is filled by `api/send-participant-email` itself. Full field list for every temp
 
 ## Trigger 2 — "The forms are back"
 
-Said once **both** documents have actually returned — see "Edge cases" below for what
+Said once **all three** documents have actually returned — see "Edge cases" below for what
 happens when only one has. One event, three things happen:
 
 1. **Read the returned forms and write a note.** Everything on them — NDIS number, date
@@ -108,9 +111,9 @@ four attachments.
 
 ## Edge cases, decided 24 August 2026
 
-**A partial return.** Only one of the two forms comes back. Not a system case — staff
-reply to the participant and ask for the other one before telling Claude the forms are
-back. "Forms are back" only ever means both; there is no partial version of trigger 2.
+**A partial return.** Only some of the three documents come back. Not a system case — staff
+reply to the participant and ask for the rest before telling Claude the forms are
+back. "Forms are back" only ever means all three; there is no partial version of trigger 2.
 
 **A change of mind after going ahead.** The participant backs out after the Consent
 email has gone but before the Welcome email. Treated exactly like a decline at the

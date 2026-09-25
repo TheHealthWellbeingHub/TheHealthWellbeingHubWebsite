@@ -14,7 +14,7 @@
 // endpoints in this repo when required env vars are missing.
 const { isConfigured: shiftcareConfigured, shiftcareApiFetch } = require('./_shiftcare');
 const { isConfigured: xeroConfigured, listAllContacts } = require('./_xero');
-const { isConfigured: mailConfigured, sendPlainEmail } = require('./_mail');
+const { isConfigured: mailConfigured, sendEmail } = require('./_mail');
 const crypto = require('crypto');
 
 const CRON_SECRET = process.env.CRON_SECRET || '';
@@ -159,7 +159,7 @@ module.exports = async (req, res) => {
     const text = lines.join('\n');
     const html = `<pre style="font:14px/1.5 monospace">${text.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</pre>`;
 
-    await sendPlainEmail({
+    await sendEmail({
       to: ADMIN_EMAIL,
       subject: `Weekly invoice draft ${start} to ${end} — ${draft.length} participants, ${money(totalEstimated)}`,
       text,

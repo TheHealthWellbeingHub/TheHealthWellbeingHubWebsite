@@ -2,6 +2,7 @@
 // and weekly-invoice-draft.js. Implemented directly rather than via a
 // dependency because this repo has no package.json (see
 // send-participant-email.js for the fuller rationale).
+const fs = require('fs');
 const tls = require('tls');
 const crypto = require('crypto');
 
@@ -71,7 +72,11 @@ function smtpSend({ to, message }) {
   });
 }
 
-function buildPlainMime({ to, subject, text, html }) {
+// attachments: [{ path, filename }] — PDFs read from the deployment bundle.
+// Every MIME part is base64-encoded, so no body line can begin with a dot
+// and SMTP dot-stuffing never applies.
+function buildMime({ to, subject, text, html, attachments = [] }) {
+  const mixed = 'mix_' + crypto.randomBytes(12).toString('hex');
   const alt = 'alt_' + crypto.randomBytes(12).toString('hex');
   const lines = [
     `From: The Health & Well-being Hub <${SMTP_USER}>`,
@@ -80,6 +85,9 @@ function buildPlainMime({ to, subject, text, html }) {
     `Date: ${new Date().toUTCString()}`,
     `Message-ID: <${crypto.randomBytes(16).toString('hex')}@thehealthwellbeinghub.com>`,
     'MIME-Version: 1.0',
+    `Content-Type: multipart/mixed; boundary="${mixed}"`,
+    '',
+    `--${mixed}`,
     `Content-Type: multipart/alternative; boundary="${alt}"`,
     '',
     `--${alt}`,
@@ -93,8 +101,18 @@ function buildPlainMime({ to, subject, text, html }) {
     '',
     b64lines(Buffer.from(html || `<pre>${text}</pre>`, 'utf-8')),
     `--${alt}--`,
-    '',
   ];
+  for (const { path: filePath, filename } of attachments) {
+    lines.push(
+      `--${mixed}`,
+      `Content-Type: application/pdf; name="${filename}"`,
+      'Content-Transfer-Encoding: base64',
+      `Content-Disposition: attachment; filename="${filename}"`,
+      '',
+      b64lines(fs.readFileSync(filePath))
+    );
+  }
+  lines.push(`--${mixed}--`, '');
   return lines.join('\r\n');
 }
 
@@ -102,9 +120,8 @@ function isConfigured() {
   return Boolean(SMTP_USER && SMTP_APP_PASSWORD);
 }
 
-async function sendPlainEmail({ to, subject, text, html }) {
-  const message = buildPlainMime({ to, subject, text, html });
-  return smtpSend({ to, message });
+async function sendEmail({ to, subject, text, html, attachments }) {
+  return smtpSend({ to, message: buildMime({ to, subject, text, html, attachments }) });
 }
 
-module.exports = { isConfigured, sendPlainEmail, smtpSend, b64lines };
+module.exports = { isConfigured, sendEmail, buildMime, smtpSend };

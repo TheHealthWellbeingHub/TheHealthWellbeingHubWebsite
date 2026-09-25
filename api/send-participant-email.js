@@ -1,8 +1,8 @@
 // Vercel serverless function — sends any of the 13 lifecycle emails in
 // email-templates/ from the H&W mailbox. HubSpot is no longer used, so this
 // is the one send path for every template. Two carry fixed PDF attachments:
-// the Consent email (04, two fillable forms) and the Welcome pack (12, four
-// easy-read guides).
+// the Consent email (04, two fillable forms and the service agreement) and
+// the Welcome pack (12, four easy-read guides).
 //
 // One recipient per call, and only the templates listed below. Attachments
 // are fixed per template and never chosen by the caller.
@@ -18,13 +18,12 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { smtpSend, b64lines } = require('./_mail');
+const { sendEmail } = require('./_mail');
 
 const SMTP_USER = process.env.SMTP_USER || '';
 const SMTP_APP_PASSWORD = process.env.SMTP_APP_PASSWORD || '';
 const SEND_EMAIL_TOKEN = process.env.SEND_EMAIL_TOKEN || '';
 
-const FROM_NAME = 'The Health & Well-being Hub';
 const DOCS_DIR = path.join(process.cwd(), 'participant-documents');
 const TEMPLATES_DIR = path.join(process.cwd(), 'email-templates');
 
@@ -34,7 +33,7 @@ const UNSUBSCRIBE_URL = 'mailto:thehealthwellbeinghub@gmail.com?subject=Unsubscr
 
 // Subject defaults to the template's own <title>. Attachments are enforced
 // here rather than trusted to callers — the Consent email always carries
-// both forms, never one (docs/workflow-03-new-participant.md). `required`
+// all three documents, never a subset (docs/workflow-03-new-participant.md). `required`
 // adds keys whose template fallback would read wrongly in that email, e.g.
 // "Welcome to the family, the participant".
 const TEMPLATES = {
@@ -45,10 +44,11 @@ const TEMPLATES = {
     file: '04-participant-welcome-onboarding.html',
     // Names the participant because one referrer can receive this for
     // several participants, and identical subjects are indistinguishable.
-    subject: "{{Participant First Name}}'s consent and referral forms",
+    subject: "{{Participant First Name}}'s forms and service agreement",
     attachments: [
       'The Health & Well-being Hub - Referral Form (Fillable).pdf',
       'NDIS Consent for Your Information (Fillable).pdf',
+      'The Health & Well-being Hub - Service Agreement (Fillable).pdf',
     ],
     required: ['Participant First Name', 'Staff Member', 'Role', 'Service'],
   },
@@ -150,48 +150,6 @@ function htmlToText(html) {
     .trim();
 }
 
-function buildMime({ to, subject, html, text, attachments }) {
-  const mixed = 'mix_' + crypto.randomBytes(12).toString('hex');
-  const alt = 'alt_' + crypto.randomBytes(12).toString('hex');
-  const lines = [
-    `From: ${FROM_NAME} <${SMTP_USER}>`,
-    `To: <${to}>`,
-    `Subject: ${subject}`,
-    `Date: ${new Date().toUTCString()}`,
-    `Message-ID: <${crypto.randomBytes(16).toString('hex')}@thehealthwellbeinghub.com>`,
-    'MIME-Version: 1.0',
-    `Content-Type: multipart/mixed; boundary="${mixed}"`,
-    '',
-    `--${mixed}`,
-    `Content-Type: multipart/alternative; boundary="${alt}"`,
-    '',
-    `--${alt}`,
-    'Content-Type: text/plain; charset=utf-8',
-    'Content-Transfer-Encoding: base64',
-    '',
-    b64lines(Buffer.from(text, 'utf-8')),
-    `--${alt}`,
-    'Content-Type: text/html; charset=utf-8',
-    'Content-Transfer-Encoding: base64',
-    '',
-    b64lines(Buffer.from(html, 'utf-8')),
-    `--${alt}--`,
-  ];
-  for (const name of attachments) {
-    const buf = fs.readFileSync(path.join(DOCS_DIR, name));
-    lines.push(
-      `--${mixed}`,
-      `Content-Type: application/pdf; name="${name}"`,
-      'Content-Transfer-Encoding: base64',
-      `Content-Disposition: attachment; filename="${name}"`,
-      '',
-      b64lines(buf)
-    );
-  }
-  lines.push(`--${mixed}--`, '');
-  return lines.join('\r\n');
-}
-
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
 
@@ -245,8 +203,13 @@ module.exports = async (req, res) => {
       return res.status(500).json({ ok: false, error: 'Template has unresolved tokens', tokens: leftover });
     }
 
-    const message = buildMime({ to: f.to, subject, html: filled, text: htmlToText(filled), attachments });
-    await smtpSend({ to: f.to, message });
+    await sendEmail({
+      to: f.to,
+      subject,
+      html: filled,
+      text: htmlToText(filled),
+      attachments: attachments.map((name) => ({ path: path.join(DOCS_DIR, name), filename: name })),
+    });
     return res.status(200).json({ ok: true, template: f.template, to: f.to, subject, attachments });
   } catch (err) {
     console.error('send-participant-email failed:', err.message);

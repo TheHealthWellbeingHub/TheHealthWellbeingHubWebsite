@@ -46,7 +46,7 @@ File `03-new-enquiry-acknowledgement.html` · subject: We received your enquiry
 
 ## `consent` — 04
 
-File `04-participant-welcome-onboarding.html` · subject: {{Participant First Name}}'s consent and referral forms · attachments: 2 fillable forms
+File `04-participant-welcome-onboarding.html` · subject: {{Participant First Name}}'s forms and service agreement · attachments: referral form, NDIS consent form, service agreement (all fillable)
 
 | Field | Required | Fallback |
 |---|---|---|
