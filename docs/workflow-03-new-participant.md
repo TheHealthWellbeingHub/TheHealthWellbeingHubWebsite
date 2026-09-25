@@ -19,6 +19,38 @@ than left as a placeholder waiting for Starter to grow a feature.
 | Pipeline | Participant / Lead Pipeline (`default`) |
 | Deal properties touched | `dealstage` only — no new custom properties |
 
+## Current — the Command Centre's onboarding page, updated 25 Sep 2026
+
+HubSpot is retired and most of this file below is historical. Workflow 03 now runs from the
+Command Centre's onboarding page, `/dashboard/leads/<id>/onboarding`, reached straight after
+recording "Going ahead", from the referral's card, from the Consent / chase / Welcome task
+rows, or from the referrer's page. Three steps:
+
+1. **Consent email** — template 04 with all three PDFs, previewed then sent through
+   `api/send-participant-email.js` (`template: "consent"`). **Sent to the participant's
+   email; if we only have a phone for them, the referrer's** (decided 25 Sep 2026); staff can
+   change the address. Records `leads.consent_email_sent_at` / `consent_email_to` / the H&W
+   contact, closes the "Send Consent email" task and raises a 7-day chase-up. A resend
+   replaces the chase-up. "Sent it another way" records the step without sending.
+2. **Forms back** — staff tick which of the Referral Form, NDIS Consent form and signed
+   Service Agreement arrived (`leads.forms_received`). **Partial:** a chase for what's missing
+   (3 days) replaces any earlier chase. **All three:** "Send Welcome pack" task.
+3. **Welcome pack and participant** — locked until all three forms are in. **The participant
+   is created automatically** (decided 25 Sep 2026) in ShiftCare — through
+   `api/shiftcare-clients.js`, since the Command Centre holds no ShiftCare credentials — and in
+   the Supabase `participants` table, from the details on the returned forms (first name and
+   date of birth required). A participant with the same NDIS number, or the same name and date
+   of birth, is linked instead of duplicated. Then template 12 with the four guides, the
+   referral is linked (`leads.participant_id`), every task closes and the stage becomes
+   Participant Onboarded. If ShiftCare refuses, nothing is sent; if the email fails after the
+   participant was created, a retry won't create them twice.
+
+Claude doing this for a worker follows the same order: send through
+`api/send-participant-email.js`, then write the same `leads` columns, tasks and note — or
+point the worker at the onboarding page, which does it all.
+
+---
+
 Read workflow 01 first if the outcome step itself (the referrer notification, the initial
 deal-stage move to `Service Agreement Sent`) is what's in question — that belongs there,
 not here. This document starts from the moment a worker decides to send the participant
