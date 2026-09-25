@@ -130,20 +130,38 @@ function addBusinessDaysBrisbane(date, days) {
 }
 
 // --- Referrer upsert (replaces HubSpot Contact upsert) ---------------------
-async function findReferrer({ email, phone }) {
+// PostgREST ilike treats % and _ as wildcards; escape them so an address
+// like first_last@x.com only ever matches itself (case-insensitively).
+function ilikeExact(value) {
+  return encodeURIComponent(String(value).trim().replace(/[\\%_]/g, (c) => `\\${c}`));
+}
+
+async function findReferrer({ email, phone, name, company }) {
   if (looksLikeEmail(email)) {
-    const byEmail = await selectOne('referrers', 'email', email);
+    const [byEmail] = await selectMany('referrers', `email=ilike.${ilikeExact(email)}&limit=1`);
     if (byEmail) return byEmail;
   }
   if (phone) {
     const byPhone = await selectOne('referrers', 'phone', phone);
     if (byPhone) return byPhone;
   }
+  // A referrer given by name only (no email or phone): match the same name
+  // at the same organisation, so a repeat referrer isn't added twice.
+  if (!looksLikeEmail(email) && !phone && name) {
+    const { firstname, lastname } = splitName(name);
+    if (firstname) {
+      let q = `firstname=ilike.${ilikeExact(firstname)}`;
+      q += lastname ? `&lastname=ilike.${ilikeExact(lastname)}` : '&lastname=is.null';
+      if (company) q += `&company=ilike.${ilikeExact(company)}`;
+      const [byName] = await selectMany('referrers', `${q}&limit=1`);
+      if (byName) return byName;
+    }
+  }
   return null;
 }
 
 async function upsertReferrer({ name, email, phone, company, extra = {} }) {
-  const existing = await findReferrer({ email, phone });
+  const existing = await findReferrer({ email, phone, name, company });
   const { firstname, lastname } = splitName(name);
   const properties = { ...extra };
   if (firstname) properties.firstname = firstname;
@@ -164,14 +182,38 @@ async function upsertReferrer({ name, email, phone, company, extra = {} }) {
   });
 }
 
-// A contact who already has an open lead is continuing the same journey.
-async function findOpenLeadForReferrer(referrerId) {
-  if (!referrerId) return null;
+// The same referrer re-sending the same participant while that referral is
+// still open is continuing the same journey. A different participant from
+// the same referrer is a new referral and always gets its own lead.
+async function findOpenLeadForReferrer(referrerId, participantName) {
+  if (!referrerId || !(participantName || '').trim()) return null;
   const rows = await selectMany(
     'leads',
-    `referrer_id=eq.${referrerId}&stage=not.in.(participant_onboarded,lost_not_suitable)&order=created_at.desc&limit=1`
+    `referrer_id=eq.${referrerId}&participant_name=ilike.${ilikeExact(participantName)}` +
+      '&stage=not.in.(participant_onboarded,lost_not_suitable)&order=created_at.desc&limit=1'
   );
   return rows[0] || null;
+}
+
+// Keeps the Referral Partners directory current: how many people this
+// partner has referred and the latest one. Never fails the submission.
+async function recordReferralOnReferrer(referrerId, lead, serviceNeeded) {
+  if (!referrerId) return;
+  try {
+    const referrals = await selectMany('leads', `referrer_id=eq.${referrerId}&type=eq.referral`, 'id');
+    await updateOne('referrers', referrerId, {
+      has_referred: true,
+      number_of_referred: referrals.length,
+      contact_type: 'Referral partner',
+      is_active: true,
+      latest_referral_date: new Date().toISOString().slice(0, 10),
+      latest_referral_reference: lead.reference || null,
+      latest_referral_service: serviceNeeded || null,
+      latest_referral_participant_name: lead.participant_name || null,
+    });
+  } catch (err) {
+    console.error('referrer referral stats update failed:', err.message);
+  }
 }
 
 async function createLead(fields) {
@@ -475,7 +517,9 @@ module.exports = async (req, res) => {
       if (contactBelongsToReferrer) {
         console.warn('participant contact matches the referrer — not written to the participant record');
       }
-      if (looksLikeEmail(f.referrer_email) || f.referrer_phone) {
+      const hasReferrerDetail = looksLikeEmail(f.referrer_email) || f.referrer_phone ||
+        (f.referrer_name || '').trim() || (f.referrer_organisation || '').trim();
+      if (hasReferrerDetail) {
         referrer = await upsertReferrer({
           name: f.referrer_name,
           email: f.referrer_email,
@@ -504,7 +548,7 @@ module.exports = async (req, res) => {
       : null;
 
     const existingOpenLead = formName === 'referral'
-      ? await findOpenLeadForReferrer(referrer && referrer.id)
+      ? await findOpenLeadForReferrer(referrer && referrer.id, f.participant_name)
       : null;
     const isReturning = !!existingOpenLead;
 
@@ -545,6 +589,10 @@ module.exports = async (req, res) => {
       });
       await updateOne('leads', lead.id, { reference: `${formName === 'referral' ? 'REF' : 'ENQ'}-${now.getFullYear()}-${lead.seq}` });
       lead.reference = `${formName === 'referral' ? 'REF' : 'ENQ'}-${now.getFullYear()}-${lead.seq}`;
+    }
+
+    if (formName === 'referral' && referrer) {
+      await recordReferralOnReferrer(referrer.id, lead, serviceLine || f.service_needed);
     }
 
     const noteBody = formName === 'referral'
