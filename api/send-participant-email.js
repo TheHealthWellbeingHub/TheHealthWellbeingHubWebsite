@@ -15,7 +15,14 @@
 // Required fields are read from the template itself, so the template stays
 // the single source of truth for what an email needs.
 //
-// Auth: Authorization: Bearer <SEND_EMAIL_TOKEN>. Without the token — or
+// Preview: body { dryRun: true } returns the filled subject and HTML, the
+// attachment list and any `missing` fields instead of sending — missing
+// fields show as [Field Name] in the HTML. `to` is optional for a preview,
+// and previews don't count towards the rate limit. The Command Centre uses
+// this to show staff the exact email before they confirm the send.
+//
+// Auth: Authorization: Bearer <SEND_EMAIL_TOKEN>, or <COMMAND_CENTRE_SEND_TOKEN>
+// (the Command Centre's own, so either can be rotated alone). Without a token — or
 // before the SMTP env vars exist — every call fails loudly with a clear
 // reason (not_configured).
 const fs = require('fs');
@@ -26,6 +33,7 @@ const { sendEmail } = require('./_mail');
 const SMTP_USER = process.env.SMTP_USER || '';
 const SMTP_APP_PASSWORD = process.env.SMTP_APP_PASSWORD || '';
 const SEND_EMAIL_TOKEN = process.env.SEND_EMAIL_TOKEN || '';
+const COMMAND_CENTRE_SEND_TOKEN = process.env.COMMAND_CENTRE_SEND_TOKEN || '';
 
 const DOCS_DIR = path.join(process.cwd(), 'participant-documents');
 const STAFF_DOCS_DIR = path.join(process.cwd(), 'staff-documents');
@@ -117,8 +125,11 @@ function isRateLimited() {
 function tokenMatches(header) {
   if (typeof header !== 'string' || !header.startsWith('Bearer ')) return false;
   const given = Buffer.from(header.slice(7).trim());
-  const want = Buffer.from(SEND_EMAIL_TOKEN);
-  return given.length === want.length && crypto.timingSafeEqual(given, want);
+  return [SEND_EMAIL_TOKEN, COMMAND_CENTRE_SEND_TOKEN].some((token) => {
+    if (!token) return false;
+    const want = Buffer.from(token);
+    return given.length === want.length && crypto.timingSafeEqual(given, want);
+  });
 }
 
 function looksLikeEmail(s) {
@@ -179,23 +190,24 @@ function htmlToText(html) {
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
 
-  if (!SMTP_USER || !SMTP_APP_PASSWORD || !SEND_EMAIL_TOKEN) {
+  if (!SMTP_USER || !SMTP_APP_PASSWORD || !(SEND_EMAIL_TOKEN || COMMAND_CENTRE_SEND_TOKEN)) {
     console.error('SEND ENDPOINT NOT CONFIGURED — missing SMTP_USER / SMTP_APP_PASSWORD / SEND_EMAIL_TOKEN');
     return res.status(503).json({ ok: false, error: 'not_configured' });
   }
   if (!tokenMatches(req.headers.authorization)) {
     return res.status(401).json({ ok: false, error: 'Unauthorized' });
   }
-  if (isRateLimited()) {
+  const f = req.body || {};
+  const dryRun = f.dryRun === true;
+  if (!dryRun && isRateLimited()) {
     return res.status(429).json({ ok: false, error: 'Rate limited' });
   }
 
-  const f = req.body || {};
   const spec = Object.prototype.hasOwnProperty.call(TEMPLATES, f.template) ? TEMPLATES[f.template] : null;
   if (!spec) {
     return res.status(400).json({ ok: false, error: `Unknown template — use one of: ${Object.keys(TEMPLATES).join(', ')}` });
   }
-  if (!looksLikeEmail(f.to)) {
+  if (!(dryRun && !f.to) && !looksLikeEmail(f.to)) {
     return res.status(400).json({ ok: false, error: 'Invalid recipient address' });
   }
 
@@ -212,6 +224,22 @@ module.exports = async (req, res) => {
     }
     const needed = new Set([...requiredKeys(html, subjectSrc), ...(spec.required || [])]);
     const missing = [...needed].filter((k) => !(k in raw));
+    if (dryRun) {
+      const shown = { ...raw };
+      for (const k of missing) shown[k] = `[${k}]`;
+      const escapedShown = Object.fromEntries(Object.entries(shown).map(([k, v]) => [k, escapeHtml(v)]));
+      return res.status(200).json({
+        ok: true,
+        dryRun: true,
+        template: f.template,
+        to: f.to || null,
+        subject: decodeEntities(fill(subjectSrc, shown, { html: false })).replace(/[\r\n]+/g, ' '),
+        html: fill(html, escapedShown, { html: true }),
+        attachments,
+        required: [...needed],
+        missing,
+      });
+    }
     if (missing.length) {
       return res.status(400).json({ ok: false, error: 'Missing merge values', missing });
     }
