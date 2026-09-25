@@ -1,13 +1,29 @@
 {
   "functions": {
     "api/send-participant-email.js": {
-      "includeFiles": "{participant-documents,email-templates}/**"
+      "includeFiles": "{participant-documents,staff-documents,email-templates}/**",
+      "maxDuration": 60
     },
     "api/lead-submit.js": {
       "includeFiles": "email-templates/**"
+    },
+    "api/send-document-pack.js": {
+      "includeFiles": "{participant-documents,staff-documents}/**",
+      "maxDuration": 60
     }
   },
+  "crons": [
+    {
+      "path": "/api/weekly-invoice-draft",
+      "schedule": "0 22 * * 0"
+    }
+  ],
   "redirects": [
+    {
+      "source": "/staff-documents/:path*",
+      "destination": "/",
+      "permanent": false
+    },
     {
       "source": "/:path*",
       "has": [

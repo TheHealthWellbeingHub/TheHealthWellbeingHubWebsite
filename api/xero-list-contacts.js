@@ -1,8 +1,7 @@
-// Read-only health check: confirms the Custom Connection credentials still
-// work and shows which Xero organisation they're scoped to, without
-// touching any invoice, contact or accounting data. Safe to call as often
-// as needed.
-const { isConfigured, xeroApiFetch, tokenMatches } = require('./_xero');
+// Diagnostic-only: lists Xero contacts (id, name, Account Number, status).
+// Used to reconcile which real contacts still need their Account Number
+// tagged with a matching ShiftCare client_id — see weekly-invoice-draft.js.
+const { isConfigured, listAllContacts, tokenMatches } = require('./_xero');
 
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
 
@@ -19,14 +18,19 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const org = await xeroApiFetch('/Organisation');
+    const contacts = await listAllContacts();
     return res.status(200).json({
       ok: true,
-      connected: true,
-      organisationName: org.Organisations?.[0]?.Name,
-      organisationId: org.Organisations?.[0]?.OrganisationID,
+      count: contacts.length,
+      contacts: contacts.map((c) => ({
+        id: c.ContactID,
+        name: c.Name,
+        accountNumber: c.AccountNumber || null,
+        status: c.ContactStatus,
+        isCustomer: c.IsCustomer,
+      })),
     });
   } catch (err) {
-    return res.status(502).json({ ok: false, connected: false, error: 'xero_error', detail: err.message });
+    return res.status(502).json({ ok: false, error: 'Xero read failed', detail: err.message });
   }
 };

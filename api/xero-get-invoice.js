@@ -1,7 +1,7 @@
-// Read-only health check: confirms the Custom Connection credentials still
-// work and shows which Xero organisation they're scoped to, without
-// touching any invoice, contact or accounting data. Safe to call as often
-// as needed.
+// Diagnostic-only: fetches one Xero invoice by ID, including line items.
+// Exists because the read-only Xero MCP tools in chat can only see
+// UNPAID/PAID invoices, not DRAFT ones — this endpoint has no such
+// restriction since it talks to the Xero API directly.
 const { isConfigured, xeroApiFetch, tokenMatches } = require('./_xero');
 
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
@@ -18,15 +18,13 @@ module.exports = async (req, res) => {
     return res.status(401).json({ ok: false, error: 'Unauthorized' });
   }
 
+  const { id } = req.query;
+  if (!id) return res.status(400).json({ ok: false, error: 'id query param required' });
+
   try {
-    const org = await xeroApiFetch('/Organisation');
-    return res.status(200).json({
-      ok: true,
-      connected: true,
-      organisationName: org.Organisations?.[0]?.Name,
-      organisationId: org.Organisations?.[0]?.OrganisationID,
-    });
+    const body = await xeroApiFetch(`/Invoices/${id}`);
+    return res.status(200).json({ ok: true, invoice: body.Invoices?.[0] || null });
   } catch (err) {
-    return res.status(502).json({ ok: false, connected: false, error: 'xero_error', detail: err.message });
+    return res.status(502).json({ ok: false, error: 'Xero read failed', detail: err.message });
   }
 };
