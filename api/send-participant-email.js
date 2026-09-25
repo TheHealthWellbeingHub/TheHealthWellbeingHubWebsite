@@ -65,15 +65,22 @@ const TEMPLATES = {
   },
 };
 
-// H&W's own contact details render in both templates and are not the
-// caller's to vary. The unsubscribe link is a mailto because these are
-// one-to-one operational sends from the mailbox, not HubSpot marketing
-// sends — there is no subscription-preference page behind them.
-const CONSTANT_TOKENS = {
-  'Phone Number': '0433 604 507',
-  'Email Address': 'thehealthwellbeinghub@gmail.com',
-  'unsubscribe_url': 'mailto:thehealthwellbeinghub@gmail.com?subject=Unsubscribe',
+// The templates carry HubSpot token syntax (so the same file pastes straight
+// into HubSpot). This maps each HubSpot contact property to the merge key
+// callers of this endpoint supply.
+const HUBSPOT_FIELDS = {
+  participant_first_name: 'Participant First Name',
+  assigned_staff_member: 'Staff Member',
+  assigned_staff_role: 'Role',
+  requested_service: 'Service',
+  service_start_date: 'Date',
+  preferred_schedule: 'Schedule',
+  service_location: 'Location',
 };
+
+// A mailto because these are one-to-one operational sends from the mailbox,
+// not HubSpot marketing sends — there is no subscription-preference page.
+const UNSUBSCRIBE_URL = 'mailto:thehealthwellbeinghub@gmail.com?subject=Unsubscribe';
 
 // Same best-effort, per-instance rate limiting as hubspot-submit.js, sized
 // tighter: nobody legitimately sends more than a handful of these an hour.
@@ -103,11 +110,16 @@ function escapeHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+const HUBSPOT_TOKEN = /^\s*personalization_token\(\s*'contact\.([a-z_]+)'\s*,\s*'[^']*'\s*\)\s*$/;
+
 function fillTemplate(html, values) {
   const missing = [];
-  const filled = html.replace(/\{\{([^}]*)\}\}/g, (m, key) => {
-    if (Object.prototype.hasOwnProperty.call(values, key)) return values[key];
-    missing.push(key);
+  const filled = html.replace(/\{\{([^}]*)\}\}/g, (m, inner) => {
+    if (inner.trim() === 'unsubscribe_link') return UNSUBSCRIBE_URL;
+    const token = inner.match(HUBSPOT_TOKEN);
+    const key = token && HUBSPOT_FIELDS[token[1]];
+    if (key && Object.prototype.hasOwnProperty.call(values, key)) return values[key];
+    missing.push(inner.trim());
     return m;
   });
   return { filled, missing };
@@ -243,7 +255,7 @@ module.exports = async (req, res) => {
   }
 
   const merge = f.merge && typeof f.merge === 'object' ? f.merge : {};
-  const values = { ...CONSTANT_TOKENS };
+  const values = {};
   const missingInput = [];
   for (const key of spec.required) {
     const v = merge[key];
