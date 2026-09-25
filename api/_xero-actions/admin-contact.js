@@ -12,7 +12,7 @@
 //   status — ContactStatus "ACTIVE" or "ARCHIVED", Xero's only form of
 //   contact deletion). Name is ignored when contactId is given — Xero's
 //   POST /Contacts upserts by ContactID.
-const { isConfigured, xeroApiFetch, tokenMatches } = require('./_xero');
+const { isConfigured, xeroApiFetch, tokenMatches } = require('../_xero');
 
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
 

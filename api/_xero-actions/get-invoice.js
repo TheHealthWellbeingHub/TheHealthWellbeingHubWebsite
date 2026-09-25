@@ -1,7 +1,8 @@
-// Diagnostic-only: lists Xero contacts (id, name, Account Number, status).
-// Used to reconcile which real contacts still need their Account Number
-// tagged with a matching ShiftCare client_id — see weekly-invoice-draft.js.
-const { isConfigured, listAllContacts, tokenMatches } = require('./_xero');
+// Diagnostic-only: fetches one Xero invoice by ID, including line items.
+// Exists because the read-only Xero MCP tools in chat can only see
+// UNPAID/PAID invoices, not DRAFT ones — this endpoint has no such
+// restriction since it talks to the Xero API directly.
+const { isConfigured, xeroApiFetch, tokenMatches } = require('../_xero');
 
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
 
@@ -17,19 +18,12 @@ module.exports = async (req, res) => {
     return res.status(401).json({ ok: false, error: 'Unauthorized' });
   }
 
+  const { id } = req.query;
+  if (!id) return res.status(400).json({ ok: false, error: 'id query param required' });
+
   try {
-    const contacts = await listAllContacts();
-    return res.status(200).json({
-      ok: true,
-      count: contacts.length,
-      contacts: contacts.map((c) => ({
-        id: c.ContactID,
-        name: c.Name,
-        accountNumber: c.AccountNumber || null,
-        status: c.ContactStatus,
-        isCustomer: c.IsCustomer,
-      })),
-    });
+    const body = await xeroApiFetch(`/Invoices/${id}`);
+    return res.status(200).json({ ok: true, invoice: body.Invoices?.[0] || null });
   } catch (err) {
     return res.status(502).json({ ok: false, error: 'Xero read failed', detail: err.message });
   }

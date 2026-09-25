@@ -11,14 +11,14 @@
 //
 // POST body: { clientId, start, end } — start/end must match the period
 // the draft was built from, so the invoice reflects what was reviewed.
-const { isConfigured: shiftcareConfigured, shiftcareApiFetch } = require('./_shiftcare');
+const { isConfigured: shiftcareConfigured, shiftcareApiFetch } = require('../_shiftcare');
 const {
   isConfigured: xeroConfigured,
   xeroApiFetch,
   listAllContacts,
   getDefaultRevenueAccountCode,
   tokenMatches,
-} = require('./_xero');
+} = require('../_xero');
 
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
 

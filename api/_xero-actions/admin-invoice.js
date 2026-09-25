@@ -1,11 +1,11 @@
 // Small admin utility: change a Xero invoice's status. Used to remove the
-// test draft invoice from xero-create-invoice.js's dry run. A DRAFT
+// test draft invoice from the create-invoice action's dry run. A DRAFT
 // invoice can be set to "DELETED" (Xero's only form of removal for a
 // draft — there is no hard delete); an AUTHORISED one would need
 // "VOIDED" instead, which this also supports.
 //
 // POST body: { invoiceId, status }
-const { isConfigured, xeroApiFetch, tokenMatches } = require('./_xero');
+const { isConfigured, xeroApiFetch, tokenMatches } = require('../_xero');
 
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
 
