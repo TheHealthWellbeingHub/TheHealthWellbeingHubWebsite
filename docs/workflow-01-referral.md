@@ -18,7 +18,7 @@ the marketing email and the simple workflow are not yet built.
 ## Current triggers — updated 25 Sep 2026
 
 HubSpot is retired; most of this file below is historical. A referral now enters through
-one of three triggers, and **all three go through `api/lead-submit.js`**, so they behave the
+one of four triggers, and **all four go through `api/lead-submit.js`**, so they behave the
 same way: a `leads` row with a `REF-<year>-<seq>` reference, the referrer reused if already
 on file (matched by email or phone), a 2-hour call task, and — **whenever a referrer email is
 given — email 02 "Referral received" to the referrer**. A failed send raises an
@@ -29,6 +29,32 @@ given — email 02 "Referral received" to the referrer**. A failed send raises a
 | 1 | Website referral form (`/referrals/`), and the staff form at `/staff/<token>/` | `form_name: "referral"` / `"staff_referral"` from the browser |
 | 2 | Command Centre → "+ Create New Referral" | Server-side POST, `form_name: "staff_referral"`, `referral_taken_by: "Command Centre"` |
 | 3 | Claude, when a worker asks it to log a referral | POST `https://www.thehealthwellbeinghub.com/api/lead-submit` with `form_name: "staff_referral"`, `staff_consent_attested: "Yes"` (only once the worker confirms they told the referrer how their details will be used), `referral_taken_by: "Claude"` |
+| 4 | **[new, design open]** A participant, already onboarding, refers someone else | See below |
+
+### Trigger 4 — a participant refers someone else, by email
+
+Every onboarding participant is sent the Referral Form as one of the three Onboarding-email
+attachments (Workflow 03, Step 1). Nothing stops them using their own copy to refer someone
+*else* they know — a family member or friend who also needs support. When they fill it in and
+email it back, Claude's Gmail agent reads the email and the attachment and logs the referral
+the same way Trigger 3 does: `form_name: "staff_referral"`, `referral_taken_by: "Claude"`,
+`referral_channel: "Direct email"`.
+
+**The participant is the referrer here**, not the person being referred. Before creating a
+new `referrers` row, match against the existing record the same way `findReferrer` already
+does (email, then phone, then name) — the participant is very likely already on file, as a
+participant rather than a referrer, which is the exact "referrer is already a participant"
+edge case below. Link the new referral to that existing record rather than creating a
+duplicate person with two identities.
+
+**Open, not yet decided:** `staff_consent_attested` today means *a worker* confirms they told
+the referrer how their details are used — it assumes a human intermediary. Here there is
+none; the only consent signal is whatever the paper form itself captures from the person who
+filled it in. Before this trigger goes live, confirm: does the Referral Form attachment carry
+its own consent tick (mirroring the public form's `privacy_consent`), and if so, does Claude
+read that tick rather than asserting `staff_consent_attested` on the sender's behalf? Treat
+this the same as any other compliance wording — draft, flag, human approves — rather than
+guessing an answer here.
 
 **Never create a referral by inserting into `leads` directly** — that skips the referrer
 match, the call task and email 02. Fields: `participant_name` (required),
