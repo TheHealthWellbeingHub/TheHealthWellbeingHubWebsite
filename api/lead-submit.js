@@ -181,16 +181,38 @@ async function upsertReferrer({ name, email, phone, company, extra = {} }) {
   if (phone) properties.phone = phone;
   if (company) properties.company = company;
 
+  let saved;
   if (existing) {
-    if (Object.keys(properties).length) {
-      return updateOne('referrers', existing.id, properties);
-    }
-    return existing;
+    saved = Object.keys(properties).length ? await updateOne('referrers', existing.id, properties) : existing;
+  } else {
+    saved = await insertOne('referrers', {
+      contact_status: 'Needs_first_contact',
+      ...properties,
+    });
   }
-  return insertOne('referrers', {
-    contact_status: 'Needs_first_contact',
-    ...properties,
-  });
+  return linkToParticipant(saved);
+}
+
+// A referrer who is also a participant (someone we support, referring
+// someone else) is linked to their participant record when the email or
+// phone matches. Never fails the submission.
+async function linkToParticipant(referrer) {
+  if (!referrer || referrer.participant_id) return referrer;
+  try {
+    let match = null;
+    if (looksLikeEmail(referrer.email)) {
+      [match] = await selectMany('participants', `email=ilike.${ilikeExact(referrer.email)}&limit=1`, 'id');
+    }
+    const want = [normPhone(referrer.phone), normPhone(referrer.mobilephone)].filter(Boolean);
+    if (!match && want.length) {
+      const rows = await selectMany('participants', 'or=(phone.not.is.null,mobile.not.is.null)', 'id,phone,mobile');
+      match = rows.find((p) => want.includes(normPhone(p.phone)) || want.includes(normPhone(p.mobile)));
+    }
+    if (match) return (await updateOne('referrers', referrer.id, { participant_id: match.id })) || referrer;
+  } catch (err) {
+    console.error('referrer ↔ participant link failed:', err.message);
+  }
+  return referrer;
 }
 
 // What went out, so the Command Centre's sent-emails record is complete.
