@@ -5,7 +5,9 @@
 //
 //   /api/xero?action=list-contacts    GET   contacts with their ShiftCare client IDs
 //   /api/xero?action=get-invoice      GET   one invoice, including drafts (?id=)
+//   /api/xero?action=list-invoices    GET   invoices since a date, drafts included (?since=)
 //   /api/xero?action=create-invoice   POST  one participant's weekly DRAFT invoice (docs/invoicing.md)
+//   /api/xero?action=create-draft     POST  one DRAFT invoice from given lines (e.g. Support Coordination)
 //   /api/xero?action=admin-contact    POST  create a contact or set its AccountNumber/status
 //   /api/xero?action=admin-invoice    POST  change a draft invoice's status (e.g. DELETED)
 //
@@ -13,7 +15,9 @@
 const ACTIONS = {
   'list-contacts': () => require('./_xero-actions/list-contacts'),
   'get-invoice': () => require('./_xero-actions/get-invoice'),
+  'list-invoices': () => require('./_xero-actions/list-invoices'),
   'create-invoice': () => require('./_xero-actions/create-invoice'),
+  'create-draft': () => require('./_xero-actions/create-draft'),
   'admin-contact': () => require('./_xero-actions/admin-contact'),
   'admin-invoice': () => require('./_xero-actions/admin-invoice'),
 };
