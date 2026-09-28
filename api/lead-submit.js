@@ -210,6 +210,27 @@ async function findOpenEnquiry(email, phone) {
   return null;
 }
 
+// A direct entry has no referrer to key off (findOpenLeadForReferrer bails
+// with no referrerId), so without this a participant with no contact detail
+// at all created a fresh lead on every resubmission — exactly the duplicate
+// this file otherwise guards against. Same email-or-phone-or-name matching
+// as findOpenEnquiry, scoped to direct-entry referrals.
+async function findOpenDirectEntryLead(participantContact, participantName) {
+  const open = 'type=eq.referral&is_direct_entry=eq.true&stage=not.in.(participant_onboarded,lost_not_suitable)&order=created_at.desc&limit=1';
+  if (looksLikeEmail(participantContact)) {
+    const [byEmail] = await selectMany('leads', `participant_contact=ilike.${ilikeExact(participantContact)}&${open}`);
+    if (byEmail) return byEmail;
+  } else if (participantContact) {
+    const [byPhone] = await selectMany('leads', `participant_contact=eq.${encodeURIComponent(String(participantContact).trim())}&${open}`);
+    if (byPhone) return byPhone;
+  }
+  if ((participantName || '').trim()) {
+    const [byName] = await selectMany('leads', `participant_name=ilike.${ilikeExact(participantName)}&${open}`);
+    if (byName) return byName;
+  }
+  return null;
+}
+
 // A support coordinator, plan manager or health professional who enquires
 // is a potential referrer: they're saved as a lead in the Referrers
 // directory (contact_type Referral partner, has_referred untouched), with
@@ -693,7 +714,9 @@ module.exports = async (req, res) => {
       : null;
 
     const existingOpenLead = formName === 'referral'
-      ? await findOpenLeadForReferrer(referrer && referrer.id, f.participant_name)
+      ? (isDirectEntry(f)
+          ? await findOpenDirectEntryLead(participantContact, f.participant_name)
+          : await findOpenLeadForReferrer(referrer && referrer.id, f.participant_name))
       : await findOpenEnquiry(f.email, f.phone);
     const isReturning = !!existingOpenLead;
 
