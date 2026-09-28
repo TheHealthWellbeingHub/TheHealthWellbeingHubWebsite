@@ -29,7 +29,33 @@ given — email 02 "Referral received" to the referrer**. A failed send raises a
 | 1 | Website referral form (`/referrals/`), and the staff form at `/staff/<token>/` | `form_name: "referral"` / `"staff_referral"` from the browser |
 | 2 | Command Centre → "+ Create New Referral" | Server-side POST, `form_name: "staff_referral"`, `referral_taken_by: "Command Centre"` |
 | 3 | Claude, when a worker asks it to log a referral | POST `https://www.thehealthwellbeinghub.com/api/lead-submit` with `form_name: "staff_referral"`, `staff_consent_attested: "Yes"` (only once the worker confirms they told the referrer how their details will be used), `referral_taken_by: "Claude"` |
-| 4 | **[new, design open]** A participant, already onboarding, refers someone else | See below |
+| 4 | A participant, already onboarding, refers someone else | Handled by trigger 5 — see below |
+| 5 | **The hourly email agent, when a referral arrives by email** (live 28 Sep 2026) | POST with `form_name: "email_referral"`, `source_message_id` (the Gmail message id), `participant_name` required — see below |
+
+### Trigger 5 — a referral arrives by email
+
+The hourly email-triage Routine ("Hourly email triage — command_centre") reads the inbox and,
+when an email (or its attachment, e.g. a filled Referral Form) is a third party asking us to
+take someone on, logs the referral itself through `api/lead-submit.js` with
+`form_name: "email_referral"`. Everything a staff referral does still happens: referrer
+matched or added, the open-referral duplicate check, a 2-hour call task, email 02 to the
+referrer.
+
+What's different, deliberately:
+
+- **No consent is claimed on anyone's behalf.** `staff_consent_attested` isn't used — no worker
+  was in the loop. The record says `consent_capture_method: "Referrer emailed us"`,
+  `referral_channel: "Direct email"`, `referral_taken_by: "Claude (email agent)"`.
+  `participant_consent_confirmed` is `Yes` only when the email says the participant (or their
+  nominee) agreed; otherwise `No`, and the task tells staff to contact the referrer first.
+- **Idempotent by email.** The Gmail message id is recorded in `email_referral_messages`
+  before the task and email 02, and a repeat returns `alreadyLogged: true` doing nothing — on
+  top of the `Hub-Agent-Processed` label.
+- **Enquiries still become tasks.** A participant or family member asking about their own
+  supports is an enquiry (workflow 02); the agent still raises a task for those.
+
+Trigger 4 (a participant referring someone else on the Referral Form from their Onboarding
+email) runs through this same path: the participant who sent it is the referrer.
 
 ### Trigger 4 — a participant refers someone else, by email
 
@@ -47,14 +73,12 @@ participant rather than a referrer, which is the exact "referrer is already a pa
 edge case below. Link the new referral to that existing record rather than creating a
 duplicate person with two identities.
 
-**Open, not yet decided:** `staff_consent_attested` today means *a worker* confirms they told
-the referrer how their details are used — it assumes a human intermediary. Here there is
-none; the only consent signal is whatever the paper form itself captures from the person who
-filled it in. Before this trigger goes live, confirm: does the Referral Form attachment carry
-its own consent tick (mirroring the public form's `privacy_consent`), and if so, does Claude
-read that tick rather than asserting `staff_consent_attested` on the sender's behalf? Treat
-this the same as any other compliance wording — draft, flag, human approves — rather than
-guessing an answer here.
+**Consent — how it's handled now (28 Sep 2026):** this goes through trigger 5's
+`email_referral` route, which never asserts `staff_consent_attested` on anyone's behalf. It
+records that the referrer emailed us, and sets `participant_consent_confirmed` only from what
+the form or email actually says. Whether the Referral Form's own wording is enough consent
+for us to contact the person referred is still a compliance question for a human to confirm;
+until then, an unconfirmed tick means the task is to contact the referrer first.
 
 **Never create a referral by inserting into `leads` directly** — that skips the referrer
 match, the call task and email 02. Fields: `participant_name` (required),
