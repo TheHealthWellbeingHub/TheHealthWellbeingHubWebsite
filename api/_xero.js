@@ -14,7 +14,10 @@ const crypto = require('crypto');
 const XERO_CLIENT_ID = process.env.XERO_CLIENT_ID || '';
 const XERO_CLIENT_SECRET = process.env.XERO_CLIENT_SECRET || '';
 
-// Least privilege: only what invoicing needs.
+// Least privilege: only what invoicing needs. Payroll has its own set,
+// requested only by the payroll action (the Custom Connection must have the
+// payroll scopes ticked in Xero's developer portal for that to work).
+const XERO_PAYROLL_SCOPES = ['payroll.employees', 'payroll.settings.read'].join(' ');
 const XERO_SCOPES = [
   'accounting.contacts',
   'accounting.contacts.read',
@@ -34,10 +37,11 @@ function basicAuthHeader() {
 // Best-effort, per-instance cache only (same spirit as the rate limiters in
 // hubspot-submit.js / send-participant-email.js) — a cold serverless
 // instance just re-authenticates, which is cheap and stateless.
-let cachedToken = null; // { accessToken, expiresAt }
+const cachedTokens = {}; // scope → { accessToken, expiresAt }
 
-async function getAccessToken() {
+async function getAccessToken(scope = XERO_SCOPES) {
   if (!isConfigured()) throw new Error('not_configured: XERO_CLIENT_ID / XERO_CLIENT_SECRET missing');
+  const cachedToken = cachedTokens[scope];
   if (cachedToken && cachedToken.expiresAt > Date.now() + 30000) {
     return cachedToken.accessToken;
   }
@@ -49,13 +53,13 @@ async function getAccessToken() {
     },
     body: new URLSearchParams({
       grant_type: 'client_credentials',
-      scope: XERO_SCOPES,
+      scope,
     }),
   });
   const body = await res.json();
   if (!res.ok) throw new Error(`Xero client-credentials auth failed: ${res.status} ${JSON.stringify(body)}`);
-  cachedToken = { accessToken: body.access_token, expiresAt: Date.now() + body.expires_in * 1000 };
-  return cachedToken.accessToken;
+  cachedTokens[scope] = { accessToken: body.access_token, expiresAt: Date.now() + body.expires_in * 1000 };
+  return cachedTokens[scope].accessToken;
 }
 
 // A Custom Connection is already scoped to exactly one organisation, so —
@@ -101,4 +105,16 @@ async function getDefaultRevenueAccountCode() {
   return account.Code;
 }
 
-module.exports = { isConfigured, getAccessToken, xeroApiFetch, listAllContacts, getDefaultRevenueAccountCode, tokenMatches };
+// Xero Payroll (AU), v1.0 — a separate API with its own scopes.
+async function xeroPayrollFetch(pathname, opts = {}) {
+  const accessToken = await getAccessToken(XERO_PAYROLL_SCOPES);
+  const res = await fetch(`https://api.xero.com/payroll.xro/1.0${pathname}`, {
+    ...opts,
+    headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json', ...(opts.headers || {}) },
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Xero Payroll ${pathname.split('?')[0]} failed: ${res.status} ${JSON.stringify(body).slice(0, 300)}`);
+  return body;
+}
+
+module.exports = { isConfigured, getAccessToken, xeroApiFetch, xeroPayrollFetch, listAllContacts, getDefaultRevenueAccountCode, tokenMatches };
