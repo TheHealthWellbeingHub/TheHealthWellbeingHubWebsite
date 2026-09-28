@@ -9,6 +9,7 @@
 //   /api/xero?action=create-invoice   POST  one participant's weekly DRAFT invoice (docs/invoicing.md)
 //   /api/xero?action=create-draft     POST  one DRAFT invoice from given lines (e.g. Support Coordination)
 //   /api/xero?action=admin-contact    POST  create a contact or set its AccountNumber/status
+//   /api/xero?action=ensure-contact   POST  find a contact by name, or create it (Command Centre invoicing)
 //   /api/xero?action=admin-invoice    POST  change a draft invoice's status (e.g. DELETED)
 //
 // The read-only health check stays at /api/xero-status.
@@ -19,6 +20,7 @@ const ACTIONS = {
   'create-invoice': () => require('./_xero-actions/create-invoice'),
   'create-draft': () => require('./_xero-actions/create-draft'),
   'admin-contact': () => require('./_xero-actions/admin-contact'),
+  'ensure-contact': () => require('./_xero-actions/ensure-contact'),
   'admin-invoice': () => require('./_xero-actions/admin-invoice'),
 };
 
