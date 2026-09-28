@@ -15,7 +15,7 @@
 const { xeroApiFetch } = require('./_xero');
 const { rest, selectMany, insertOne } = require('./_lib/supabase');
 const { dmy, findContact, xeroLink } = require('./_invoicing');
-const { findExisting, draftBody, saveDraft } = require('./_xero-drafts');
+const { findExisting, draftBody, saveDraft, withRetry } = require('./_xero-drafts');
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -40,7 +40,7 @@ async function recordedDraft(clientId, start) {
   const row = rows[0];
   if (!row) return null;
   const body = row.xero_invoice_id
-    ? await xeroApiFetch(`/Invoices/${encodeURIComponent(row.xero_invoice_id)}`).catch(() => null)
+    ? await withRetry(() => xeroApiFetch(`/Invoices/${encodeURIComponent(row.xero_invoice_id)}`))
     : null;
   const inv = body && body.Invoices && body.Invoices[0];
   if (inv && inv.Status !== 'DELETED' && inv.Status !== 'VOIDED') return { number: row.xero_invoice_number, status: inv.Status };
@@ -62,6 +62,14 @@ async function runScMonth({ today = brisbaneToday(), clientIds = null, dryRun = 
   ]);
   const rateOf = new Map(rates.map((r) => [r.code, Number(r.rate)]));
   const results = [];
+  // Many clients share a plan manager: look each one up in Xero once per run
+  // (Xero allows 60 calls a minute).
+  const contacts = new Map();
+  const invoiceCache = new Map();
+  const contactFor = async (name) => {
+    if (!contacts.has(name)) contacts.set(name, await withRetry(() => findContact(name)));
+    return contacts.get(name);
+  };
 
   for (const c of clients) {
     if (clientIds && !clientIds.includes(c.id)) continue;
@@ -100,7 +108,7 @@ async function runScMonth({ today = brisbaneToday(), clientIds = null, dryRun = 
         results.push({ ...base, done: `already drafted (${recorded.number}, ${recorded.status})` });
         continue;
       }
-      const contact = await findContact(c.xero_contact_name);
+      const contact = await contactFor(c.xero_contact_name);
       if (!contact) {
         results.push({ ...base, problem: `No active Xero contact called "${c.xero_contact_name}"` });
         continue;
@@ -111,6 +119,7 @@ async function runScMonth({ today = brisbaneToday(), clientIds = null, dryRun = 
         starts: new Set([p.start]),
         reference: c.reference,
         names: [invoiceName, c.name],
+        cache: invoiceCache,
       });
       if (existing.length) {
         results.push({ ...base, done: `already invoiced (${existing.map((e) => `${e.number} ${e.status}`).join(', ')})` });

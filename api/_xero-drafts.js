@@ -12,14 +12,16 @@ function periodStart(description) {
   return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : null;
 }
 
-/** Xero sometimes answers 502/503/504 under load; try twice more before giving up. */
+/** Xero answers 502/503/504 under load and 429 past 60 calls a minute;
+ * wait and try again (twice) before giving up. */
 async function withRetry(fn) {
   for (let attempt = 1; ; attempt += 1) {
     try {
       return await fn();
     } catch (err) {
-      if (attempt >= 3 || !/failed: 50[234]\b/.test(err.message)) throw err;
-      await new Promise((r) => setTimeout(r, 1500 * attempt));
+      const busy = /failed: 429\b/.test(err.message);
+      if (attempt >= 3 || !(busy || /failed: 50[234]\b/.test(err.message))) throw err;
+      await new Promise((r) => setTimeout(r, (busy ? 8000 : 1500) * attempt));
     }
   }
 }
@@ -29,17 +31,22 @@ async function withRetry(fn) {
  * of `starts` (YYYY-MM-DD) — matched by the same reference (any case), or by
  * a line naming one of `names`, since references drift ("Htoo SC"/"Htwoo SC").
  */
-async function findExisting({ contactId, starts, reference, names = [] }) {
+async function findExisting({ contactId, starts, reference, names = [], cache = null }) {
   const earliest = [...starts].sort()[0];
   // A period is invoiced after it starts, so invoices dated from shortly
   // before its start are enough (a wider window times out on big contacts).
   const from = new Date(Date.parse(`${earliest}T00:00:00Z`) - 10 * 86400000).toISOString().slice(0, 10).split('-');
   const where = `Type=="ACCREC" AND Contact.ContactID==guid("${contactId}") AND Date>=DateTime(${from.join(',')})`;
-  const found = [];
-  for (let page = 1; page < 10; page += 1) {
-    const batch = (await withRetry(() => xeroApiFetch(`/Invoices?where=${encodeURIComponent(where)}&page=${page}`))).Invoices || [];
-    found.push(...batch);
-    if (batch.length < 100) break;
+  // One read per plan manager per run: many clients share one (pass a Map as cache).
+  let found = cache && cache.get(where);
+  if (!found) {
+    found = [];
+    for (let page = 1; page < 10; page += 1) {
+      const batch = (await withRetry(() => xeroApiFetch(`/Invoices?where=${encodeURIComponent(where)}&page=${page}`))).Invoices || [];
+      found.push(...batch);
+      if (batch.length < 100) break;
+    }
+    if (cache) cache.set(where, found);
   }
   const ref = String(reference || '').trim().toLowerCase();
   const lowerNames = names.map((n) => String(n).trim().toLowerCase()).filter(Boolean);
@@ -76,11 +83,11 @@ async function draftBody({ contactId, reference, date, dueDate, lines }) {
 }
 
 async function saveDraft(invoice) {
-  const body = await xeroApiFetch('/Invoices', {
+  const body = await withRetry(() => xeroApiFetch('/Invoices', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ Invoices: [invoice] }),
-  });
+  }));
   const saved = body.Invoices && body.Invoices[0];
   if (!saved || saved.HasErrors) {
     const errors = ((saved && saved.ValidationErrors) || []).map((e) => e.Message).join('; ');
@@ -89,4 +96,4 @@ async function saveDraft(invoice) {
   return { invoiceId: saved.InvoiceID, invoiceNumber: saved.InvoiceNumber, status: saved.Status, total: saved.Total };
 }
 
-module.exports = { periodStart, findExisting, draftBody, saveDraft };
+module.exports = { periodStart, findExisting, draftBody, saveDraft, withRetry };
