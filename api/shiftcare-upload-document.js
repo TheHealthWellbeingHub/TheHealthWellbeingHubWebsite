@@ -16,6 +16,7 @@
 // conversation, not a browser form. This function re-encodes it as the
 // multipart/form-data ShiftCare's endpoint actually requires.
 const crypto = require('crypto');
+const { isConfigured: supabaseConfigured, selectOne, insertOne } = require('./_lib/supabase');
 
 const SHIFTCARE_ACCOUNT_ID = process.env.SHIFTCARE_ACCOUNT_ID || '291708';
 const SHIFTCARE_API_KEY = process.env.SHIFTCARE_API_KEY || '';
@@ -177,7 +178,39 @@ module.exports = async (req, res) => {
     if (!scRes.ok) {
       return res.status(scRes.status).json({ ok: false, error: 'ShiftCare rejected the upload', detail: data });
     }
-    return res.status(201).json({ ok: true, document: data });
+    // Show it on the Command Centre profile now, not at the next sync. The
+    // upload has already worked, so a failure here only delays that.
+    let profile = 'not recorded';
+    const docId = Number((data && (data.document || data).id) || 0);
+    if (docId && supabaseConfigured()) {
+      try {
+        const participant = await selectOne('participants', 'shiftcare_client_id', Number(client_id), 'id');
+        if (participant) {
+          const now = new Date().toISOString();
+          await insertOne('participant_documents', {
+            participant_id: participant.id,
+            shiftcare_document_id: docId,
+            filename: file_name,
+            content_type: contentType,
+            byte_size: buffer.length,
+            content_sha256: crypto.createHash('sha256').update(buffer).digest('hex'),
+            staff_visible: typeof f.staff_visible === 'boolean' ? f.staff_visible : false,
+            no_expiration: typeof f.no_expiration === 'boolean' ? f.no_expiration : !f.expires_at,
+            expires_at: f.expires_at || null,
+            extraction_status: 'pending',
+            filed_to_shiftcare_at: now,
+            source_created_at: now,
+          });
+          profile = 'recorded';
+        } else {
+          profile = 'participant not in the Command Centre yet — the sync adds it';
+        }
+      } catch (err) {
+        console.error('participant_documents insert failed:', err.message);
+        profile = 'not recorded — the sync adds it within 15 minutes';
+      }
+    }
+    return res.status(201).json({ ok: true, document: data, commandCentre: profile });
   } catch (err) {
     console.error('shiftcare-upload-document failed:', err.message);
     return res.status(502).json({ ok: false, error: 'Upload failed', detail: err.message });
