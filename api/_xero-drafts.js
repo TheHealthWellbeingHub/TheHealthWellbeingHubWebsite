@@ -12,6 +12,18 @@ function periodStart(description) {
   return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : null;
 }
 
+/** Xero sometimes answers 502/503/504 under load; try twice more before giving up. */
+async function withRetry(fn) {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt >= 3 || !/failed: 50[234]\b/.test(err.message)) throw err;
+      await new Promise((r) => setTimeout(r, 1500 * attempt));
+    }
+  }
+}
+
 /**
  * Live invoices to this contact that already cover a period starting on one
  * of `starts` (YYYY-MM-DD) — matched by the same reference (any case), or by
@@ -19,11 +31,13 @@ function periodStart(description) {
  */
 async function findExisting({ contactId, starts, reference, names = [] }) {
   const earliest = [...starts].sort()[0];
-  const from = new Date(Date.parse(`${earliest}T00:00:00Z`) - 120 * 86400000).toISOString().slice(0, 10).split('-');
+  // A period is invoiced after it starts, so invoices dated from shortly
+  // before its start are enough (a wider window times out on big contacts).
+  const from = new Date(Date.parse(`${earliest}T00:00:00Z`) - 10 * 86400000).toISOString().slice(0, 10).split('-');
   const where = `Type=="ACCREC" AND Contact.ContactID==guid("${contactId}") AND Date>=DateTime(${from.join(',')})`;
   const found = [];
   for (let page = 1; page < 10; page += 1) {
-    const batch = (await xeroApiFetch(`/Invoices?where=${encodeURIComponent(where)}&page=${page}`)).Invoices || [];
+    const batch = (await withRetry(() => xeroApiFetch(`/Invoices?where=${encodeURIComponent(where)}&page=${page}`))).Invoices || [];
     found.push(...batch);
     if (batch.length < 100) break;
   }
