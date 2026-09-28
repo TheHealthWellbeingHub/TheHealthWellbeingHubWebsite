@@ -22,6 +22,10 @@
     {
       "path": "/api/weekly-invoice-draft",
       "schedule": "0 22 * * 0"
+    },
+    {
+      "path": "/api/sc-monthly-invoice-draft",
+      "schedule": "0 22 * * *"
     }
   ],
   "redirects": [
@@ -43,6 +47,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/sc-monthly-invoice-draft",
+      "destination": "/api/xero?action=sc-monthly"
+    },
     {
       "source": "/dashboard",
       "destination": "https://hub-command-centre.vercel.app/dashboard"

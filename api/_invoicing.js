@@ -360,4 +360,4 @@ function xeroLink(invoiceId) {
   return `https://go.xero.com/AccountsReceivable/View.aspx?InvoiceID=${invoiceId}`;
 }
 
-module.exports = { lastWeek, addDays, buildWeek, createDraft, xeroLink };
+module.exports = { lastWeek, addDays, dmy, buildWeek, createDraft, xeroLink, xeroSetup, findContact, ACCOUNT_CODE };
