@@ -10,6 +10,12 @@
     "api/send-document-pack.js": {
       "includeFiles": "{participant-documents,staff-documents}/**",
       "maxDuration": 60
+    },
+    "api/weekly-invoice-draft.js": {
+      "maxDuration": 60
+    },
+    "api/xero.js": {
+      "maxDuration": 60
     }
   },
   "crons": [

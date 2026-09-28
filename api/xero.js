@@ -5,7 +5,7 @@
 //
 //   /api/xero?action=list-contacts    GET   contacts with their ShiftCare client IDs
 //   /api/xero?action=get-invoice      GET   one invoice, including drafts (?id=)
-//   /api/xero?action=create-invoice   POST  a DRAFT invoice for one client and period
+//   /api/xero?action=create-invoice   POST  one participant's weekly DRAFT invoice (docs/invoicing.md)
 //   /api/xero?action=admin-contact    POST  create a contact or set its AccountNumber/status
 //   /api/xero?action=admin-invoice    POST  change a draft invoice's status (e.g. DELETED)
 //

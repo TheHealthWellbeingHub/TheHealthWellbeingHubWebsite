@@ -1,184 +1,101 @@
-// Weekly invoicing automation — step 1 of 2. Pulls what ShiftCare says is
-// invoiceable for the period, applies the business-rule layer, matches
-// each client to a Xero contact, and emails a draft for human review.
+// Weekly invoicing — runs every Monday 8am Brisbane (vercel.json cron,
+// Sunday 22:00 UTC). For the Monday-Sunday week just gone it builds each
+// participant's invoice from ShiftCare (api/_invoicing.js), saves it in Xero
+// as a DRAFT dated today, and emails the office the list to check. Nothing
+// is sent to a plan manager: staff open each draft in Xero, check it, and
+// approve and send it themselves. Running it twice for the same week does
+// not create a second invoice.
 //
-// Deliberately does NOT create or touch any Xero invoice. That is a
-// separate, later function requiring its own explicit per-batch
-// confirmation — the same bar ShiftCare's own create_invoice tool holds
-// itself to. This function only ever reads (ShiftCare, Xero contacts) and
-// sends one internal email; nothing external-facing happens here.
-//
-// Auth: Authorization: Bearer <CRON_SECRET> (set automatically by Vercel
-// Cron when CRON_SECRET is configured) or <XERO_STATUS_TOKEN> for a manual
-// trigger while testing. Same not_configured pattern as the other
-// endpoints in this repo when required env vars are missing.
-const { isConfigured: shiftcareConfigured, shiftcareApiFetch } = require('./_shiftcare');
-const { isConfigured: xeroConfigured, listAllContacts } = require('./_xero');
+// GET, Authorization: Bearer <CRON_SECRET> (Vercel Cron) or <XERO_STATUS_TOKEN>.
+// Query: start & end (YYYY-MM-DD, default last week), clientId (one or more,
+// comma-separated ShiftCare client IDs), dryRun=1 (build and return only:
+// nothing written to Xero, nothing emailed).
+const { isConfigured: shiftcareConfigured } = require('./_shiftcare');
+const { isConfigured: xeroConfigured, tokenMatches } = require('./_xero');
 const { isConfigured: mailConfigured, sendEmail } = require('./_mail');
-const crypto = require('crypto');
+const { isConfigured: supabaseConfigured } = require('./_lib/supabase');
+const { lastWeek, buildWeek, createDraft, xeroLink } = require('./_invoicing');
 
 const CRON_SECRET = process.env.CRON_SECRET || '';
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
 const ADMIN_EMAIL = process.env.INVOICE_DRAFT_EMAIL || 'officethehealthwellbeinghub@gmail.com';
-// Comma-separated ShiftCare client IDs to never auto-draft (funding
-// exhausted, on hold, etc.) — kept in Vercel env vars, never in git, per
-// this repo's rule that participant-identifying data never lives in the
-// repository. IDs are not identifying on their own without ShiftCare
-// access, unlike a name would be.
-const SKIP_CLIENT_IDS = new Set(
-  (process.env.INVOICE_DRAFT_SKIP_CLIENT_IDS || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-);
 
-function tokenMatches(given, want) {
-  if (typeof given !== 'string' || !want) return false;
-  const a = Buffer.from(given);
-  const b = Buffer.from(want);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
+const money = (n) => `$${Number(n).toFixed(2)}`;
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-// Calendar date (YYYY-MM-DD) math done against Brisbane local time — QLD
-// does not observe daylight saving, so a fixed +10h offset from UTC holds
-// year-round. Defaults to the most recent complete Monday-Sunday week.
-function defaultPeriod() {
-  const nowBrisbane = new Date(Date.now() + 10 * 60 * 60 * 1000);
-  const dow = nowBrisbane.getUTCDay(); // 0 = Sunday
-  const daysSinceLastSunday = dow === 0 ? 7 : dow; // always land on a PAST Sunday
-  const end = new Date(nowBrisbane);
-  end.setUTCDate(end.getUTCDate() - daysSinceLastSunday);
-  const start = new Date(end);
-  start.setUTCDate(start.getUTCDate() - 6);
-  const fmt = (d) => d.toISOString().slice(0, 10);
-  return { start: fmt(start), end: fmt(end) };
-}
-
-async function fetchAllInvoiceableItems(start, end) {
-  const clients = [];
-  let cursor;
-  do {
-    const body = await shiftcareApiFetch('/api/v3/invoiceable_items', {
-      start_date_in_account_time_zone: start,
-      end_date_in_account_time_zone: end,
-      per_page: 100,
-      cursor,
-    });
-    clients.push(...(body.clients || []));
-    cursor = body.pagination && body.pagination.has_more ? body.pagination.next_cursor : null;
-  } while (cursor);
-  return clients;
-}
-
-// Xero invoices go to the participant's plan manager organisation, not the
-// participant by name — confirmed against real ShiftCare records, where
-// the plan manager is (inconsistently, if at all) buried in free-text
-// notes alongside unrelated clinical content this code must never parse.
-// The reliable fix: each Xero contact's AccountNumber field is set, once,
-// to the matching ShiftCare client_id — an exact key, not a name guess.
-function findContactMatch(clientId, contacts) {
-  const target = String(clientId).trim();
-  const matches = contacts.filter((c) => (c.AccountNumber || '').trim() === target);
-  if (matches.length === 1) return { status: 'matched', contact: matches[0] };
-  if (matches.length > 1) return { status: 'ambiguous', count: matches.length };
-  return { status: 'unmatched' };
-}
-
-function money(n) {
-  return `$${Number(n).toFixed(2)}`;
+function summaryEmail(period, results, notSetUp) {
+  const made = results.filter((r) => r.invoiceNumber && !r.skipped);
+  const total = made.reduce((sum, r) => sum + Number(r.total || 0), 0);
+  const rows = results.map((r) => {
+    const status = r.error
+      ? `<b style="color:#a8323a">Not created: ${esc(r.error)}</b>`
+      : r.skipped
+        ? `Not created: ${esc(r.skipped)}`
+        : `<a href="${xeroLink(r.invoiceId)}">${esc(r.invoiceNumber)}</a> — draft`;
+    const flags = r.flags.length ? `<ul style="margin:4px 0 0;color:#9a5a00">${r.flags.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : '';
+    return `<tr><td style="padding:8px;border-bottom:1px solid #e2d9e6;vertical-align:top"><b>${esc(r.name)}</b><br>${esc(r.reference)} · ${esc(r.contactName)}${flags}</td>
+      <td style="padding:8px;border-bottom:1px solid #e2d9e6;vertical-align:top;text-align:right">${money(r.total)}</td>
+      <td style="padding:8px;border-bottom:1px solid #e2d9e6;vertical-align:top">${status}</td></tr>`;
+  });
+  const html = `<div style="font:14px/1.5 Arial,sans-serif;color:#1f2440">
+    <p><b>${made.length} draft invoice${made.length === 1 ? '' : 's'} in Xero</b> for ${esc(period.start)} to ${esc(period.end)}, ${money(total)} in total. Open each one in Xero, check it, then approve and send.</p>
+    <table style="border-collapse:collapse;width:100%">${rows.join('')}</table>
+    ${notSetUp.length ? `<p style="margin-top:16px"><b>Had shifts but aren't set up for invoicing</b> (add them in the Command Centre → Invoicing):</p><ul>${notSetUp.map((n) => `<li>${esc(n.name)} — ${n.shiftCount} shift${n.shiftCount === 1 ? '' : 's'}</li>`).join('')}</ul>` : ''}
+  </div>`;
+  const text = [
+    `${made.length} draft invoices in Xero for ${period.start} to ${period.end}, ${money(total)} in total.`,
+    '',
+    ...results.map((r) => `${r.name} — ${money(r.total)} — ${r.error ? `NOT CREATED: ${r.error}` : r.skipped ? `not created: ${r.skipped}` : r.invoiceNumber}${r.flags.length ? `\n  ! ${r.flags.join('\n  ! ')}` : ''}`),
+    ...(notSetUp.length ? ['', 'Had shifts but not set up for invoicing:', ...notSetUp.map((n) => `  ${n.name}`)] : []),
+  ].join('\n');
+  return { subject: `Invoices for ${period.start} to ${period.end}: ${made.length} drafts in Xero, ${money(total)}`, html, text };
 }
 
 module.exports = async (req, res) => {
   if (req.method !== 'GET') return res.status(405).json({ ok: false, error: 'Method not allowed' });
-
-  if (!shiftcareConfigured() || !xeroConfigured() || !mailConfigured() || !XERO_STATUS_TOKEN) {
+  if (!shiftcareConfigured() || !xeroConfigured() || !mailConfigured() || !supabaseConfigured()) {
     return res.status(503).json({ ok: false, error: 'not_configured' });
   }
   const header = req.headers.authorization || '';
   const bearer = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
-  const authorized = tokenMatches(bearer, CRON_SECRET) || tokenMatches(bearer, XERO_STATUS_TOKEN);
-  if (!authorized) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  if (!tokenMatches(bearer, CRON_SECRET) && !tokenMatches(bearer, XERO_STATUS_TOKEN)) {
+    return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  }
 
-  const { start, end } = req.query.start && req.query.end
-    ? { start: req.query.start, end: req.query.end }
-    : defaultPeriod();
+  const q = req.query || {};
+  const ymd = /^\d{4}-\d{2}-\d{2}$/;
+  const { start, end } = ymd.test(q.start || '') && ymd.test(q.end || '') ? { start: q.start, end: q.end } : lastWeek();
+  const clientIds = q.clientId ? String(q.clientId).split(',').map((s) => s.trim()).filter(Boolean) : null;
+  const dryRun = q.dryRun === '1' || q.dryRun === 'true';
 
   try {
-    const [clients, contacts] = await Promise.all([
-      fetchAllInvoiceableItems(start, end),
-      listAllContacts(),
-    ]);
+    const built = await buildWeek({ start, end, clientIds });
+    if (dryRun) return res.status(200).json({ ok: true, dryRun: true, ...built });
 
-    const draft = [];
-    const skipped = [];
-    for (const c of clients) {
-      if (SKIP_CLIENT_IDS.has(String(c.client_id))) {
-        skipped.push({ client_id: c.client_id, client_name: c.client_name, reason: 'on skip list' });
-        continue;
+    const results = [];
+    for (const inv of built.invoices) {
+      try {
+        const out = await createDraft(inv, built.period);
+        results.push({ ...inv, ...out });
+      } catch (err) {
+        console.error('invoice draft failed:', inv.clientId, err.message);
+        results.push({ ...inv, error: err.message });
       }
-      const subTotal = Number(c.totals?.sub_total || 0);
-      if (subTotal <= 0) {
-        skipped.push({ client_id: c.client_id, client_name: c.client_name, reason: 'nothing to invoice' });
-        continue;
-      }
-      const match = findContactMatch(c.client_id, contacts);
-      const warnings = [];
-      if (c.excluded_count > 0) warnings.push(`${c.excluded_count} item(s) excluded by ShiftCare — check before invoicing`);
-      if (match.status === 'unmatched') warnings.push(`No Xero contact has Account Number = ${c.client_id} — set it on the right contact, then re-run`);
-      if (match.status === 'ambiguous') warnings.push(`${match.count} Xero contacts share Account Number ${c.client_id} — fix the duplicate, then re-run`);
-
-      draft.push({
-        client_id: c.client_id,
-        client_name: c.client_name,
-        fund_name: c.fund_name,
-        payment_type: c.payment_type,
-        subTotal,
-        estimatedTotal: Number(c.totals?.estimated_total || subTotal),
-        xeroContact: match.status === 'matched' ? { id: match.contact.ContactID, name: match.contact.Name } : null,
-        warnings,
-      });
     }
-
-    const totalEstimated = draft.reduce((sum, d) => sum + d.estimatedTotal, 0);
-    const needsAttention = draft.filter((d) => d.warnings.length);
-
-    const lines = [
-      `Weekly invoice draft — ${start} to ${end}`,
-      '',
-      `${draft.length} participant(s), ${money(totalEstimated)} total (estimated, tax-inclusive).`,
-      needsAttention.length ? `${needsAttention.length} need attention before invoicing.` : 'No issues flagged.',
-      '',
-      'No invoices have been created. This is a draft for review only.',
-      '',
-      ...draft.map((d) =>
-        `${d.client_name} — ${money(d.estimatedTotal)} — ${d.xeroContact ? `Xero: ${d.xeroContact.name}` : 'Xero: NOT MATCHED'}` +
-        (d.warnings.length ? `\n  ⚠ ${d.warnings.join('; ')}` : '')
-      ),
-      ...(skipped.length ? ['', `Skipped (${skipped.length}):`, ...skipped.map((s) => `  ${s.client_name} — ${s.reason}`)] : []),
-    ];
-    const text = lines.join('\n');
-    const html = `<pre style="font:14px/1.5 monospace">${text.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</pre>`;
-
-    await sendEmail({
-      to: ADMIN_EMAIL,
-      subject: `Weekly invoice draft ${start} to ${end} — ${draft.length} participants, ${money(totalEstimated)}`,
-      text,
-      html,
-    });
+    const mail = summaryEmail(built.period, results, built.notSetUp);
+    await sendEmail({ to: ADMIN_EMAIL, subject: mail.subject, text: mail.text, html: mail.html });
 
     return res.status(200).json({
       ok: true,
-      period: { start, end },
-      participantCount: draft.length,
-      totalEstimated,
-      needsAttentionCount: needsAttention.length,
-      skippedCount: skipped.length,
+      period: built.period,
       emailedTo: ADMIN_EMAIL,
-      draft,
-      skipped,
+      results: results.map(({ clientId, name, total, invoiceId, invoiceNumber, skipped, error, flags }) => ({
+        clientId, name, total, invoiceId, invoiceNumber, skipped, error, flags,
+      })),
+      notSetUp: built.notSetUp,
     });
   } catch (err) {
     console.error('weekly-invoice-draft failed:', err.message);
-    return res.status(502).json({ ok: false, error: 'Draft build failed', detail: err.message });
+    return res.status(502).json({ ok: false, error: 'Invoice run failed', detail: err.message });
   }
 };
