@@ -24,7 +24,9 @@ Monday–Sunday week just gone:
      - travel: the week's mileage entries added up, at the travel item's price. When a worker
        enters mileage more than once for the same shift, only their **latest** entry counts —
        the later one is a correction (e.g. 78 km then 83 km on one shift counts as 83). Two
-       workers on one shift each have their own entry, and both count.
+       workers on one shift each have their own entry, and both count. **No mileage entered
+       by the workers means no travel line** — nothing is estimated or carried over (decided
+       28 Sep 2026).
    - **Account 201, GST Free Income**, amounts tax exclusive.
 4. Save each one in Xero as a **DRAFT**. Nothing is sent to a plan manager.
 5. Email the office the list: each draft with its total and a Xero link, anything that needs
@@ -54,7 +56,7 @@ Participant details live only in Supabase. Nothing about a participant goes in t
 - a sleepover or non-standard shift type, a shared shift, a shift with no worker
 - a shift cancelled by the client (billed) — shifts cancelled without charge are left out
 - hours on a day with no support item set (left off, and so is that shift's mileage); a support item with no price
-- no mileage for the week; no NDIS number
+- no NDIS number
 - public holidays are **not** detected — they're billed at the ordinary day's rate
 
 ## Running it by hand

@@ -242,7 +242,6 @@ async function buildWeek({ start, end, clientIds = null }) {
     addLine('Saturday hours', p.saturday_code, p.saturday_text, groups.saturday.hours, groups.saturday.dates);
     addLine('Sunday hours', p.sunday_code, p.sunday_text, groups.sunday.hours, groups.sunday.dates);
     addLine('km', p.travel_code, p.travel_text, km, billedDates);
-    if (billedDates.length && km === 0 && p.travel_code) flags.push('No mileage entered by workers this week');
 
     invoices.push({
       clientId: p.shiftcare_client_id,
