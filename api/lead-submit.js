@@ -11,7 +11,7 @@
 // sends directly over SMTP (api/_lib/mailer.js) the moment the record is
 // written — no more "resubmit to a hidden HubSpot form to trigger a
 // workflow" detour, because there is no workflow to trigger any more.
-const { insertOne, updateOne, selectOne, selectMany } = require('./_lib/supabase');
+const { rest, insertOne, updateOne, selectOne, selectMany } = require('./_lib/supabase');
 const { sendTemplateEmail } = require('./_lib/mailer');
 
 // --- Abuse protection (identical to hubspot-submit.js) --------------------
@@ -433,7 +433,7 @@ module.exports = async (req, res) => {
   }
 
   const ip = clientIp(req);
-  const staffEntry = ['staff_referral', 'staff_enquiry'].includes((req.body || {}).form_name);
+  const staffEntry = ['staff_referral', 'staff_enquiry', 'staff_onboarding'].includes((req.body || {}).form_name);
   if (isRateLimited(ip, staffEntry ? STAFF_RATE_LIMIT_MAX : RATE_LIMIT_MAX)) {
     console.warn('rate limited submission from', ip);
     return res.status(429).json({ ok: false, error: 'Too many submissions. Please try again shortly.' });
@@ -453,13 +453,13 @@ module.exports = async (req, res) => {
     // Staff routes: staff_referral / staff_enquiry are the same as the public
     // forms, logged by a worker (Command Centre or Claude) who attests the
     // person was told how their details will be used.
-    const isStaffEntry = f.form_name === 'staff_referral' || f.form_name === 'staff_enquiry';
+    const isStaffEntry = ['staff_referral', 'staff_enquiry', 'staff_onboarding'].includes(f.form_name);
     if (!isAffirmative(isStaffEntry ? f.staff_consent_attested : f.privacy_consent)) {
       console.warn('rejected submission without privacy consent from', ip);
       return res.status(400).json({
         ok: false,
         error: isStaffEntry
-          ? `Please confirm you told the ${f.form_name === 'staff_enquiry' ? 'person enquiring' : 'referrer'} how their details will be used.`
+          ? `Please confirm you told the ${f.form_name === 'staff_enquiry' ? 'person enquiring' : f.form_name === 'staff_onboarding' ? 'participant' : 'referrer'} how their details will be used.`
           : 'Please confirm you have read the Privacy Policy before submitting.',
       });
     }
@@ -562,6 +562,94 @@ module.exports = async (req, res) => {
       }
 
       return res.status(200).json({ ok: true, reference, acknowledgementStatus });
+    }
+
+    // ---- Staff onboarding (workflow 03): going ahead straight away -------
+    // A worker adds a participant who is already going ahead — the Command
+    // Centre's Add Participant form, or Claude. No acknowledgement email and
+    // no call task: the record starts at Service Agreement Sent with a "Send
+    // Onboarding email" task, and the worker sends that email next. An open
+    // referral or enquiry with the same email is the same person and is
+    // moved on rather than duplicated.
+    if (formName === 'staff_onboarding') {
+      const name = (f.participant_name || '').trim();
+      const email = (f.participant_email || '').trim();
+      if (!name || !looksLikeEmail(email)) {
+        return res.status(400).json({ ok: false, error: "The participant's name and a valid email are needed." });
+      }
+      const nowIso = now.toISOString();
+      const [existing] = await selectMany(
+        'leads',
+        `participant_contact=ilike.${ilikeExact(email)}&stage=not.in.(participant_onboarded,lost_not_suitable)&order=created_at.desc&limit=1`
+      );
+      const serviceLine = SERVICE_LINE_MAP[(f.service_needed || '').replace('&amp;', '&')] || null;
+      const takenBy = f.referral_taken_by || 'staff';
+      const stamp = now.toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' });
+
+      let lead = existing || null;
+      let alreadyOnboarding = false;
+      if (!lead) {
+        lead = await createLead({
+          type: 'referral',
+          participant_name: name,
+          participant_contact: email,
+          is_direct_entry: true,
+          stage: 'service_agreement_sent',
+          stage_updated_at: nowIso,
+          service_needed: serviceLine || f.service_needed || null,
+          suburb: f.suburb || null,
+          referral_channel: 'Came directly',
+          referral_taken_by: takenBy,
+          consent_capture_method: 'Recorded by worker',
+          participant_consent_confirmed: true,
+          source_page: sourcePage || null,
+          source_page_url: sourceUrl || null,
+        });
+        lead.reference = `REF-${now.getFullYear()}-${lead.seq}`;
+        await updateOne('leads', lead.id, { reference: lead.reference });
+      } else if (lead.stage === 'service_agreement_sent') {
+        alreadyOnboarding = true;
+      } else {
+        // Its call task is moot now: close every open task, then move it on.
+        await rest(
+          `/tasks?lead_id=eq.${encodeURIComponent(lead.id)}&status=in.(action_required,pending)`,
+          { method: 'PATCH', body: JSON.stringify({ status: 'done', completed_at: nowIso }) }
+        );
+        await updateOne('leads', lead.id, { stage: 'service_agreement_sent', stage_updated_at: nowIso, updated_at: nowIso });
+      }
+
+      await createNote(
+        lead.id,
+        [
+          alreadyOnboarding
+            ? `Add Participant used again by ${takenBy} ${stamp} — this participant is already onboarding.`
+            : existing
+              ? `Onboarding started by ${takenBy} ${stamp} — going ahead. Stage → Service Agreement Sent.`
+              : `Participant added by ${takenBy} ${stamp} — going ahead, onboarding started. Stage → Service Agreement Sent.`,
+          f.service_needed ? `Service: ${f.service_needed}` : null,
+          f.preferred_name ? `Preferred name: ${f.preferred_name}` : null,
+          f.participant_mobile ? `Mobile: ${f.participant_mobile}` : null,
+          f.address ? `Address: ${f.address}` : null,
+          f.suburb ? `Suburb: ${f.suburb}` : null,
+          f.ndis_number ? `NDIS number: ${f.ndis_number}` : null,
+          f.dob ? `Date of birth: ${f.dob}` : null,
+        ].filter(Boolean).join('\n')
+      );
+      if (!alreadyOnboarding) {
+        await insertOne('tasks', {
+          subject: `Send Onboarding email & forms — ${name}`,
+          lead_id: lead.id,
+          due_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+        });
+      }
+      return res.status(200).json({
+        ok: true,
+        leadId: lead.id,
+        reference: lead.reference,
+        isReturning: Boolean(existing),
+        alreadyOnboarding,
+        participantId: lead.participant_id || null,
+      });
     }
 
     // ---- Referral / enquiry: a lead, optionally a referrer --------------

@@ -34,6 +34,7 @@ key). Workflow 03 runs from the Command Centre's onboarding page,
 | 1 | Record outcome → **Going ahead**, on a referral (workflow 01) or an enquiry (workflow 02) | Stage `Service Agreement Sent`, task *Send Onboarding email & forms* due in 1 day, and staff land on the onboarding page |
 | 2 | A worker opens it: the referral's card (**Open onboarding**), the *Send Onboarding email* / chase / *Send Welcome pack* task buttons, or the referrer's page | Same page |
 | 3 | **A worker tells Claude to start onboarding a new participant**, and gives Claude the details | See "Trigger 3 — Claude" below |
+| 4 | **Command Centre → Add Participant** (`/dashboard/participants/new`) | Only first name and email are required. Starts onboarding through `api/lead-submit.js` (`form_name: "staff_onboarding"`), then opens the Onboarding email page, filled in. With a date of birth the participant is created in ShiftCare straight away (ShiftCare requires one); without, the Welcome step creates them once the forms are back. The other optional details go in the note |
 
 ### The three steps
 
@@ -68,11 +69,15 @@ A worker says "start onboarding for <participant>" and gives the details. Claude
    preferred schedule and location (`TBC` is fine for start and schedule).
 2. **Finds the referral or enquiry** in Supabase `leads` — an open one (`stage` `new` or
    `service_agreement_sent`) for the same participant name, email or phone. If there is none,
-   **logs it through `api/lead-submit.js`** — `form_name: "staff_referral"` when someone referred
-   them, `"staff_enquiry"` otherwise, `referral_taken_by: "Claude"`, and
-   `staff_consent_attested: "Yes"` only once the worker confirms the person was told how their
-   details are used. Never a direct insert (see `CLAUDE.md`). That sends email 02 / 03 and
-   saves the referrer, exactly as triggers 1–3 of workflows 01/02.
+   it goes through `api/lead-submit.js` — never a direct insert (see `CLAUDE.md`), with
+   `referral_taken_by: "Claude"`, and `staff_consent_attested: "Yes"` only once the worker
+   confirms the person was told how their details are used:
+   - **No referrer** → `form_name: "staff_onboarding"` with `participant_name`,
+     `participant_email` (both required) and any of `participant_mobile`, `preferred_name`,
+     `dob`, `address`, `ndis_number`, `service_needed`. It starts at Service Agreement Sent
+     with the *Send Onboarding email* task and no acknowledgement email — skip step 3.
+   - **Someone referred them** → `form_name: "staff_referral"`, which saves the referrer and
+     sends them email 02 (the "every new referrer gets an email" rule), then step 3.
 3. **Records Going ahead** if it isn't already at `service_agreement_sent` — the same writes as
    the outcome page's "Record without sending":
 

@@ -204,8 +204,11 @@ The worker is trying to complete a task. Get them to the next action and stop.
   Field list per template: `docs/email-merge-fields.md`.
 - **Creating a referral or an enquiry:** always through `api/lead-submit.js`
   (`form_name: "staff_referral"` / `"staff_enquiry"`), never a direct insert into `leads` —
-  that is what sends email 02 / 03 and raises the call task. Details:
-  `docs/workflow-01-referral.md` and `docs/workflow-02-enquiry.md`, "Current triggers".
+  that is what sends email 02 / 03 and raises the call task. A participant who is already
+  going ahead (workflow 03 — Add Participant, or Claude) uses `"staff_onboarding"`: no
+  acknowledgement email, straight to the *Send Onboarding email* task. Details:
+  `docs/workflow-01-referral.md`, `docs/workflow-02-enquiry.md` and
+  `docs/workflow-03-new-participant.md`, "Current triggers".
 - **Git hooks:** `.githooks/pre-commit` blocks commits authored on the production branch,
   which is also the default branch, so a push to it is a live release. Claude Code enables it
   automatically via `SessionStart` in `.claude/settings.json`; otherwise run
