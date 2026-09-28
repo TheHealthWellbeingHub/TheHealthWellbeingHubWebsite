@@ -5,8 +5,9 @@
 // Always a DRAFT; a person approves and sends it.
 //
 // POST { contactId | contactName, reference, date, dueDate?, lines: [{ description, quantity, unitAmount }], dryRun?, allowDuplicate? }
-// Refuses (unless allowDuplicate) when the contact already has a live invoice
-// with the same reference dated in the same month.
+// Each line starts with its period ("01/09/2026 - 21/09/2026"). Refuses (unless
+// allowDuplicate) when the contact already has a live invoice with the same
+// reference covering a period that starts on the same date.
 const { isConfigured, xeroApiFetch, tokenMatches } = require('../_xero');
 
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
@@ -14,6 +15,12 @@ const ACCOUNT_CODE = process.env.INVOICE_ACCOUNT_CODE || '201';
 const TAX_RATE_NAME = process.env.INVOICE_TAX_RATE_NAME || 'GST Free Income';
 const BRANDING_THEME_NAME = process.env.INVOICE_BRANDING_THEME || 'Standard';
 const ymd = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** "1/9/2026 - 21/09/2026\n…" -> "2026-09-01" (null when the line has no date). */
+function periodStart(description) {
+  const m = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(description || '');
+  return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : null;
+}
 
 async function findContact({ contactId, contactName }) {
   if (contactId) {
@@ -49,16 +56,27 @@ module.exports = async (req, res) => {
       return res.status(404).json({ ok: false, error: `No active Xero contact ${contactId || `called "${contactName}"`}` });
     }
 
-    const [y, m] = date.split('-');
-    const monthStart = `DateTime(${y},${m},01)`;
-    const next = new Date(Date.UTC(Number(y), Number(m), 1));
-    const monthEnd = `DateTime(${next.getUTCFullYear()},${String(next.getUTCMonth() + 1).padStart(2, '0')},01)`;
-    const where = `Type=="ACCREC" AND Contact.ContactID==guid("${contact.ContactID}") AND Reference=="${String(reference).replace(/"/g, '')}" AND Date>=${monthStart} AND Date<${monthEnd}`;
-    const dupes = ((await xeroApiFetch(`/Invoices?where=${encodeURIComponent(where)}`)).Invoices || [])
+    // Already invoiced = a live invoice to this contact with the same
+    // reference whose line covers a period starting on the same date (the
+    // first date in the description, e.g. "01/09/2026 - 21/09/2026").
+    const earlier = new Date(Date.parse(`${date}T00:00:00Z`) - 200 * 86400000).toISOString().slice(0, 10).split('-');
+    const where = `Type=="ACCREC" AND Contact.ContactID==guid("${contact.ContactID}") AND Reference=="${String(reference).replace(/"/g, '')}" AND Date>=DateTime(${earlier.join(',')})`;
+    const starts = new Set(cleanLines.map((l) => periodStart(l.description)).filter(Boolean));
+    const found = [];
+    for (let page = 1; page < 5; page += 1) {
+      const batch = (await xeroApiFetch(`/Invoices?where=${encodeURIComponent(where)}&page=${page}`)).Invoices || [];
+      found.push(...batch);
+      if (batch.length < 100) break;
+    }
+    const dupes = found
       .filter((i) => i.Status !== 'DELETED' && i.Status !== 'VOIDED')
+      .filter((i) => (i.LineItems || []).some((l) => starts.has(periodStart(l.Description))))
       .map((i) => ({ id: i.InvoiceID, number: i.InvoiceNumber, status: i.Status, date: i.DateString, total: i.Total }));
+    if (!starts.size && !allowDuplicate) {
+      return res.status(400).json({ ok: false, error: 'each line should start with its period, e.g. "01/09/2026 - 21/09/2026"' });
+    }
     if (dupes.length && !allowDuplicate) {
-      return res.status(409).json({ ok: false, skipped: 'already invoiced this month', existing: dupes });
+      return res.status(409).json({ ok: false, skipped: 'this period is already invoiced', existing: dupes });
     }
 
     const [themes, taxRates] = await Promise.all([xeroApiFetch('/BrandingThemes'), xeroApiFetch('/TaxRates')]);
