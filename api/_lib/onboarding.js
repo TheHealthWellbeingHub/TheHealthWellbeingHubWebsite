@@ -3,7 +3,8 @@
 //    goes out as soon as a participant is going ahead — no one presses Send.
 //  - processFormReturns: forms the participant emails back (queued by the
 //    hourly email agent in `onboarding_form_returns`) are ticked off; once
-//    all three are back the participant is created or updated in ShiftCare
+//    the consent form and signed Service Agreement are back (the Referral
+//    Form isn't waited on) the participant is created or updated in ShiftCare
 //    and Supabase, the Welcome pack (12) goes out, and staff get a task to
 //    double-check the details that came from the forms.
 //  - attachFormFile / fileDocuments: the returned forms themselves are kept
@@ -25,12 +26,18 @@ const SHIFTCARE_ACCOUNT_ID = process.env.SHIFTCARE_ACCOUNT_ID || '291708';
 const SHIFTCARE_API_KEY = process.env.SHIFTCARE_API_KEY || '';
 const SHIFTCARE_BASE = 'https://api.shiftcare.com/api';
 
+// The consent form and the signed Service Agreement are what the Welcome
+// pack waits for — between them they carry the name, date of birth, NDIS
+// number and contact details. The Referral Form is kept when it comes, but
+// never chased or waited on.
 const FORMS = [
-  { key: 'referral_form', label: 'Referral Form' },
-  { key: 'consent_form', label: 'NDIS Consent form' },
-  { key: 'service_agreement', label: 'Signed Service Agreement' },
+  { key: 'referral_form', label: 'Referral Form', required: false },
+  { key: 'consent_form', label: 'NDIS Consent form', required: true },
+  { key: 'service_agreement', label: 'Signed Service Agreement', required: true },
 ];
 const FORM_KEYS = FORMS.map((f) => f.key);
+const REQUIRED_KEYS = FORMS.filter((f) => f.required).map((f) => f.key);
+const READY = 'The NDIS Consent form and signed Service Agreement are back';
 const formLabel = (k) => (FORMS.find((f) => f.key === k) || { label: k }).label;
 
 const nowIso = () => new Date().toISOString();
@@ -405,12 +412,16 @@ async function findLeadForReturn(row) {
   if (row.lead_id) return selectOne('leads', 'id', row.lead_id);
   const from = (row.from_email || '').trim();
   if (!looksLikeEmail(from)) return null;
-  for (const col of ['consent_email_to', 'participant_contact']) {
-    const [lead] = await selectMany(
-      'leads',
-      `${col}=ilike.${ilikeExact(from)}&stage=eq.service_agreement_sent&order=created_at.desc&limit=1`
-    );
-    if (lead) return lead;
+  // Waiting on forms first; then someone already onboarded, whose late forms
+  // (usually the Referral Form) are still filed to their profile.
+  for (const stage of ['service_agreement_sent', 'participant_onboarded']) {
+    for (const col of ['consent_email_to', 'participant_contact']) {
+      const [lead] = await selectMany(
+        'leads',
+        `${col}=ilike.${ilikeExact(from)}&stage=eq.${stage}&order=created_at.desc&limit=1`
+      );
+      if (lead) return lead;
+    }
   }
   return null;
 }
@@ -423,6 +434,19 @@ async function processOne(row) {
   }
   if (row.lead_id !== lead.id) await updateOne('onboarding_form_returns', row.id, { lead_id: lead.id });
   const who = lead.participant_name || lead.reference || 'participant';
+  if (lead.stage === 'participant_onboarded' && lead.participant_id) {
+    // Already onboarded: nothing to send, but keep and file what came in.
+    const incoming = (row.forms || []).filter((k) => FORM_KEYS.includes(k));
+    const received = FORM_KEYS.filter((k) => (lead.forms_received || []).includes(k) || incoming.includes(k));
+    await updateOne('leads', lead.id, { forms_received: received, updated_at: nowIso() });
+    const linked = await selectOne('participants', 'id', lead.participant_id, PARTICIPANT_COLUMNS);
+    const lines = linked ? filingLines(await fileDocuments(lead, linked, who)) : [];
+    await note(lead.id, [
+      `More forms received by email from ${row.from_email || 'the participant'} after onboarding: ${incoming.map(formLabel).join(', ') || 'none recognised'}.`,
+      ...lines,
+    ].join('\n'));
+    return { status: 'done', result: 'Already onboarded; forms filed', leadId: lead.id, participantId: lead.participant_id };
+  }
   if (lead.stage !== 'service_agreement_sent') {
     await note(lead.id, `Forms arrived by email from ${row.from_email || 'the participant'}, but this referral is at "${lead.stage}", so nothing was changed.`);
     return { status: 'skipped', result: `Referral is at ${lead.stage}`, leadId: lead.id };
@@ -431,15 +455,16 @@ async function processOne(row) {
   const incoming = (row.forms || []).filter((k) => FORM_KEYS.includes(k));
   const before = (lead.forms_received || []).filter((k) => FORM_KEYS.includes(k));
   const received = FORM_KEYS.filter((k) => before.includes(k) || incoming.includes(k));
-  const missing = FORM_KEYS.filter((k) => !received.includes(k));
+  const missing = REQUIRED_KEYS.filter((k) => !received.includes(k));
   await updateOne('leads', lead.id, { forms_received: received, updated_at: nowIso() });
   await closeTasks(lead.id, ['action_required', 'pending'], 'Chase');
   await note(
     lead.id,
     [
       `Forms received by email from ${row.from_email || 'the participant'}: ${incoming.map(formLabel).join(', ') || 'none recognised'}.`,
-      missing.length ? `Still missing: ${missing.map(formLabel).join(', ')}.` : 'All three forms are back.',
-    ].join('\n')
+      missing.length ? `Still missing: ${missing.map(formLabel).join(', ')}.` : `${READY}.`,
+      !missing.length && !received.includes('referral_form') ? 'The Referral Form isn\'t back — it isn\'t needed for the Welcome pack, so it isn\'t chased.' : null,
+    ].filter(Boolean).join('\n')
   );
   if (missing.length) {
     await task({
@@ -458,7 +483,7 @@ async function processOne(row) {
     return { status: 'done', result: `Still missing: ${missing.map(formLabel).join(', ')}`, leadId: lead.id };
   }
 
-  // All three are back.
+  // The consent form and Service Agreement are back: participant, then Welcome pack.
   const manualWelcome = async (why) => {
     await task({ subject: `Send Welcome pack — ${who}`, lead_id: lead.id, due_at: daysFromNow(1) });
     await note(lead.id, `${why} Finish on the onboarding page: Create participant & send Welcome pack.`);
@@ -479,8 +504,8 @@ async function processOne(row) {
       const firstName = d.first_name || firstWord(lead.participant_name);
       const familyName = d.first_name ? d.family_name : restWords(lead.participant_name);
       if (!firstName || !d.date_of_birth) {
-        await manualWelcome('All three forms are back, but the date of birth couldn\'t be read from them, so the participant wasn\'t created automatically.');
-        return { status: 'done', result: 'All forms back; participant not created — no date of birth', leadId: lead.id };
+        await manualWelcome(`${READY}, but the date of birth couldn't be read from them, so the participant wasn't created automatically.`);
+        return { status: 'done', result: 'Consent and Service Agreement back; participant not created — no date of birth', leadId: lead.id };
       }
       const fullName = [firstName, familyName].filter(Boolean).join(' ');
       const existing = await findMatchingParticipant({ ndisNumber: d.ndis_number, fullName, dob: d.date_of_birth });
@@ -524,7 +549,7 @@ async function processOne(row) {
       await updateOne('leads', lead.id, { participant_id: participantId, updated_at: nowIso() });
     }
   } catch (err) {
-    await manualWelcome(`All three forms are back, but the participant couldn't be created or updated automatically (${err.message}).`);
+    await manualWelcome(`${READY}, but the participant couldn't be created or updated automatically (${err.message}).`);
     return { status: 'error', result: err.message, leadId: lead.id, participantId };
   }
 
