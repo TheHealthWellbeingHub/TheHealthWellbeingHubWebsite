@@ -1,7 +1,7 @@
 // Vercel serverless function — reads/writes a ShiftCare client's notes field
 // on behalf of the Command Centre app, which holds no ShiftCare API
 // credentials of its own. GET reads the current notes (needed before a
-// write, since ShiftCare's PATCH replaces the field rather than appending);
+// write, since a ShiftCare update replaces the field rather than appending);
 // POST replaces it with the given value.
 const crypto = require('crypto');
 
@@ -62,14 +62,15 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const scRes = await fetch(`${SHIFTCARE_BASE}/v3/clients/${Number(client_id)}`, {
-      method: 'PATCH',
+    // ShiftCare updates are PUT /v3/clients with the id in the body.
+    const scRes = await fetch(`${SHIFTCARE_BASE}/v3/clients`, {
+      method: 'PUT',
       headers: {
         Authorization: `Basic ${basic}`,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ notes }),
+      body: JSON.stringify({ id: String(Number(client_id)), notes }),
     });
     const text = await scRes.text();
     const data = text ? JSON.parse(text) : null;

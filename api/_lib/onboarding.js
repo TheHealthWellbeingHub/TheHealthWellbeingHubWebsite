@@ -289,11 +289,11 @@ const FIELD_MAP = [
   { col: 'ndis_number', key: 'ndis_number', sc: 'ndis_number' },
   { col: 'email', key: 'email', sc: 'email' },
   { col: 'mobile', key: 'mobile', sc: 'mobile_number' },
-  { col: 'phone', key: 'phone' },
+  { col: 'phone', key: 'phone', sc: 'phone_number' },
   { col: 'address', key: 'address', sc: 'address' },
   { col: 'suburb', key: 'suburb' },
   { col: 'state', key: 'state' },
-  { col: 'postcode', key: 'postcode' },
+  { col: 'postcode', key: 'postcode', sc: 'postal_code' },
 ];
 
 // Brings an existing participant up to date with the forms: ShiftCare first,
@@ -320,7 +320,8 @@ async function applyDetails(p, d) {
   }
   if (!changes.length) return { changes };
   if (Object.keys(sc).length && p.shiftcare_client_id) {
-    await shiftcare(`/v3/clients/${encodeURIComponent(p.shiftcare_client_id)}`, 'PATCH', sc);
+    // ShiftCare updates are PUT /v3/clients with the id in the body.
+    await shiftcare('/v3/clients', 'PUT', { id: String(p.shiftcare_client_id), ...sc });
   }
   await updateOne('participants', p.id, { ...sb, updated_at: nowIso() });
   return { changes };
@@ -522,7 +523,9 @@ async function processOne(row) {
           dob: d.date_of_birth,
           email: d.email,
           mobile_number: d.mobile,
+          phone_number: d.phone,
           address: d.address,
+          postal_code: d.postcode,
           ndis_number: d.ndis_number,
         }).filter(([, v]) => v)));
         if (!client.id) throw new Error('ShiftCare created the client but returned no id');
