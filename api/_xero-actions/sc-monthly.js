@@ -1,17 +1,19 @@
-// Monthly Support Coordination drafts (api/_sc-invoicing.js). Called every
-// morning at 8am Brisbane by the Vercel cron via /api/sc-monthly-invoice-draft
-// (a rewrite to this action — the Hobby plan's 12 functions are all used).
-// Drafts whoever's period ended yesterday or earlier this month and emails
-// the office the list; quiet on days with nothing new.
+// Monthly Support Coordination drafts (api/_sc-invoicing.js), 8am Brisbane on
+// the 1st of every month, for the month just gone. The Vercel cron calls
+// /api/sc-monthly-invoice-draft (a rewrite to this action — the Hobby plan's
+// 12 functions are all used) at 22:00 UTC on the 28th-31st; only the call
+// that lands on the 1st in Brisbane does anything. Emails the office the
+// drafts and anyone not invoiced.
 //
 // GET, Authorization: Bearer <CRON_SECRET> (Vercel Cron) or <XERO_STATUS_TOKEN>.
-// Query: today=YYYY-MM-DD (run as if it were that day), clientId (one or
-// more sc_invoice_clients ids, comma-separated), dryRun=1 (build only:
-// nothing written to Xero or Supabase, nothing emailed).
+// By hand (XERO_STATUS_TOKEN) it runs any day, for the month before
+// today=YYYY-MM-DD (default today). clientId: one or more
+// sc_invoice_clients ids, comma-separated. dryRun=1: build only — nothing
+// written to Xero or Supabase, nothing emailed.
 const { isConfigured: xeroConfigured, tokenMatches } = require('../_xero');
 const { isConfigured: mailConfigured, sendEmail } = require('../_mail');
 const { isConfigured: supabaseConfigured } = require('../_lib/supabase');
-const { runScMonth } = require('../_sc-invoicing');
+const { runScMonth, brisbaneToday } = require('../_sc-invoicing');
 
 const CRON_SECRET = process.env.CRON_SECRET || '';
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
@@ -20,7 +22,7 @@ const ADMIN_EMAIL = process.env.INVOICE_DRAFT_EMAIL || 'officethehealthwellbeing
 const money = (n) => `$${Number(n || 0).toFixed(2)}`;
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-function summaryEmail(today, made, attention) {
+function summaryEmail(made, attention) {
   const total = made.reduce((s, r) => s + Number(r.total || 0), 0);
   const cell = 'padding:8px;border-bottom:1px solid #e2d9e6;vertical-align:top';
   const flagList = (r) => (r.flags.length ? `<ul style="margin:4px 0 0;color:#9a5a00">${r.flags.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : '');
@@ -39,7 +41,7 @@ function summaryEmail(today, made, attention) {
   ].join('\n');
   const subject = made.length
     ? `Support Coordination: ${made.length} draft${made.length === 1 ? '' : 's'} in Xero, ${money(total)}`
-    : `Support Coordination: ${attention.length} not invoiced — needs checking`;
+    : `Support Coordination: no new drafts, ${attention.length} not invoiced — needs checking`;
   return { subject, html, text };
 }
 
@@ -50,8 +52,12 @@ module.exports = async (req, res) => {
   }
   const header = req.headers.authorization || '';
   const bearer = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
-  if (!tokenMatches(bearer, CRON_SECRET) && !tokenMatches(bearer, XERO_STATUS_TOKEN)) {
+  const byHand = tokenMatches(bearer, XERO_STATUS_TOKEN);
+  if (!byHand && !tokenMatches(bearer, CRON_SECRET)) {
     return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  }
+  if (!byHand && !brisbaneToday().endsWith('-01')) {
+    return res.status(200).json({ ok: true, skipped: 'runs on the 1st of the month' });
   }
 
   const q = req.query || {};
@@ -64,12 +70,10 @@ module.exports = async (req, res) => {
     if (dryRun) return res.status(200).json({ ok: true, dryRun: true, ...run });
 
     const made = run.results.filter((r) => r.invoiceNumber);
-    // Held or broken clients are reported the morning their period ends (or
-    // alongside new drafts), not every day for the rest of the month.
-    const attention = run.results.filter((r) => (r.held || r.problem) && (r.firstDay || made.length));
+    const attention = run.results.filter((r) => r.held || r.problem);
     let emailedTo = null;
     if (made.length || attention.length) {
-      const mail = summaryEmail(run.today, made, attention);
+      const mail = summaryEmail(made, attention);
       await sendEmail({ to: ADMIN_EMAIL, subject: mail.subject, text: mail.text, html: mail.html });
       emailedTo = ADMIN_EMAIL;
     }

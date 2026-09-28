@@ -1,16 +1,17 @@
 // Monthly Support Coordination invoicing. Not a route (Vercel skips "_"
-// files). Run every morning by the cron (/api/sc-monthly-invoice-draft ->
-// xero?action=sc-monthly); see docs/invoicing.md.
+// files). Run at 8am Brisbane on the 1st of every month by the cron
+// (/api/sc-monthly-invoice-draft -> xero?action=sc-monthly), for the month
+// just gone — as the Core run does every Monday for the week just gone. See
+// docs/invoicing.md.
 //
 // Each client in sc_invoice_clients (Command Centre -> Invoicing -> Support
-// Coordination) is billed once a month for the period from the 1st to their
-// end day, e.g. 01/09/2026 - 21/09/2026. The morning after the end day, their
-// invoice is drafted in Xero, dated that day, copying their settings exactly:
+// Coordination) is billed for the 1st of the month to their end day, e.g.
+// 01/09/2026 - 21/09/2026, copying their settings exactly:
 //   line = "<period>\n" + description, quantity = hours, price = rate table.
-// A client is left alone, and listed for the office, when they're on hold
-// (hold_reason), their settings are incomplete, or their plan has ended.
-// A period already invoiced in Xero — by this run or by hand — is never
-// drafted again.
+// The draft is dated the 1st it's made on. A client is left alone, and
+// listed for the office, when they're on hold (hold_reason), their settings
+// are incomplete, or their plan has ended. A period already invoiced in
+// Xero — by this run or by hand — is never drafted again.
 const { xeroApiFetch } = require('./_xero');
 const { rest, selectMany, insertOne } = require('./_lib/supabase');
 const { dmy, findContact, xeroLink } = require('./_invoicing');
@@ -23,22 +24,15 @@ function brisbaneToday(now = Date.now()) {
   return new Date(now + 10 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
-/**
- * This month's period for a client, and whether it has ended. The end day is
- * held one short of the month's last day (so a 28th end is the 27th in
- * February) so the invoice is still drafted inside the month it covers.
- */
+/** The month before `today`'s, as { start, end } of a client's period in it.
+ * An end day past the month's last day (e.g. 30 in February) is the last day. */
 function periodFor(client, today) {
-  const [y, m, d] = today.split('-').map(Number);
-  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  const endDay = Math.min(Number(client.end_day), daysInMonth - 1);
-  return {
-    start: `${y}-${pad(m)}-01`,
-    end: `${y}-${pad(m)}-${pad(endDay)}`,
-    due: d > endDay,
-    firstDay: d === endDay + 1,
-    shortened: endDay !== Number(client.end_day),
-  };
+  const [y, m] = today.split('-').map(Number);
+  const py = m === 1 ? y - 1 : y;
+  const pm = m === 1 ? 12 : m - 1;
+  const daysInMonth = new Date(Date.UTC(py, pm, 0)).getUTCDate();
+  const endDay = Math.min(Number(client.end_day), daysInMonth);
+  return { start: `${py}-${pad(pm)}-01`, end: `${py}-${pad(pm)}-${pad(endDay)}`, shortened: endDay !== Number(client.end_day) };
 }
 
 async function recordedDraft(clientId, start) {
@@ -56,10 +50,10 @@ async function recordedDraft(clientId, start) {
 }
 
 /**
- * Drafts every active client whose period has ended this month and isn't
- * invoiced yet. Options: today (YYYY-MM-DD, default Brisbane today),
- * clientIds (only these), dryRun (build only, nothing written).
- * Returns { today, results: [...] } — one entry per active client.
+ * Drafts every active client's invoice for the month before `today` that
+ * isn't invoiced yet, dated `today`. Options: today (YYYY-MM-DD, default
+ * Brisbane today), clientIds (only these), dryRun (build only, nothing
+ * written). Returns { today, results: [...] } — one entry per active client.
  */
 async function runScMonth({ today = brisbaneToday(), clientIds = null, dryRun = false } = {}) {
   const [clients, rates] = await Promise.all([
@@ -74,15 +68,11 @@ async function runScMonth({ today = brisbaneToday(), clientIds = null, dryRun = 
     const base = { id: c.id, name: c.name, reference: c.reference, contactName: c.xero_contact_name, flags: [] };
     try {
       if (!c.end_day) {
-        results.push({ ...base, due: true, firstDay: true, problem: 'No period end day set' });
+        results.push({ ...base, problem: 'No period end day set' });
         continue;
       }
       const p = periodFor(c, today);
-      Object.assign(base, { periodStart: p.start, periodEnd: p.end, due: p.due, firstDay: p.firstDay });
-      if (!p.due) {
-        results.push({ ...base, waiting: `due after ${dmy(p.end)}` });
-        continue;
-      }
+      Object.assign(base, { periodStart: p.start, periodEnd: p.end });
       if (c.hold_reason) {
         results.push({ ...base, held: c.hold_reason });
         continue;
@@ -103,7 +93,7 @@ async function runScMonth({ today = brisbaneToday(), clientIds = null, dryRun = 
       }
       if (c.plan_end && c.plan_end <= p.end) base.flags.push(`Plan ends ${dmy(c.plan_end)}, inside this period`);
       else if (c.plan_end && Date.parse(c.plan_end) - Date.parse(today) < 45 * 86400000) base.flags.push(`Plan ends ${dmy(c.plan_end)}`);
-      if (p.shortened) base.flags.push(`Period ends ${dmy(p.end)} (their usual end day doesn't fit this month)`);
+      if (p.shortened) base.flags.push(`Period ends ${dmy(p.end)}, the last day of the month (their usual end day is day ${c.end_day})`);
 
       const recorded = await recordedDraft(c.id, p.start);
       if (recorded) {
@@ -150,7 +140,7 @@ async function runScMonth({ today = brisbaneToday(), clientIds = null, dryRun = 
       results.push({ ...base, total: saved.total, invoiceId: saved.invoiceId, invoiceNumber: saved.invoiceNumber, link: xeroLink(saved.invoiceId) });
     } catch (err) {
       console.error('sc invoice failed:', c.name, err.message);
-      results.push({ ...base, due: true, firstDay: true, problem: err.message });
+      results.push({ ...base, problem: err.message });
     }
   }
   return { today, results };

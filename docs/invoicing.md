@@ -3,8 +3,8 @@
 Two runs, both saving **DRAFT** invoices in Xero for a person to check, approve and send:
 
 - **Weekly (Core supports)** — from the ShiftCare roster, every Monday. Below.
-- **Monthly (Support Coordination)** — from each client's settings, the morning after their
-  period ends. See [Monthly Support Coordination](#monthly-support-coordination).
+- **Monthly (Support Coordination)** — from each client's settings, on the 1st of every month
+  for the month just gone. See [Monthly Support Coordination](#monthly-support-coordination).
 
 ## Weekly Core supports
 
@@ -89,13 +89,17 @@ and isn't in the ShiftCare roster, so each client's invoice copies their setting
 
 ### How a month works
 
-Each client is billed for **the 1st of the month to their end day**, e.g.
-`01/09/2026 - 21/09/2026`. Every morning at **8am Brisbane** (`vercel.json` cron →
-`/api/sc-monthly-invoice-draft`, rewritten to `api/xero.js?action=sc-monthly`, because the
-Hobby plan's 12 functions are all in use), the run looks at every active client:
+Decided 28 Sep 2026: Support Coordination is drafted on the **1st of every month at 8am
+Brisbane, for the month just gone** — the same way Core is drafted every Monday for the week
+just gone. The cron (`vercel.json`) calls `/api/sc-monthly-invoice-draft`, rewritten to
+`api/xero.js?action=sc-monthly` because the Hobby plan's 12 functions are all in use. It fires
+at 22:00 UTC on the 28th–31st, and only the call that lands on the 1st in Brisbane does
+anything.
 
-- **Period not ended yet** → nothing.
-- **Period ended, not invoiced** → one DRAFT invoice, dated that morning, due the same day:
+Each client is billed for **the 1st of the month to their end day**, e.g.
+`01/09/2026 - 21/09/2026`, drafted on 1 October. For every active client:
+
+- **Not invoiced yet** → one DRAFT invoice, dated the 1st, due the same day:
   - contact: their plan manager (exact Xero contact name)
   - reference: theirs, e.g. "<First name> SC"
   - one line: `<period>` then their description (name, NDIS number, support item text),
@@ -108,11 +112,8 @@ Hobby plan's 12 functions are all in use), the run looks at every active client:
   Deleting a draft in Xero lets the run make it again.
 - **On hold, settings missing, or plan ended** → not invoiced; listed in the email.
 
-The office is emailed on mornings when drafts were made (with anything that needs checking), and
-on the morning a held or broken client's period ends. Other mornings are quiet.
-
-An end day after the month's second-last day moves back to fit (a 28th end day is the 27th in
-February), so the invoice is still drafted inside the month it covers. The email says so.
+The office is emailed the drafts and anyone not invoiced. An end day past the month's last
+day (e.g. 30 in February) becomes the last day, and the email says so.
 
 ### Where the settings live (Supabase)
 
@@ -135,7 +136,8 @@ Nothing about a client goes in this repository.
 `GET /api/xero?action=sc-monthly` with `Authorization: Bearer <XERO_STATUS_TOKEN>`:
 
 - `?dryRun=1` — show what would be drafted; nothing written, nothing emailed.
-- `?today=YYYY-MM-DD` — run as if it were that day.
+- `?today=YYYY-MM-DD` — run as if it were that day (it bills the month before). By hand it
+  runs on any day, e.g. if the 1st was missed.
 - `?clientId=<sc_invoice_clients id>` — one client (comma-separate several).
 
 For a one-off invoice outside the settings (e.g. a backdated month),

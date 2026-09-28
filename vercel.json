@@ -25,7 +25,7 @@
     },
     {
       "path": "/api/sc-monthly-invoice-draft",
-      "schedule": "0 22 * * *"
+      "schedule": "0 22 28-31 * *"
     }
   ],
   "redirects": [
