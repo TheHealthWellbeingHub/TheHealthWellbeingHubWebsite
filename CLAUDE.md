@@ -206,7 +206,9 @@ The worker is trying to complete a task. Get them to the next action and stop.
   (`form_name: "staff_referral"` / `"staff_enquiry"`), never a direct insert into `leads` —
   that is what sends email 02 / 03 and raises the call task. A participant who is already
   going ahead (workflow 03 — Add Participant, or Claude) uses `"staff_onboarding"`: no
-  acknowledgement email, straight to the *Send Onboarding email* task. Details:
+  acknowledgement email, straight to the *Send Onboarding email* task. A referral that
+  arrives by email is logged by the hourly email agent with `"email_referral"` (needs the
+  Gmail `source_message_id`; no consent is attested on anyone's behalf). Details:
   `docs/workflow-01-referral.md`, `docs/workflow-02-enquiry.md` and
   `docs/workflow-03-new-participant.md`, "Current triggers".
 - **Git hooks:** `.githooks/pre-commit` blocks commits authored on the production branch,

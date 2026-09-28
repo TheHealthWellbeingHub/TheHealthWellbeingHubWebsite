@@ -306,8 +306,19 @@ async function createTask({ subject, leadId, referrerId, feedbackSubmissionId })
   });
 }
 
+// referrers.referrer_role is a Postgres enum: an unknown value would fail the
+// whole upsert and leave the referral with no referrer, so it goes to jobtitle
+// instead. No role given → nothing written, so an earlier role isn't blanked.
+const REFERRER_ROLES = ['Support Coordinator', 'Plan Manager', 'GP', 'Allied health professional', 'NDIA planner / LAC', 'Other'];
+function referrerRoleFields(role) {
+  const r = (role || '').trim();
+  if (!r) return {};
+  return REFERRER_ROLES.includes(r) ? { referrer_role: r } : { jobtitle: r };
+}
+
 function isDirectEntry(f) {
-  return f.form_name === 'staff_referral' && !(f.referrer_name || '').trim() && !(f.referrer_email || '').trim();
+  return ['staff_referral', 'email_referral'].includes(f.form_name) &&
+    !(f.referrer_name || '').trim() && !(f.referrer_email || '').trim();
 }
 
 function consentTaskSubject(f, formName, isReturning) {
@@ -340,8 +351,13 @@ function buildEnquiryNote(f, sourcePage, campaign) {
 
 function buildReferralNote(f, sourcePage, campaign, isStaffEntry, contactWasReferrers) {
   const stamp = new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' });
+  const fromEmail = f.form_name === 'email_referral';
   const lines = [
-    isStaffEntry ? `Referral entered by a worker ${stamp}` : `Website referral submitted ${stamp}`,
+    fromEmail
+      ? `Referral received by email, logged by the email agent ${stamp}`
+      : isStaffEntry ? `Referral entered by a worker ${stamp}` : `Website referral submitted ${stamp}`,
+    fromEmail && f.source_subject ? `Email subject: ${f.source_subject}` : null,
+    fromEmail && f.source_from ? `Email from: ${f.source_from}` : null,
     isStaffEntry ? `Arrived by: ${f.referral_channel || '(not given)'}` : null,
     isStaffEntry ? `Taken by: ${f.referral_taken_by || '(not given)'}` : null,
     sourcePage && !isStaffEntry ? `Submitted from: ${sourcePage}` : null,
@@ -454,7 +470,7 @@ module.exports = async (req, res) => {
   }
 
   const ip = clientIp(req);
-  const staffEntry = ['staff_referral', 'staff_enquiry', 'staff_onboarding'].includes((req.body || {}).form_name);
+  const staffEntry = ['staff_referral', 'staff_enquiry', 'staff_onboarding', 'email_referral'].includes((req.body || {}).form_name);
   if (isRateLimited(ip, staffEntry ? STAFF_RATE_LIMIT_MAX : RATE_LIMIT_MAX)) {
     console.warn('rate limited submission from', ip);
     return res.status(429).json({ ok: false, error: 'Too many submissions. Please try again shortly.' });
@@ -474,8 +490,29 @@ module.exports = async (req, res) => {
     // Staff routes: staff_referral / staff_enquiry are the same as the public
     // forms, logged by a worker (Command Centre or Claude) who attests the
     // person was told how their details will be used.
-    const isStaffEntry = ['staff_referral', 'staff_enquiry', 'staff_onboarding'].includes(f.form_name);
-    if (!isAffirmative(isStaffEntry ? f.staff_consent_attested : f.privacy_consent)) {
+    // email_referral: the hourly email agent logging a referral someone
+    // emailed us. No worker was in the loop to attest anything, so nothing is
+    // claimed on anyone's behalf — the record says it arrived by email, and
+    // the Gmail message id stops the same email being logged twice.
+    const isEmailEntry = f.form_name === 'email_referral';
+    const isStaffEntry = ['staff_referral', 'staff_enquiry', 'staff_onboarding'].includes(f.form_name) || isEmailEntry;
+    const messageId = isEmailEntry ? String(f.source_message_id || '').trim() : '';
+    if (isEmailEntry) {
+      if (!messageId || !(f.participant_name || '').trim()) {
+        return res.status(400).json({ ok: false, error: 'An emailed referral needs source_message_id and participant_name.' });
+      }
+      const done = await selectOne('email_referral_messages', 'message_id', messageId);
+      if (done) {
+        const prior = done.lead_id ? await selectOne('leads', 'id', done.lead_id, 'id,reference') : null;
+        return res.status(200).json({
+          ok: true,
+          alreadyLogged: true,
+          leadId: prior ? prior.id : null,
+          reference: prior ? prior.reference : null,
+          acknowledgementStatus: 'not_applicable',
+        });
+      }
+    } else if (!isAffirmative(isStaffEntry ? f.staff_consent_attested : f.privacy_consent)) {
       console.warn('rejected submission without privacy consent from', ip);
       return res.status(400).json({
         ok: false,
@@ -485,7 +522,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    const formName = f.form_name === 'staff_referral'
+    const formName = f.form_name === 'staff_referral' || isEmailEntry
       ? 'referral'
       : f.form_name === 'staff_enquiry'
         ? 'enquiry'
@@ -693,7 +730,7 @@ module.exports = async (req, res) => {
           company: f.referrer_organisation,
           extra: {
             contact_type: 'Referral partner',
-            referrer_role: f.referrer_role || null,
+            ...referrerRoleFields(f.referrer_role),
             contact_status: 'We_owe_a_reply',
           },
         }).catch((err) => {
@@ -739,11 +776,11 @@ module.exports = async (req, res) => {
         enquirer_role: formName !== 'referral' ? (ENQUIRER_ROLE_MAP[f.enquirer_role] || f.enquirer_role || null) : null,
         referral_details: f.referral_details || null,
         referral_channel: formName === 'referral'
-          ? (isStaffEntry ? (REFERRAL_CHANNEL_MAP[f.referral_channel] || null) : 'Website form')
+          ? (isEmailEntry ? 'Direct email' : isStaffEntry ? (REFERRAL_CHANNEL_MAP[f.referral_channel] || null) : 'Website form')
           : null,
-        referral_taken_by: isStaffEntry ? (f.referral_taken_by || null) : null,
+        referral_taken_by: isEmailEntry ? 'Claude (email agent)' : isStaffEntry ? (f.referral_taken_by || null) : null,
         consent_capture_method: formName === 'referral'
-          ? (isStaffEntry ? 'Recorded by worker' : 'Referrer ticked online')
+          ? (isEmailEntry ? 'Referrer emailed us' : isStaffEntry ? 'Recorded by worker' : 'Referrer ticked online')
           : null,
         participant_consent_confirmed: formName === 'referral'
           ? isAffirmative(f.participant_consent_confirmed)
@@ -757,6 +794,13 @@ module.exports = async (req, res) => {
       });
       await updateOne('leads', lead.id, { reference: `${formName === 'referral' ? 'REF' : 'ENQ'}-${now.getFullYear()}-${lead.seq}` });
       lead.reference = `${formName === 'referral' ? 'REF' : 'ENQ'}-${now.getFullYear()}-${lead.seq}`;
+    }
+
+    if (isEmailEntry) {
+      // Recorded before the task and email 02, so a retry after a later
+      // failure can't acknowledge the referrer twice.
+      await insertOne('email_referral_messages', { message_id: messageId, lead_id: lead.id })
+        .catch((err) => console.error('email_referral_messages insert failed:', err.message));
     }
 
     if (formName === 'referral' && referrer) {
