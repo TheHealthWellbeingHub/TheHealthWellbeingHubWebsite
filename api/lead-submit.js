@@ -13,6 +13,7 @@
 // workflow" detour, because there is no workflow to trigger any more.
 const { rest, insertOne, updateOne, selectOne, selectMany } = require('./_lib/supabase');
 const { sendTemplateEmail } = require('./_lib/mailer');
+const { sendOnboardingEmail } = require('./_lib/onboarding');
 
 // --- Abuse protection (identical to hubspot-submit.js) --------------------
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
@@ -625,8 +626,9 @@ module.exports = async (req, res) => {
     // ---- Staff onboarding (workflow 03): going ahead straight away -------
     // A worker adds a participant who is already going ahead — the Command
     // Centre's Add Participant form, or Claude. No acknowledgement email and
-    // no call task: the record starts at Service Agreement Sent with a "Send
-    // Onboarding email" task, and the worker sends that email next. An open
+    // no call task: the record starts at Service Agreement Sent and the
+    // Onboarding email goes out automatically (api/_lib/onboarding.js); the
+    // "Send Onboarding email" task only stays open if that can't happen. An open
     // referral or enquiry with the same email is the same person and is
     // moved on rather than duplicated.
     if (formName === 'staff_onboarding') {
@@ -700,6 +702,11 @@ module.exports = async (req, res) => {
           due_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
         });
       }
+      // Sends the Onboarding email straight away; on any failure the task
+      // above stays open and a note says why.
+      const onboarding = alreadyOnboarding
+        ? { status: 'already_onboarding' }
+        : await sendOnboardingEmail(lead.id).catch((err) => ({ status: 'failed', error: err.message }));
       return res.status(200).json({
         ok: true,
         leadId: lead.id,
@@ -707,6 +714,8 @@ module.exports = async (req, res) => {
         isReturning: Boolean(existing),
         alreadyOnboarding,
         participantId: lead.participant_id || null,
+        onboardingEmail: onboarding.status,
+        onboardingEmailTo: onboarding.to || null,
       });
     }
 
