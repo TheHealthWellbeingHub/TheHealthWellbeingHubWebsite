@@ -6,10 +6,15 @@
 //    all three are back the participant is created or updated in ShiftCare
 //    and Supabase, the Welcome pack (12) goes out, and staff get a task to
 //    double-check the details that came from the forms.
+//  - attachFormFile / fileDocuments: the returned forms themselves are kept
+//    in Supabase Storage, uploaded to the participant's ShiftCare documents
+//    once the participant exists, and recorded in participant_documents so
+//    they show on the Command Centre profile straight away.
 // The Command Centre's onboarding page still does all of this by hand — it's
 // the fallback whenever a step here can't finish (no email, no date of
 // birth, ShiftCare refused), and every such case raises a task saying so.
-const { rest, insertOne, updateOne, selectOne, selectMany } = require('./supabase');
+const crypto = require('crypto');
+const { rest, insertOne, updateOne, selectOne, selectMany, storageUpload, storageDownload } = require('./supabase');
 const { sendParticipantEmail, looksLikeEmail } = require('./participant-email');
 
 const CONTACT_NAME = process.env.ONBOARDING_CONTACT_NAME || 'Ibrahim Zakariya';
@@ -78,6 +83,173 @@ async function shiftcare(pathname, method, body) {
     throw new Error(`ShiftCare ${method} ${pathname} failed (${res.status}): ${JSON.stringify(data).slice(0, 200)}`);
   }
   return (data && (data.client || data)) || {};
+}
+
+// ---- The returned forms themselves --------------------------------------
+const BUCKET = 'onboarding-forms';
+// What ShiftCare's documents endpoint accepts (checked against its API spec
+// 24 Sep 2026 — see api/shiftcare-upload-document.js). Photos aren't, so a
+// photo of a form is kept but has to be filed by a person.
+const SHIFTCARE_TYPES = {
+  pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+};
+const PHOTO_TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', heic: 'image/heic' };
+const MAX_FILE_BYTES = 3 * 1024 * 1024;
+const MAX_FILES_PER_RETURN = 6;
+
+const extensionOf = (name) => (name.lastIndexOf('.') === -1 ? '' : name.slice(name.lastIndexOf('.') + 1).toLowerCase());
+
+function badRequest(message) {
+  const err = new Error(message);
+  err.status = 400;
+  return err;
+}
+
+// Stores one returned file against a queued return. Only while the return
+// is still pending — once it's processed, nothing more can be added.
+async function attachFormFile({ id, file }) {
+  const row = await selectOne('onboarding_form_returns', 'id', id);
+  if (!row || row.status !== 'pending') throw badRequest("That forms return isn't waiting for files.");
+  const f = file && typeof file === 'object' ? file : {};
+  const filename = typeof f.filename === 'string' ? f.filename.trim().slice(0, 150) : '';
+  const ext = extensionOf(filename);
+  const contentType = SHIFTCARE_TYPES[ext] || PHOTO_TYPES[ext];
+  if (!filename || !contentType) throw badRequest('filename must end in .pdf, .doc, .docx, .jpg, .jpeg, .png or .heic');
+  const form = FORM_KEYS.includes(f.form) ? f.form : 'other';
+  if (typeof f.content_base64 !== 'string' || !f.content_base64) throw badRequest('content_base64 is required');
+  const buffer = Buffer.from(f.content_base64, 'base64');
+  if (!buffer.length) throw badRequest('The file is empty');
+  if (buffer.length > MAX_FILE_BYTES) throw badRequest('The file is over 3MB');
+
+  const attachments = Array.isArray(row.attachments) ? row.attachments : [];
+  if (attachments.filter((a) => a.storage_path).length >= MAX_FILES_PER_RETURN) throw badRequest('Too many files for one return');
+  const safe = filename.replace(/[^\w.\- ()&]+/g, '_');
+  const storagePath = `${row.id}/${Date.now()}-${safe}`;
+  await storageUpload(BUCKET, storagePath, buffer, contentType);
+
+  const known = attachments.find((a) => a.filename === filename && !a.storage_path);
+  const entry = {
+    filename,
+    form,
+    storage_path: storagePath,
+    content_type: contentType,
+    byte_size: buffer.length,
+    sha256: crypto.createHash('sha256').update(buffer).digest('hex'),
+    drive_file_id: (typeof f.drive_file_id === 'string' && f.drive_file_id) || (known && known.drive_file_id) || null,
+  };
+  const next = known ? attachments.map((a) => (a === known ? entry : a)) : [...attachments, entry];
+  await updateOne('onboarding_form_returns', row.id, { attachments: next });
+  return { filename, form, byte_size: buffer.length };
+}
+
+function buildMultipart(fields, file) {
+  const boundary = '----hwOnboarding' + crypto.randomBytes(16).toString('hex');
+  const parts = Object.entries(fields)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .map(([k, v]) => `--${boundary}\r\nContent-Disposition: form-data; name="${k}"\r\n\r\n${v}\r\n`);
+  const head = `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${file.name.replace(/"/g, '')}"\r\nContent-Type: ${file.type}\r\n\r\n`;
+  return {
+    boundary,
+    body: Buffer.concat([Buffer.from(parts.join(''), 'utf-8'), Buffer.from(head, 'utf-8'), file.buffer, Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8')]),
+  };
+}
+
+async function uploadToShiftcare(clientId, name, type, buffer) {
+  if (!SHIFTCARE_API_KEY) throw new Error('ShiftCare isn\'t configured on the website');
+  const { boundary, body } = buildMultipart({ staff_visible: 'false', no_expiration: 'true', time_zone: 'Australia/Brisbane' }, { name, type, buffer });
+  const basic = Buffer.from(`${SHIFTCARE_ACCOUNT_ID}:${SHIFTCARE_API_KEY}`).toString('base64');
+  const res = await fetch(`${SHIFTCARE_BASE}/v3/clients/${Number(clientId)}/documents`, {
+    method: 'POST',
+    headers: { Authorization: `Basic ${basic}`, 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+    body,
+  });
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  if (!res.ok) throw new Error(`ShiftCare rejected the upload (${res.status}): ${JSON.stringify(data).slice(0, 200)}`);
+  const doc = (data && (data.document || data.data || data)) || {};
+  const docId = Number(doc.id);
+  if (!docId) throw new Error('ShiftCare accepted the upload but returned no document id');
+  return docId;
+}
+
+// Every stored form for this referral that isn't on file yet: into the
+// participant's ShiftCare documents, then participant_documents so it shows
+// on the Command Centre profile. Anything that can't go (a photo, a failed
+// upload, a file that never arrived) becomes a "File to ShiftCare" task —
+// once. Never throws: filing is follow-on work, not a reason to stop.
+async function fileDocuments(lead, participant, who) {
+  const filed = [];
+  const byHand = [];
+  let rows = [];
+  try {
+    rows = await selectMany('onboarding_form_returns', `lead_id=eq.${encodeURIComponent(lead.id)}&order=created_at.asc`, 'id,attachments');
+  } catch (err) {
+    console.error('fileDocuments lookup failed:', err.message);
+    return { filed, byHand };
+  }
+  for (const row of rows) {
+    const attachments = Array.isArray(row.attachments) ? row.attachments : [];
+    let changed = false;
+    for (const a of attachments) {
+      if (a.shiftcare_document_id || a.task_raised) continue;
+      const label = a.form && a.form !== 'other' ? formLabel(a.form) : a.filename;
+      let reason = null;
+      if (!a.storage_path) reason = 'the file itself never reached the website';
+      else if (!SHIFTCARE_TYPES[extensionOf(a.filename)]) reason = "it's a photo, which ShiftCare won't take — convert it to PDF first";
+      else if (!participant.shiftcare_client_id) reason = 'the participant has no ShiftCare record';
+      if (!reason) {
+        try {
+          const buffer = await storageDownload(BUCKET, a.storage_path);
+          const docId = await uploadToShiftcare(participant.shiftcare_client_id, a.filename, a.content_type, buffer);
+          const now = nowIso();
+          await insertOne('participant_documents', {
+            participant_id: participant.id,
+            shiftcare_document_id: docId,
+            filename: a.filename,
+            content_type: a.content_type,
+            byte_size: a.byte_size || buffer.length,
+            content_sha256: a.sha256 || null,
+            staff_visible: false,
+            no_expiration: true,
+            filed_to_shiftcare_at: now,
+            source_created_at: now,
+          });
+          a.shiftcare_document_id = docId;
+          a.filed_at = now;
+          filed.push(label);
+          changed = true;
+          continue;
+        } catch (err) {
+          console.error('filing a returned form failed:', err.message);
+          reason = err.message;
+        }
+      }
+      await task({
+        subject: `File to ShiftCare — ${label} for ${who}`,
+        lead_id: lead.id,
+        participant_id: participant.id,
+        drive_file_url: a.drive_file_id ? `https://drive.google.com/file/d/${a.drive_file_id}/view` : null,
+      }).catch((err) => console.error('file task failed:', err.message));
+      a.task_raised = true;
+      byHand.push(`${label} (${reason})`);
+      changed = true;
+    }
+    if (changed) {
+      await updateOne('onboarding_form_returns', row.id, { attachments })
+        .catch((err) => console.error('attachments update failed:', err.message));
+    }
+  }
+  return { filed, byHand };
+}
+
+function filingLines({ filed, byHand }) {
+  return [
+    filed.length ? `Filed to ShiftCare and the participant's profile: ${filed.join(', ')}.` : null,
+    byHand.length ? `To file by hand (task raised): ${byHand.join('; ')}.` : null,
+  ].filter(Boolean);
 }
 
 // ---- Details from the returned forms ------------------------------------
@@ -249,6 +421,7 @@ async function processOne(row) {
     await task({ subject: `Forms emailed in by ${row.from_email || 'an unknown sender'} — no onboarding referral matches this address. Check who they belong to.` });
     return { status: 'skipped', result: 'No onboarding referral matches this sender' };
   }
+  if (row.lead_id !== lead.id) await updateOne('onboarding_form_returns', row.id, { lead_id: lead.id });
   const who = lead.participant_name || lead.reference || 'participant';
   if (lead.stage !== 'service_agreement_sent') {
     await note(lead.id, `Forms arrived by email from ${row.from_email || 'the participant'}, but this referral is at "${lead.stage}", so nothing was changed.`);
@@ -275,6 +448,13 @@ async function processOne(row) {
       lead_id: lead.id,
       due_at: daysFromNow(3),
     });
+    if (lead.participant_id) {
+      const linked = await selectOne('participants', 'id', lead.participant_id, PARTICIPANT_COLUMNS);
+      if (linked) {
+        const lines = filingLines(await fileDocuments(lead, linked, who));
+        if (lines.length) await note(lead.id, lines.join('\n'));
+      }
+    }
     return { status: 'done', result: `Still missing: ${missing.map(formLabel).join(', ')}`, leadId: lead.id };
   }
 
@@ -285,12 +465,14 @@ async function processOne(row) {
   };
   const d = cleanDetails(row.details);
   let participantId = lead.participant_id;
+  let participantRow = null;
   let participantNote;
   let changes = [];
 
   try {
     if (participantId) {
       const p = await selectOne('participants', 'id', participantId, PARTICIPANT_COLUMNS);
+      participantRow = p;
       if (p) ({ changes } = await applyDetails(p, d));
       participantNote = changes.length ? 'Participant already linked — details updated from the forms.' : 'Participant already linked — the forms matched what we had.';
     } else {
@@ -304,6 +486,7 @@ async function processOne(row) {
       const existing = await findMatchingParticipant({ ndisNumber: d.ndis_number, fullName, dob: d.date_of_birth });
       if (existing) {
         participantId = existing.id;
+        participantRow = existing;
         ({ changes } = await applyDetails(existing, { ...d, first_name: firstName, family_name: familyName }));
         participantNote = `Linked to the existing participant (ShiftCare ${existing.shiftcare_client_id}) — same ${d.ndis_number ? 'NDIS number' : 'name and date of birth'}, so no duplicate was created.`;
       } else {
@@ -334,6 +517,7 @@ async function processOne(row) {
           status: 'active',
         });
         participantId = inserted.id;
+        participantRow = { id: inserted.id, shiftcare_client_id: client.id };
         participantNote = `Participant created from the returned forms in ShiftCare (client ${client.id}) and the Participant Directory.`;
       }
       // Linked straight away, so a retry never creates them twice.
@@ -344,14 +528,18 @@ async function processOne(row) {
     return { status: 'error', result: err.message, leadId: lead.id, participantId };
   }
 
+  const fileNow = async () => (participantRow ? fileDocuments(lead, participantRow, who) : { filed: [], byHand: [] });
+
   if (lead.welcome_sent_at) {
+    const lines = filingLines(await fileNow());
+    if (lines.length) await note(lead.id, lines.join('\n'));
     return { status: 'done', result: 'Welcome pack was already sent', leadId: lead.id, participantId };
   }
   const to = [lead.consent_email_to, d.email].find((e) => looksLikeEmail((e || '').trim()));
   const staff = lead.onboarding_staff_member || CONTACT_NAME;
   const role = lead.onboarding_staff_role || CONTACT_ROLE;
   if (!to) {
-    await manualWelcome(`${participantNote} No email address to send the Welcome pack to.`);
+    await manualWelcome([`${participantNote} No email address to send the Welcome pack to.`, ...filingLines(await fileNow())].join('\n'));
     return { status: 'done', result: 'Participant ready; no address for the Welcome pack', leadId: lead.id, participantId };
   }
   let sent;
@@ -362,7 +550,7 @@ async function processOne(row) {
       merge: { 'Participant First Name': d.preferred_name || d.first_name || firstWord(lead.participant_name) || 'there', 'Staff Member': staff, Role: role },
     });
   } catch (err) {
-    await manualWelcome(`${participantNote} The Welcome pack didn't send (${err.message}); the participant won't be created twice.`);
+    await manualWelcome([`${participantNote} The Welcome pack didn't send (${err.message}); the participant won't be created twice.`, ...filingLines(await fileNow())].join('\n'));
     return { status: 'error', result: `Welcome pack failed: ${err.message}`, leadId: lead.id, participantId };
   }
 
@@ -377,12 +565,14 @@ async function processOne(row) {
     updated_at: now,
   });
   await closeTasks(lead.id, ['action_required', 'pending']);
+  const filing = await fileNow();
   await note(
     lead.id,
     [
       `Welcome pack sent automatically to ${to} — "${sent.subject}", with the four easy-read guides.`,
       participantNote,
       changes.length ? `Updated from the forms:\n${changes.join('\n')}` : null,
+      ...filingLines(filing),
       'Stage → Participant Onboarded.',
     ].filter(Boolean).join('\n')
   );
@@ -394,7 +584,12 @@ async function processOne(row) {
     participant_id: participantId,
     due_at: daysFromNow(1),
   });
-  return { status: 'done', result: 'Participant ready and Welcome pack sent', leadId: lead.id, participantId };
+  return {
+    status: 'done',
+    result: `Participant ready and Welcome pack sent. Filed: ${filing.filed.length}; to file by hand: ${filing.byHand.length}.`,
+    leadId: lead.id,
+    participantId,
+  };
 }
 
 async function processFormReturns({ id } = {}) {
@@ -428,4 +623,4 @@ async function processFormReturns({ id } = {}) {
   return results;
 }
 
-module.exports = { sendOnboardingEmail, processFormReturns, FORM_KEYS };
+module.exports = { sendOnboardingEmail, processFormReturns, attachFormFile, FORM_KEYS };

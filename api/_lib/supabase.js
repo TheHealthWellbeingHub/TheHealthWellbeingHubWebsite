@@ -60,4 +60,32 @@ async function selectMany(table, query, select = '*') {
   return rest(`/${table}?${query}&select=${encodeURIComponent(select)}`, { method: 'GET' });
 }
 
-module.exports = { isConfigured, rest, insertOne, updateOne, selectOne, selectMany };
+// Supabase Storage (private buckets), same service-role key.
+function storageUrl(bucket, objectPath) {
+  const safe = objectPath.split('/').map(encodeURIComponent).join('/');
+  return `${SUPABASE_URL}/storage/v1/object/${encodeURIComponent(bucket)}/${safe}`;
+}
+
+async function storageUpload(bucket, objectPath, buffer, contentType) {
+  const res = await fetch(storageUrl(bucket, objectPath), {
+    method: 'POST',
+    headers: {
+      apikey: SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      'Content-Type': contentType || 'application/octet-stream',
+      'x-upsert': 'true',
+    },
+    body: buffer,
+  });
+  if (!res.ok) throw new Error(`Supabase Storage upload failed (${res.status}): ${(await res.text()).slice(0, 200)}`);
+}
+
+async function storageDownload(bucket, objectPath) {
+  const res = await fetch(storageUrl(bucket, objectPath), {
+    headers: { apikey: SERVICE_ROLE_KEY, Authorization: `Bearer ${SERVICE_ROLE_KEY}` },
+  });
+  if (!res.ok) throw new Error(`Supabase Storage download failed (${res.status})`);
+  return Buffer.from(await res.arrayBuffer());
+}
+
+module.exports = { isConfigured, rest, insertOne, updateOne, selectOne, selectMany, storageUpload, storageDownload };

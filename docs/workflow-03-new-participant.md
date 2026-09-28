@@ -54,6 +54,14 @@ so.
      Onboarded.
    - Then a task: **Double-check details from returned forms** — a reminder to check what
      was written, not a gate (user's decision).
+   - **The forms themselves are filed.** The agent sends each file with
+     `{action: "forms-attach", id, file}` (one per call, ≤3MB) before processing; the website
+     keeps it in the private `onboarding-forms` Supabase Storage bucket. As soon as the
+     participant exists — now, or when a later return creates them — each one is uploaded
+     to their ShiftCare documents and recorded in `participant_documents`, so it's on the
+     Command Centre profile (Documents tab) straight away. A photo (ShiftCare only takes PDF
+     and Word), a failed upload, or a file that never arrived becomes one *File to ShiftCare*
+     task with the Drive link.
    - No date of birth, ShiftCare refuses, or the Welcome pack fails → a *Send Welcome
      pack* task for a person, and a note saying why. Nothing is created twice on a retry.
    - Clinical, risk, medication and emergency-contact details from the forms are **never**
