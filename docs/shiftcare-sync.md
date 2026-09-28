@@ -52,6 +52,17 @@ task to update the invoice name and Xero contact if they're invoiced. ShiftCare 
 **Staff** — ShiftCare → `support_workers` (new, changed by `updated_at`, and inactive when gone).
 Pay rates and compliance columns are never touched.
 
+**New support workers (from 28 Sep 2026), whatever created them** — Command Centre Staff → New
+(adds the row at once), straight in ShiftCare, or Claude's ShiftCare tool (the sync adds the row):
+the row gets `auto_onboard`, then `lib/worker-onboarding.js` sends **email 14, "Welcome to the team"**
+once (signed Ibrahim Zakariya, Support Worker Agreement attached; logged in `sent_emails`), and
+adds them to **Xero Payroll** as an employee through the website's
+`/api/xero?action=payroll-employee` — once their date of birth and home address are in ShiftCare,
+since Xero requires both. Until then `support_workers.xero_note` says what's missing and every run
+retries. Workers already on file were never flagged, so they're never emailed. No follow-up task
+(user's choice). `/dashboard/api/cron/health` (same secret) is a read-only check that ShiftCare,
+email and Xero Payroll are reachable — confirmed all three on 28 Sep 2026.
+
 **Documents** — each participant's ShiftCare document list → `participant_documents`: new ones
 added (extraction pending), type, visibility, expiry and archived changes copied,
 `participants.document_count` kept right. About 40 participants per run, oldest-checked first.
