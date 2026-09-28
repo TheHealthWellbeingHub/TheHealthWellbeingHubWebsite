@@ -216,7 +216,9 @@ async function sendOnboardingEmail(leadId) {
     onboarding_staff_role: role,
     updated_at: now,
   });
-  await closeTasks(leadId, ['action_required']);
+  // Only the "send it" task — a going-ahead outcome can leave others open
+  // (e.g. telling the referrer by phone) that still need doing.
+  await closeTasks(leadId, ['action_required'], 'Send Onboarding email');
   await task({ subject: `Chase onboarding forms if not back — ${who}`, status: 'pending', lead_id: leadId, due_at: daysFromNow(7) });
   await note(
     leadId,
