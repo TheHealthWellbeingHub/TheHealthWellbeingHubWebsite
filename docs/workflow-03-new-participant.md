@@ -19,19 +19,32 @@ than left as a placeholder waiting for Starter to grow a feature.
 | Pipeline | Participant / Lead Pipeline (`default`) |
 | Deal properties touched | `dealstage` only — no new custom properties |
 
-## Current — the Command Centre's onboarding page, updated 25 Sep 2026
+## Current — the Command Centre's onboarding page, updated 28 Sep 2026
 
-HubSpot is retired and most of this file below is historical. Workflow 03 now runs from the
-Command Centre's onboarding page, `/dashboard/leads/<id>/onboarding`, reached straight after
-recording "Going ahead", from the referral's card, from the Consent / chase / Welcome task
-rows, or from the referrer's page. Three steps:
+HubSpot is retired and most of this file below is historical. The email this file calls
+"the Consent email" is now called **the Onboarding email** (renamed 28 Sep 2026) — same
+template 04, same three attachments (`template: "consent"` in the sender is only its internal
+key). Workflow 03 runs from the Command Centre's onboarding page,
+`/dashboard/leads/<id>/onboarding`.
 
-1. **Consent email** — template 04 with all three PDFs, previewed then sent through
-   `api/send-participant-email.js` (`template: "consent"`). **Sent to the participant's
-   email; if we only have a phone for them, the referrer's** (decided 25 Sep 2026); staff can
-   change the address. Records `leads.consent_email_sent_at` / `consent_email_to` / the H&W
-   contact, closes the "Send Consent email" task and raises a 7-day chase-up. A resend
-   replaces the chase-up. "Sent it another way" records the step without sending.
+### Triggers
+
+| # | Trigger | What happens |
+|---|---|---|
+| 1 | Record outcome → **Going ahead**, on a referral (workflow 01) or an enquiry (workflow 02) | Stage `Service Agreement Sent`, task *Send Onboarding email & forms* due in 1 day, and staff land on the onboarding page |
+| 2 | A worker opens it: the referral's card (**Open onboarding**), the *Send Onboarding email* / chase / *Send Welcome pack* task buttons, or the referrer's page | Same page |
+| 3 | **A worker tells Claude to start onboarding a new participant**, and gives Claude the details | See "Trigger 3 — Claude" below |
+
+### The three steps
+
+1. **Onboarding email** — template 04 with all three PDFs (Referral Form, NDIS Consent form,
+   Service Agreement), previewed then sent through `api/send-participant-email.js`
+   (`template: "consent"`) from `/dashboard/leads/<id>/onboarding/email`. **Sent to the
+   participant's email; if we only have a phone for them, the referrer's** (decided 25 Sep
+   2026); staff can change the address. Records `leads.consent_email_sent_at` /
+   `consent_email_to` / the H&W contact, closes the *Send Onboarding email* task and raises a
+   7-day pending *Chase onboarding forms if not back*. A resend replaces the chase-up. "Sent it
+   another way" records the step without sending.
 2. **Forms back** — staff tick which of the Referral Form, NDIS Consent form and signed
    Service Agreement arrived (`leads.forms_received`). **Partial:** a chase for what's missing
    (3 days) replaces any earlier chase. **All three:** "Send Welcome pack" task.
@@ -45,9 +58,43 @@ rows, or from the referrer's page. Three steps:
    Participant Onboarded. If ShiftCare refuses, nothing is sent; if the email fails after the
    participant was created, a retry won't create them twice.
 
-Claude doing this for a worker follows the same order: send through
-`api/send-participant-email.js`, then write the same `leads` columns, tasks and note — or
-point the worker at the onboarding page, which does it all.
+### Trigger 3 — Claude
+
+A worker says "start onboarding for <participant>" and gives the details. Claude:
+
+1. **Collects what the Onboarding email needs**, asking only for what's missing: the
+   participant's name and email or phone; who referred them, if anyone (name, email or phone,
+   organisation, role); the service; their H&W contact and that person's role; proposed start,
+   preferred schedule and location (`TBC` is fine for start and schedule).
+2. **Finds the referral or enquiry** in Supabase `leads` — an open one (`stage` `new` or
+   `service_agreement_sent`) for the same participant name, email or phone. If there is none,
+   **logs it through `api/lead-submit.js`** — `form_name: "staff_referral"` when someone referred
+   them, `"staff_enquiry"` otherwise, `referral_taken_by: "Claude"`, and
+   `staff_consent_attested: "Yes"` only once the worker confirms the person was told how their
+   details are used. Never a direct insert (see `CLAUDE.md`). That sends email 02 / 03 and
+   saves the referrer, exactly as triggers 1–3 of workflows 01/02.
+3. **Records Going ahead** if it isn't already at `service_agreement_sent` — the same writes as
+   the outcome page's "Record without sending":
+
+   ```sql
+   begin;
+   update tasks set status = 'done', completed_at = now()
+     where lead_id = :lead_id and status in ('action_required', 'pending');
+   update leads set stage = 'service_agreement_sent', stage_updated_at = now(), updated_at = now(),
+     onboarding_staff_member = :staff_member, onboarding_staff_role = :staff_role
+     where id = :lead_id;
+   insert into tasks (subject, status, due_at, lead_id)
+     values ('Send Onboarding email & forms — ' || :participant_name, 'action_required',
+             now() + interval '1 day', :lead_id);
+   insert into lead_notes (lead_id, body)
+     values (:lead_id, 'Going ahead — recorded by Claude for <worker>. Referrer not emailed from here.');
+   commit;
+   ```
+4. **Hands the worker one link** — the Onboarding email page, pre-filled:
+   `https://hub-command-centre.vercel.app/dashboard/leads/<id>/onboarding/email?to=<address>&f:Participant First Name=…&f:Staff Member=…&f:Role=…&f:Service=…&f:Date=…&f:Schedule=…&f:Location=…`
+   (URL-encoded). The worker checks the preview and presses **Send the Onboarding email** —
+   Claude doesn't send it itself: the send token stays in Vercel, and a person approves every
+   participant email. From there, steps 2 and 3 run on the onboarding page as normal.
 
 ---
 

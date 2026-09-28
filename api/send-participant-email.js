@@ -2,7 +2,7 @@
 // email-templates/ from the H&W mailbox. HubSpot is no longer used, so this
 // is the one send path for templates sent by hand (lead-submit.js sends the
 // form acknowledgements 02/03/07/08 itself; the Command Centre sends 05/06).
-// Four carry fixed PDF attachments: the Consent email (04, two fillable forms
+// Four carry fixed PDF attachments: the Onboarding email (04, two fillable forms
 // and the service agreement), the Welcome pack (12, four easy-read guides),
 // the Service Agreement follow-up (13, the service agreement) and the new
 // support worker welcome (14, the support worker agreement).
@@ -44,7 +44,7 @@ const TEMPLATES_DIR = path.join(process.cwd(), 'email-templates');
 const UNSUBSCRIBE_URL = 'mailto:officethehealthwellbeinghub@gmail.com?subject=Unsubscribe';
 
 // Subject defaults to the template's own <title>. Attachments are enforced
-// here rather than trusted to callers — the Consent email always carries
+// here rather than trusted to callers — the Onboarding email always carries
 // all three documents, never a subset (docs/workflow-03-new-participant.md). `required`
 // adds keys whose template fallback would read wrongly in that email, e.g.
 // "Welcome to the family, the participant".
