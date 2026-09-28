@@ -194,6 +194,15 @@ async function buildWeek({ start, end, clientIds = null }) {
       if ((shift.clients || []).length > 1) flags.push(`${dmy(date)}: shared shift (${shift.clients.length} participants) — check hours and km`);
       const hours = (Date.parse(shift.end_at) - Date.parse(shift.start_at)) / 3600000 - (Number(shift.break_time) || 0) / 60;
       const type = dayType(date);
+      if (!p[`${type}_code`]) {
+        // Hours on a day with no support item aren't billed here, so neither
+        // is that shift's mileage (addLine flags the hours).
+        const hoursOff = (Date.parse(shift.end_at) - Date.parse(shift.start_at)) / 3600000 - (Number(shift.break_time) || 0) / 60;
+        groups[type].hours += hoursOff * workers;
+        const off = kmByShift.get(String(shift.id));
+        if (off && off.km) flags.push(`${dmy(date)}: ${off.km} km on this ${type[0].toUpperCase() + type.slice(1)} shift not included — its hours aren't billed`);
+        continue;
+      }
       const endsLocal = String(shift.end_at).slice(11, 16);
       if (type === 'weekday' && (endsLocal > '20:00' || String(shift.end_at).slice(0, 10) !== date)) {
         flags.push(`${dmy(date)}: shift runs past 8pm — billed at the weekday daytime rate, check it`);
@@ -233,7 +242,6 @@ async function buildWeek({ start, end, clientIds = null }) {
     addLine('Saturday hours', p.saturday_code, p.saturday_text, groups.saturday.hours, groups.saturday.dates);
     addLine('Sunday hours', p.sunday_code, p.sunday_text, groups.sunday.hours, groups.sunday.dates);
     addLine('km', p.travel_code, p.travel_text, km, billedDates);
-    if (billedDates.length && km === 0 && p.travel_code) flags.push('No mileage entered by workers this week');
 
     invoices.push({
       clientId: p.shiftcare_client_id,
