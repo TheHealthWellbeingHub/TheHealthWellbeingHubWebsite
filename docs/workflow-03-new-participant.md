@@ -19,7 +19,63 @@ than left as a placeholder waiting for Starter to grow a feature.
 | Pipeline | Participant / Lead Pipeline (`default`) |
 | Deal properties touched | `dealstage` only — no new custom properties |
 
-## Current — the Command Centre's onboarding page, updated 28 Sep 2026
+## Automatic, from 28 Sep 2026 — decided by the user
+
+Onboarding now runs itself, end to end. The onboarding page below is still there, and is
+the fallback whenever an automatic step can't finish — every such case leaves a task saying
+so.
+
+1. **Onboarding email — sent automatically** the moment a participant is going ahead, from
+   every trigger: Add Participant and Claude (`api/lead-submit.js`, `staff_onboarding`), and a
+   going-ahead outcome on a referral or enquiry (the Command Centre calls
+   `POST /api/onboarding` `{action: "send", lead_id}`). Code: `api/_lib/onboarding.js`.
+   - Goes to the participant's email, or the referrer's if we only have a phone for them.
+     No email at all → not sent; a note says so and the *Send Onboarding email* task stays.
+   - Signed by the default H&W contact, **Ibrahim Zakariya, Support Coordinator** (user's
+     choice, 28 Sep 2026; override with `ONBOARDING_CONTACT_NAME` / `_ROLE`), unless the
+     referral already names one. Proposed start and schedule read "To be confirmed";
+     location is the suburb, or "To be confirmed".
+   - Recorded exactly as a hand send: the send task closes, a 7-day *Chase onboarding
+     forms* task is raised, a note and a `sent_emails` row are written.
+   - The "Change stage only (no email)" control does **not** send it — its label promises
+     no email.
+2. **Forms back — recognised by the email agent**, from the same address the Onboarding
+   email went to (or the participant's own address), as a reply or a new email. The agent
+   reads the attachments, decides which forms are there (a Service Agreement only counts
+   signed), takes identity and contact details only, and queues a row in
+   `onboarding_form_returns`. It then calls `POST /api/onboarding`
+   `{action: "forms-process", id}` — public, but it only ever acts on rows already queued,
+   which the public can't write.
+   - **What the Welcome pack waits for (user's decision, 28 Sep 2026): the NDIS Consent
+     form and the signed Service Agreement.** Between them they carry the name, date of
+     birth, NDIS number and contact details. The Referral Form is kept and filed when it
+     comes, but never waited on or chased.
+   - Consent form or signed Service Agreement still missing → what came is ticked, the
+     earlier chase closed, *Chase missing forms* raised for just those two (3 days).
+   - Consent form and signed Service Agreement back → the participant is **created** in ShiftCare then Supabase (or linked,
+     if the same NDIS number or name and date of birth is already there, and **updated** —
+     ShiftCare first, then Supabase, old → new values in the note), the referral is linked,
+     **Welcome pack (12)** goes out, every open task closes, stage → Participant
+     Onboarded.
+   - Then a task: **Double-check details from returned forms** — a reminder to check what
+     was written, not a gate (user's decision).
+   - **The forms themselves are filed.** The agent sends each file with
+     `{action: "forms-attach", id, file}` (one per call, ≤3MB) before processing; the website
+     keeps it in the private `onboarding-forms` Supabase Storage bucket. As soon as the
+     participant exists — now, or when a later return creates them — each one is uploaded
+     to their ShiftCare documents and recorded in `participant_documents`, so it's on the
+     Command Centre profile (Documents tab) straight away. A photo (ShiftCare only takes PDF
+     and Word), a failed upload, or a file that never arrived becomes one *File to ShiftCare*
+     task with the Drive link.
+   - Forms arriving **after** onboarding (usually a late Referral Form) → ticked and filed
+     to ShiftCare and the profile; no second Welcome pack. The agent matches these by the
+     same address on referrals already at Participant Onboarded.
+   - No date of birth, ShiftCare refuses, or the Welcome pack fails → a *Send Welcome
+     pack* task for a person, and a note saying why. Nothing is created twice on a retry.
+   - Clinical, risk, medication and emergency-contact details from the forms are **never**
+     written automatically — they go to the sign-off queue, per CLAUDE.md.
+
+## The Command Centre's onboarding page (manual, and the fallback), updated 28 Sep 2026
 
 HubSpot is retired and most of this file below is historical. The email this file calls
 "the Consent email" is now called **the Onboarding email** (renamed 28 Sep 2026) — same
@@ -49,7 +105,10 @@ key). Workflow 03 runs from the Command Centre's onboarding page,
 2. **Forms back** — staff tick which of the Referral Form, NDIS Consent form and signed
    Service Agreement arrived (`leads.forms_received`). **Partial:** a chase for what's missing
    (3 days) replaces any earlier chase. **All three:** "Send Welcome pack" task.
-3. **Welcome pack and participant** — locked until all three forms are in. **The participant
+   *(From 28 Sep 2026 the Welcome step unlocks on the NDIS Consent form and signed Service
+   Agreement alone — the Referral Form is optional, see "Automatic" above.)*
+3. **Welcome pack and participant** — locked until all three forms are in (now: the
+   consent form and signed Service Agreement). **The participant
    is created automatically** (decided 25 Sep 2026) in ShiftCare — through
    `api/shiftcare-clients.js`, since the Command Centre holds no ShiftCare credentials — and in
    the Supabase `participants` table, from the details on the returned forms (first name and
