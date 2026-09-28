@@ -53,7 +53,7 @@ Participant details live only in Supabase. Nothing about a participant goes in t
 - a weekday shift running past 8pm (billed at the weekday daytime rate)
 - a sleepover or non-standard shift type, a shared shift, a shift with no worker
 - a shift cancelled by the client (billed) — shifts cancelled without charge are left out
-- hours on a day with no support item set; a support item with no price
+- hours on a day with no support item set (left off, and so is that shift's mileage); a support item with no price
 - no mileage for the week; no NDIS number
 - public holidays are **not** detected — they're billed at the ordinary day's rate
 
