@@ -145,3 +145,42 @@ For a one-off invoice outside the settings (e.g. a backdated month),
 lines: [{ description, quantity, unitAmount }] }`. Each line starts with its period. It
 refuses a period that's already invoiced unless `allowDuplicate: true`.
 `GET /api/xero?action=list-invoices&since=YYYY-MM-DD` lists invoices, drafts included.
+
+## Claude: doing the invoices when asked
+
+For a session asked to "do the invoices". The token is `XERO_STATUS_TOKEN` (Vercel env). Always
+call `https://www.thehealthwellbeinghub.com` (the bare domain redirects). Every invoice is a
+DRAFT, and staff approve and send it.
+
+**Core supports, a week** (Mon–Sun):
+
+1. Dry run: `GET /api/weekly-invoice-draft?start=<Mon>&end=<Sun>&dryRun=1` (add
+   `&clientId=` for some). Read the flags: mileage entered twice, shifts past 8pm, no worker,
+   cancellations, hours on a day with no support item.
+2. Check anything surprising against ShiftCare before creating. The office has caught km errors.
+3. Run it without `dryRun`. To rebuild one draft after a fix, POST
+   `/api/xero?action=create-invoice` `{ clientId, start, end, replace: true }`.
+
+**Support Coordination, a month:**
+
+1. Dry run: `GET /api/xero?action=sc-monthly&today=<the 1st after the month>&dryRun=1`.
+   Each client shows as a draft to make, already invoiced (with the invoice), on hold, or a
+   problem.
+2. Run it without `dryRun`. It emails the office.
+3. Don't spend Xero's 60-calls-a-minute budget on repeated dry runs just before a real run.
+   If a result says `429`, wait a minute and run it again. Anything already made is skipped.
+
+**Don'ts:**
+
+- Never draft a period that's already invoiced (approved or paid) to "test". It would bill
+  the plan manager twice once approved.
+- Never guess hours, NDIS numbers or plan managers. Hold the client (`hold_reason`) and say
+  why.
+- Differences between the office spreadsheet and Xero go in the client's notes. Xero (what
+  was actually billed) is the default until the office says otherwise.
+- Write what was done in Command Centre → Invoicing → Notes (`invoicing_notes`).
+
+A one-off invoice outside the settings (a backdated month, an extra line) goes through
+`POST /api/xero?action=create-draft`. Find what exists first with
+`GET /api/xero?action=list-invoices&since=YYYY-MM-DD` (drafts included; the Xero chat tools
+can't see drafts).

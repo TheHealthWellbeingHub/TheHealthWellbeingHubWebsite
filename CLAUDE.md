@@ -217,6 +217,11 @@ The worker is trying to complete a task. Get them to the next action and stop.
   Gmail `source_message_id`; no consent is attested on anyone's behalf). Details:
   `docs/workflow-01-referral.md`, `docs/workflow-02-enquiry.md` and
   `docs/workflow-03-new-participant.md`, "Current triggers".
+- **Invoicing (Xero):** Core supports are drafted weekly from the ShiftCare roster (Mondays 8am).
+  Support Coordination is drafted on the 1st of each month for the month just gone, from the
+  settings in Command Centre → Invoicing. How to run, check and fix either one by hand:
+  [`docs/invoicing.md`](docs/invoicing.md), "Claude: doing the invoices when asked". Drafts
+  only, never a period that's already invoiced.
 - **Git hooks:** `.githooks/pre-commit` blocks commits authored on the production branch,
   which is also the default branch, so a push to it is a live release. Claude Code enables it
   automatically via `SessionStart` in `.claude/settings.json`; otherwise run
