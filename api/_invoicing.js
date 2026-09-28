@@ -133,12 +133,24 @@ async function loadSettings() {
 async function buildWeek({ start, end, clientIds = null }) {
   const [settings, shifts, notes] = await Promise.all([loadSettings(), weekShifts(start, end), weekMileageNotes(start, end)]);
 
-  const kmByShift = new Map();
+  // A worker who enters mileage again for the same shift is correcting it:
+  // only their LATEST entry counts. (Two workers on one shift each have
+  // their own entry, and both count.)
+  const latest = new Map(); // "shiftId|staffId" -> note
   for (const n of notes) {
     if (!n.shift_id) continue;
-    const list = kmByShift.get(String(n.shift_id)) || [];
-    list.push(carerKm(n));
-    kmByShift.set(String(n.shift_id), list);
+    const key = `${n.shift_id}|${(n.staff && n.staff.id) || ''}`;
+    const prev = latest.get(key);
+    if (!prev || Date.parse(n.created_at) > Date.parse(prev.created_at)) latest.set(key, n);
+  }
+  const kmByShift = new Map(); // shiftId -> { km, replaced: [km, ...] }
+  for (const n of notes) {
+    if (!n.shift_id) continue;
+    const key = `${n.shift_id}|${(n.staff && n.staff.id) || ''}`;
+    const entry = kmByShift.get(String(n.shift_id)) || { km: 0, replaced: [] };
+    if (latest.get(key) === n) entry.km += carerKm(n);
+    else entry.replaced.push(carerKm(n));
+    kmByShift.set(String(n.shift_id), entry);
   }
 
   // Shifts per client, and who had shifts but isn't set up for invoicing.
@@ -164,6 +176,7 @@ async function buildWeek({ start, end, clientIds = null }) {
     const flags = [];
     const groups = { weekday: { hours: 0, dates: [] }, saturday: { hours: 0, dates: [] }, sunday: { hours: 0, dates: [] } };
     const billedDates = [];
+    const countedShifts = new Set();
     let km = 0;
 
     for (const { shift, client } of entries) {
@@ -188,9 +201,14 @@ async function buildWeek({ start, end, clientIds = null }) {
       groups[type].hours += hours * workers;
       groups[type].dates.push(date);
       billedDates.push(date);
-      const kms = kmByShift.get(String(shift.id)) || [];
-      km += kms.reduce((a, b) => a + b, 0);
-      if (kms.length > 1) flags.push(`${dmy(date)}: ${kms.length} mileage entries on one shift (${kms.join(' + ')} km) — all counted`);
+      const kms = kmByShift.get(String(shift.id));
+      if (kms && !countedShifts.has(String(shift.id))) {
+        countedShifts.add(String(shift.id));
+        km += kms.km;
+        if (kms.replaced.length) {
+          flags.push(`${dmy(date)}: mileage entered more than once — used the latest entry, left out ${kms.replaced.join(' + ')} km`);
+        }
+      }
     }
 
     const ndis = settings.ndisById.get(p.shiftcare_client_id);
@@ -268,11 +286,15 @@ async function existingDraft(clientId, periodStart) {
   return null;
 }
 
-/** Creates one DRAFT invoice in Xero. Returns { invoiceId, invoiceNumber, total } or { skipped }. */
-async function createDraft(invoice, period) {
+/** Creates one DRAFT invoice in Xero. Returns { invoiceId, invoiceNumber, total } or { skipped }.
+ * With { replace: true }, a week that already has a DRAFT is rebuilt in
+ * place (same invoice number); an approved or paid one is never touched. */
+async function createDraft(invoice, period, { replace = false } = {}) {
   if (!invoice.lines.length) return { skipped: 'nothing to invoice' };
   const earlier = await existingDraft(invoice.clientId, period.start);
-  if (earlier) return { skipped: `already drafted (${earlier.xero_invoice_number || earlier.xero_invoice_id}, ${earlier.status})`, invoiceId: earlier.xero_invoice_id };
+  if (earlier && !(replace && earlier.status === 'DRAFT')) {
+    return { skipped: `already drafted (${earlier.xero_invoice_number || earlier.xero_invoice_id}, ${earlier.status})`, invoiceId: earlier.xero_invoice_id };
+  }
 
   const contact = await findContact(invoice.contactName);
   if (!contact) return { skipped: `no active Xero contact called "${invoice.contactName}"` };
@@ -284,6 +306,8 @@ async function createDraft(invoice, period) {
     body: JSON.stringify({
       Invoices: [
         {
+          // Updating by InvoiceID replaces the draft's lines with these.
+          ...(earlier ? { InvoiceID: earlier.xero_invoice_id } : {}),
           Type: 'ACCREC',
           Contact: { ContactID: contact.ContactID },
           Date: period.issueDate,
@@ -309,15 +333,19 @@ async function createDraft(invoice, period) {
     const errors = (created && created.ValidationErrors || []).map((e) => e.Message).join('; ');
     throw new Error(`Xero didn't create the invoice for ${invoice.name}${errors ? `: ${errors}` : ''}`);
   }
-  await insertOne('invoice_drafts', {
-    shiftcare_client_id: invoice.clientId,
-    period_start: period.start,
-    period_end: period.end,
-    xero_invoice_id: created.InvoiceID,
-    xero_invoice_number: created.InvoiceNumber,
-    total: created.Total,
-  });
-  return { invoiceId: created.InvoiceID, invoiceNumber: created.InvoiceNumber, total: created.Total };
+  if (earlier) {
+    await rest(`/invoice_drafts?id=eq.${earlier.id}`, { method: 'PATCH', body: JSON.stringify({ total: created.Total }) });
+  } else {
+    await insertOne('invoice_drafts', {
+      shiftcare_client_id: invoice.clientId,
+      period_start: period.start,
+      period_end: period.end,
+      xero_invoice_id: created.InvoiceID,
+      xero_invoice_number: created.InvoiceNumber,
+      total: created.Total,
+    });
+  }
+  return { invoiceId: created.InvoiceID, invoiceNumber: created.InvoiceNumber, total: created.Total, replaced: Boolean(earlier) };
 }
 
 function xeroLink(invoiceId) {

@@ -21,7 +21,10 @@ Monday–Sunday week just gone:
      - weekday hours (Mon–Fri), Saturday hours and Sunday hours, each with the participant's own
        support item. Hours come from the **roster**, not clock-ins (most workers forget to clock
        in). Every worker on a shift counts: two workers for 8 hours is 16 hours.
-     - travel: the sum of all mileage entries for the week, at the travel item's price.
+     - travel: the week's mileage entries added up, at the travel item's price. When a worker
+       enters mileage more than once for the same shift, only their **latest** entry counts —
+       the later one is a correction (e.g. 78 km then 83 km on one shift counts as 83). Two
+       workers on one shift each have their own entry, and both count.
    - **Account 201, GST Free Income**, amounts tax exclusive.
 4. Save each one in Xero as a **DRAFT**. Nothing is sent to a plan manager.
 5. Email the office the list: each draft with its total and a Xero link, anything that needs
@@ -46,7 +49,7 @@ Participant details live only in Supabase. Nothing about a participant goes in t
 
 ## What the run flags (in the email, it doesn't guess)
 
-- more than one mileage entry on a shift (all are counted)
+- a worker entering mileage more than once for one shift (the latest counts; the email says which km were left out)
 - a weekday shift running past 8pm (billed at the weekday daytime rate)
 - a sleepover or non-standard shift type, a shared shift, a shift with no worker
 - a shift cancelled by the client (billed) — shifts cancelled without charge are left out
@@ -64,5 +67,6 @@ Participant details live only in Supabase. Nothing about a participant goes in t
 
 `POST /api/xero?action=create-invoice` `{ clientId, start, end, dryRun }` does one participant.
 
-A week that already has a draft for a participant is left alone. To redo it, delete that draft
-in Xero and run again.
+A week that already has a draft for a participant is left alone. To rebuild a DRAFT after
+fixing something (same invoice number), POST `create-invoice` with `"replace": true`. An
+approved or paid invoice is never changed.
