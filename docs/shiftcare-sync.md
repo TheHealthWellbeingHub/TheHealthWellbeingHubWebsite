@@ -63,6 +63,20 @@ retries. Workers already on file were never flagged, so they're never emailed. N
 (user's choice). `/dashboard/api/cron/health` (same secret) is a read-only check that ShiftCare,
 email and Xero Payroll are reachable — confirmed all three on 28 Sep 2026.
 
+**Required documents (from 28 Sep 2026)** — `lib/worker-documents.js`, every run: each active
+worker's ShiftCare staff files (and qualifications) are matched, by file name, to the 11 documents
+in the welcome email (Yellow Card, Blue Card, driver's licence, passport, first aid and CPR, car
+insurance, vehicle registration, Queensland police check, 100 points of ID — met by a passport
+plus a driver's licence — infection control, and the NDIS training module certificate). Results go
+to `worker_documents` (one row per worker per document, with its expiry date) and
+`support_workers.documents_status`: `documents_required` (anything missing), `expired`,
+`expiring` (within 7 days) or `complete`, shown on the staff list and the profile's *Required
+documents* panel. Expiry dates come from the ShiftCare file, or are typed on the profile (a typed
+date stands unless ShiftCare later has a later one). A reminder task linked to the worker
+(`tasks.support_worker_id`) is raised a week before a document expires, and when it has; never
+twice. Accounts that aren't support workers have `requires_documents = false`. First run: 7 active
+workers checked, all 7 missing at least one document (3–11 each); no expiry dates recorded yet.
+
 **Documents** — each participant's ShiftCare document list → `participant_documents`: new ones
 added (extraction pending), type, visibility, expiry and archived changes copied,
 `participants.document_count` kept right. About 40 participants per run, oldest-checked first.
