@@ -97,7 +97,13 @@ publishing.
    Read that file before touching the `participants`/`participant_documents`/
    `document_findings`/`participant_profile_updates` tables: it sets out the staged
    propose → human sign-off → promote workflow. Live participant clinical/risk fields are
-   never written directly; only `document_findings` (an append-only audit log) is.
+   never written directly; only `document_findings` (an append-only audit log) is. Staff
+   sign off suggested changes on the Command Centre's *Suggested profile changes* page
+   (`/dashboard/participants/review`).
+   **ShiftCare and Supabase sync both ways every 15 minutes** (identity, contact, status,
+   staff, document lists) — see [`docs/shiftcare-sync.md`](docs/shiftcare-sync.md). ShiftCare
+   client updates are `PUT /v3/clients` with the id in the body; there is no
+   `PATCH /v3/clients/{id}`.
 4. **Email template library** — nine branded, responsive NDIS email templates covering the
    participant lifecycle from referral through to exit.
 

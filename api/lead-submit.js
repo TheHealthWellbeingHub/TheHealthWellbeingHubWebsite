@@ -137,13 +137,23 @@ function ilikeExact(value) {
   return encodeURIComponent(String(value).trim().replace(/[\\%_]/g, (c) => `\\${c}`));
 }
 
+// Phone numbers typed differently are the same number: "0433 604 507",
+// "0433604507" and "+61 433 604 507" all compare as 0433604507.
+function normPhone(v) {
+  let d = String(v || '').replace(/\D/g, '');
+  if (d.startsWith('61') && d.length === 11) d = `0${d.slice(2)}`;
+  return d.length >= 8 ? d : '';
+}
+
 async function findReferrer({ email, phone, name, company }) {
   if (looksLikeEmail(email)) {
     const [byEmail] = await selectMany('referrers', `email=ilike.${ilikeExact(email)}&limit=1`);
     if (byEmail) return byEmail;
   }
-  if (phone) {
-    const byPhone = await selectOne('referrers', 'phone', phone);
+  const want = normPhone(phone);
+  if (want) {
+    const withPhone = await selectMany('referrers', 'or=(phone.not.is.null,mobilephone.not.is.null)&order=created_at.asc');
+    const byPhone = withPhone.find((r) => normPhone(r.phone) === want || normPhone(r.mobilephone) === want);
     if (byPhone) return byPhone;
   }
   // A referrer given by name only (no email or phone): match the same name
@@ -171,16 +181,54 @@ async function upsertReferrer({ name, email, phone, company, extra = {} }) {
   if (phone) properties.phone = phone;
   if (company) properties.company = company;
 
+  let saved;
   if (existing) {
-    if (Object.keys(properties).length) {
-      return updateOne('referrers', existing.id, properties);
-    }
-    return existing;
+    saved = Object.keys(properties).length ? await updateOne('referrers', existing.id, properties) : existing;
+  } else {
+    saved = await insertOne('referrers', {
+      contact_status: 'Needs_first_contact',
+      ...properties,
+    });
   }
-  return insertOne('referrers', {
-    contact_status: 'Needs_first_contact',
-    ...properties,
-  });
+  return linkToParticipant(saved);
+}
+
+// A referrer who is also a participant (someone we support, referring
+// someone else) is linked to their participant record when the email or
+// phone matches. Never fails the submission.
+async function linkToParticipant(referrer) {
+  if (!referrer || referrer.participant_id) return referrer;
+  try {
+    let match = null;
+    if (looksLikeEmail(referrer.email)) {
+      [match] = await selectMany('participants', `email=ilike.${ilikeExact(referrer.email)}&limit=1`, 'id');
+    }
+    const want = [normPhone(referrer.phone), normPhone(referrer.mobilephone)].filter(Boolean);
+    if (!match && want.length) {
+      const rows = await selectMany('participants', 'or=(phone.not.is.null,mobile.not.is.null)', 'id,phone,mobile');
+      match = rows.find((p) => want.includes(normPhone(p.phone)) || want.includes(normPhone(p.mobile)));
+    }
+    if (match) return (await updateOne('referrers', referrer.id, { participant_id: match.id })) || referrer;
+  } catch (err) {
+    console.error('referrer ↔ participant link failed:', err.message);
+  }
+  return referrer;
+}
+
+// What went out, so the Command Centre's sent-emails record is complete.
+// Never fails the submission — the email has already gone.
+async function logSentEmail({ kind, to, name, subject, lead }) {
+  try {
+    await insertOne('sent_emails', {
+      kind,
+      recipient_email: to,
+      recipient_name: name || null,
+      subject,
+      meta: { lead_id: lead.id, reference: lead.reference || null, automatic: true },
+    });
+  } catch (err) {
+    console.error('sent_emails insert failed:', err.message);
+  }
 }
 
 // The same referrer re-sending the same participant while that referral is
@@ -204,8 +252,10 @@ async function findOpenEnquiry(email, phone) {
     const [byEmail] = await selectMany('leads', `participant_contact=ilike.${ilikeExact(email)}&${open}`);
     if (byEmail) return byEmail;
   }
-  if (phone && String(phone).trim()) {
-    const [byPhone] = await selectMany('leads', `participant_contact=eq.${encodeURIComponent(String(phone).trim())}&${open}`);
+  const want = normPhone(phone);
+  if (want) {
+    const rows = await selectMany('leads', `participant_contact=not.is.null&${open.replace('&limit=1', '&limit=200')}`);
+    const byPhone = rows.find((r) => normPhone(r.participant_contact) === want);
     if (byPhone) return byPhone;
   }
   return null;
@@ -221,8 +271,9 @@ async function findOpenDirectEntryLead(participantContact, participantName) {
   if (looksLikeEmail(participantContact)) {
     const [byEmail] = await selectMany('leads', `participant_contact=ilike.${ilikeExact(participantContact)}&${open}`);
     if (byEmail) return byEmail;
-  } else if (participantContact) {
-    const [byPhone] = await selectMany('leads', `participant_contact=eq.${encodeURIComponent(String(participantContact).trim())}&${open}`);
+  } else if (normPhone(participantContact)) {
+    const rows = await selectMany('leads', `participant_contact=not.is.null&${open.replace('&limit=1', '&limit=200')}`);
+    const byPhone = rows.find((r) => normPhone(r.participant_contact) === normPhone(participantContact));
     if (byPhone) return byPhone;
   }
   if ((participantName || '').trim()) {
@@ -852,6 +903,7 @@ module.exports = async (req, res) => {
           text: `Hi ${firstname || 'there'},\n\nThank you for referring ${f.participant_name || 'the participant'} to The Health & Well-being Hub. Reference: ${reference}.\n\nThe Health & Well-being Hub`,
         });
         acknowledgementStatus = 'sent';
+        await logSentEmail({ kind: 'referral_received', to: f.referrer_email, name: f.referrer_name, subject: 'Referral received', lead });
       } catch (err) {
         acknowledgementStatus = 'failed';
         console.error('ACKNOWLEDGEMENT NOT SENT:', err.message);
@@ -883,6 +935,7 @@ module.exports = async (req, res) => {
             text: `Hi ${firstname || 'there'},\n\nWe've received your enquiry (reference ${reference}). We'll be in touch within 2 business hours.\n\nThe Health & Well-being Hub`,
           });
           acknowledgementStatus = 'sent';
+          await logSentEmail({ kind: 'enquiry_acknowledgement', to: f.email, name: f.name, subject: "We've received your enquiry", lead });
         } catch (err) {
           acknowledgementStatus = 'failed';
           console.error('ACKNOWLEDGEMENT NOT SENT:', err.message);

@@ -102,6 +102,21 @@ made outside this workflow, not something Claude does automatically.
 
 ---
 
+## In the Command Centre (28 Sep 2026)
+
+The same flow is now a page: participant profile → **End services (email 09)**
+(`/dashboard/participants/<id>/exit`, code `lib/participant-exit.js` in `command_centre`). The
+worker fills in the same six answers, previews email 09, and one button then:
+
+1. sends email 09 to the participant or nominee (nothing else happens if it fails);
+2. sets them **Exited** in the Command Centre and **Lost** in ShiftCare;
+3. moves every referral linked to them to **Lost / Not Suitable**, closes its open tasks, and
+   notes the reason, dates and staff member;
+4. logs the email in `sent_emails`, and raises *Archive in ShiftCare — …* due on the final
+   service date — ShiftCare's API has no client archive, so that step is done in ShiftCare.
+
+Someone exited who is onboarded again later is set back to **Active** in both systems.
+
 ## Verification
 
 **Not yet tested.** A preview render was shown to the worker on 24 August 2026 using

@@ -280,7 +280,7 @@ function cleanDetails(raw) {
   return d;
 }
 
-const PARTICIPANT_COLUMNS = 'id,shiftcare_client_id,full_name,preferred_name,date_of_birth,email,mobile,phone,address,suburb,state,postcode,ndis_number';
+const PARTICIPANT_COLUMNS = 'id,shiftcare_client_id,full_name,preferred_name,date_of_birth,email,mobile,phone,address,suburb,state,postcode,ndis_number,status';
 
 // Supabase column ← detail key, and the ShiftCare field it also goes to.
 const FIELD_MAP = [
@@ -341,6 +341,57 @@ async function findMatchingParticipant({ ndisNumber, fullName, dob }) {
     if (byName) return byName;
   }
   return null;
+}
+
+// Not in Supabase yet, but maybe already in ShiftCare (added there directly,
+// before the next 15-minute sync): same NDIS number, or same name and date of
+// birth. A match gets its Supabase row now, instead of a second ShiftCare
+// client. A failed search just means "not found".
+async function findInShiftcare({ ndisNumber, firstName, familyName, dob }) {
+  const term = (familyName || firstName || '').trim();
+  if (!term || !SHIFTCARE_API_KEY) return null;
+  let clients = [];
+  try {
+    const data = await shiftcare(`/v3/clients?filter_by_name=${encodeURIComponent(term)}&per_page=50`, 'GET');
+    clients = data.clients || [];
+  } catch (err) {
+    console.error('ShiftCare client search failed:', err.message);
+    return null;
+  }
+  const digits = (v) => String(v || '').replace(/\D/g, '');
+  const norm = (v) => String(v || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const want = norm([firstName, familyName].filter(Boolean).join(' '));
+  const c = clients.find((x) =>
+    (ndisNumber && digits(x.ndis_number) && digits(x.ndis_number) === digits(ndisNumber)) ||
+    (dob && x.dob === dob && [norm(x.display_name), norm([x.first_name, x.family_name].filter(Boolean).join(' '))].includes(want)));
+  if (!c) return null;
+  const [row] = await selectMany('participants', `shiftcare_client_id=eq.${encodeURIComponent(c.id)}&limit=1`, PARTICIPANT_COLUMNS);
+  if (row) return row;
+  return insertOne('participants', {
+    shiftcare_client_id: Number(c.id),
+    full_name: (c.display_name || [c.first_name, c.family_name].filter(Boolean).join(' ')).trim().replace(/\s+/g, ' '),
+    preferred_name: c.preferred_name || null,
+    date_of_birth: c.dob || null,
+    email: c.email || null,
+    mobile: c.mobile_number || null,
+    phone: c.phone_number || null,
+    address: c.address || null,
+    postcode: c.postal_code || null,
+    ndis_number: digits(c.ndis_number) || null,
+    status: 'active',
+  });
+}
+
+// Coming back after an exit or a hold: Active again, in both systems.
+async function reactivate(p) {
+  if (!p || !['exited', 'on_hold'].includes(p.status)) return '';
+  await updateOne('participants', p.id, { status: 'active', status_updated_at: nowIso(), updated_at: nowIso() });
+  try {
+    await shiftcare('/v3/clients', 'PUT', { id: String(p.shiftcare_client_id), client_status: 'active' });
+    return `They were ${p.status === 'exited' ? 'Exited' : 'On Hold'} — set back to Active here and in ShiftCare.`;
+  } catch (err) {
+    return `They were ${p.status === 'exited' ? 'Exited' : 'On Hold'} — set back to Active here; ShiftCare follows within 15 minutes (${err.message}).`;
+  }
 }
 
 // ---- Step 1: the Onboarding email --------------------------------------
@@ -509,12 +560,17 @@ async function processOne(row) {
         return { status: 'done', result: 'Consent and Service Agreement back; participant not created — no date of birth', leadId: lead.id };
       }
       const fullName = [firstName, familyName].filter(Boolean).join(' ');
-      const existing = await findMatchingParticipant({ ndisNumber: d.ndis_number, fullName, dob: d.date_of_birth });
+      const existing =
+        (await findMatchingParticipant({ ndisNumber: d.ndis_number, fullName, dob: d.date_of_birth })) ||
+        (await findInShiftcare({ ndisNumber: d.ndis_number, firstName, familyName, dob: d.date_of_birth }));
       if (existing) {
         participantId = existing.id;
         participantRow = existing;
         ({ changes } = await applyDetails(existing, { ...d, first_name: firstName, family_name: familyName }));
-        participantNote = `Linked to the existing participant (ShiftCare ${existing.shiftcare_client_id}) — same ${d.ndis_number ? 'NDIS number' : 'name and date of birth'}, so no duplicate was created.`;
+        participantNote = [
+          `Linked to the existing participant (ShiftCare ${existing.shiftcare_client_id}) — same ${d.ndis_number ? 'NDIS number' : 'name and date of birth'}, so no duplicate was created.`,
+          await reactivate(existing),
+        ].filter(Boolean).join(' ');
       } else {
         const client = await shiftcare('/v3/clients', 'POST', Object.fromEntries(Object.entries({
           first_name: firstName,
