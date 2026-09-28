@@ -24,6 +24,14 @@ on file (matched by email or phone), a 2-hour call task, and — **whenever a re
 given — email 02 "Referral received" to the referrer**. A failed send raises an
 `ACKNOWLEDGE MANUALLY` task instead.
 
+Since 28 Sep 2026: phone numbers match however they're typed (`0433 604 507`, `0433604507`,
+`+61 433 604 507`), phone or mobile. **The same referrer sending the same person again while
+the referral is still open** adds a note to it — no second referral, no second call task, and
+no second email 02 (`acknowledgementStatus: "already_acknowledged"`). **A referral with only
+the referrer's phone (or organisation)** is still a referred referral with a referrer record,
+not a direct entry — a direct entry now means no referrer detail at all. Emails 02 and 03 are
+logged in `sent_emails`.
+
 | # | Trigger | How it reaches `lead-submit.js` |
 |---|---|---|
 | 1 | Website referral form (`/referrals/`), and the staff form at `/staff/<token>/` | `form_name: "referral"` / `"staff_referral"` from the browser |

@@ -368,9 +368,12 @@ function referrerRoleFields(role) {
   return REFERRER_ROLES.includes(r) ? { referrer_role: r } : { jobtitle: r };
 }
 
+// No referrer at all — not even a phone or an organisation. A referral
+// with only the referrer's phone is still referred, not a direct entry.
 function isDirectEntry(f) {
   return ['staff_referral', 'email_referral'].includes(f.form_name) &&
-    !(f.referrer_name || '').trim() && !(f.referrer_email || '').trim();
+    !(f.referrer_name || '').trim() && !(f.referrer_email || '').trim() &&
+    !(f.referrer_phone || '').trim() && !(f.referrer_organisation || '').trim();
 }
 
 function consentTaskSubject(f, formName, isReturning) {
@@ -873,19 +876,34 @@ module.exports = async (req, res) => {
     const noteBody = formName === 'referral'
       ? buildReferralNote(f, sourcePage, campaign, isStaffEntry, contactBelongsToReferrer)
       : buildEnquiryNote(f, sourcePage, campaign);
-    await createNote(lead.id, noteBody);
+    await createNote(
+      lead.id,
+      isReturning && formName === 'referral'
+        ? `Sent again while this referral is still open — added to it, not logged twice. No second acknowledgement email.\n${noteBody}`
+        : noteBody
+    );
 
-    await createTask({
-      subject: consentTaskSubject(f, formName, isReturning),
-      leadId: lead.id,
-      referrerId: referrer ? referrer.id : null,
-    });
+    // Sent again while still open: the call task that's already open covers
+    // it, so a second one isn't added.
+    const openCallTask = isReturning
+      ? (await selectMany('tasks', `lead_id=eq.${lead.id}&status=in.(action_required,pending)&subject=like.Contact*&limit=1`, 'id'))[0]
+      : null;
+    if (!openCallTask) {
+      await createTask({
+        subject: consentTaskSubject(f, formName, isReturning),
+        leadId: lead.id,
+        referrerId: referrer ? referrer.id : null,
+      });
+    }
 
     const reference = lead.reference;
 
     // ---- Acknowledgement, sent directly, no HubSpot workflow needed -----
     let acknowledgementStatus = 'not_applicable';
-    if (formName === 'referral' && referrer && looksLikeEmail(f.referrer_email)) {
+    if (formName === 'referral' && isReturning) {
+      // Already acknowledged when it was first logged (or a task says to).
+      acknowledgementStatus = 'already_acknowledged';
+    } else if (formName === 'referral' && referrer && looksLikeEmail(f.referrer_email)) {
       const { firstname } = splitName(f.referrer_name);
       try {
         await sendTemplateEmail({
