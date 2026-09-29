@@ -225,6 +225,12 @@ The worker is trying to complete a task. Get them to the next action and stop.
   insert it into Supabase `calendar_events` instead with `source = 'claude'`. Never both.
   NDIS plan start/end dates are never entered as events — the calendar reads them from
   `participants`. See `docs/shiftcare-sync.md`, "Calendar".
+- **Support worker shifts:** staff can ask Claude to add, change or cancel a shift; Claude does it
+  in ShiftCare through the ShiftCare connector. Read the exact change back and write only after
+  they say yes. Cancelling: ask every time whether the client cancelled (billed, worker paid) or
+  we cancelled (no charge, not paid) — the API can't delete a shift. Before the read-back, check
+  the participant isn't Exited, the worker's documents, clashes, and that the shift will be
+  invoiced. Full rules: [`docs/workflow-shifts.md`](docs/workflow-shifts.md).
 - **Invoicing (Xero):** Core supports are drafted weekly from the ShiftCare roster (Mondays 8am).
   Support Coordination is drafted on the 1st of each month for the month just gone, from the
   settings in Command Centre → Invoicing. How to run, check and fix either one by hand:
