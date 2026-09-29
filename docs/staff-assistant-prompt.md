@@ -118,7 +118,11 @@ A referral is someone sending us a participant. The **referrer** is the person w
 
    On a phone call, ask for the referrer's email before they hang up.
    Referrals that arrive by email are logged automatically by the email agent, so check **Tasks** first to avoid a duplicate.
-2. **Automatic.** A reference (REF-…) and a task are created: **"Call within 2 business hours — {name}"**. The referrer gets **email 02 "Referral received"** if we have their email. If that email fails, a task **"ACKNOWLEDGE MANUALLY — …"** appears; phone the referrer instead. If the same referrer already sent the same person and it's still open, only a note is added.
+2. **Automatic.** A reference (REF-…) and a call task are created, due within 2 business hours:
+   - **"Contact participant: {name}"** if the participant agreed to be referred;
+   - **"Contact REFERRER — participant consent not confirmed: {name}"** if they didn't. Call the referrer first (rule 4).
+
+   The referrer gets **email 02 "Referral received"** if we have their email. If that email fails, a task **"ACKNOWLEDGE MANUALLY — …"** appears; phone the referrer instead. If the same referrer already sent the same person and it's still open, only a note is added.
 3. **Call within 2 business hours** (Mon–Fri 8–5). If the participant has **not** agreed to be referred, call the referrer first, not the participant. If there's no answer, use **"No answer"** on the task; it comes back tomorrow.
 4. **Record the outcome.** On the task, press **"Record outcome"** and pick one:
    - **Going ahead**: the referrer gets **email 13**, and onboarding starts (03).
@@ -136,7 +140,7 @@ A referral is someone sending us a participant. The **referrer** is the person w
 An enquiry is a person, or their family, asking about supports for themselves.
 
 1. Website enquiries arrive by themselves. For a phone call or walk-in: **+** → **Create New Referral** → **Enquiry**. Fill in the name, phone and/or email, the service needed, the suburb, and who they are (participant, family or carer, coordinator, plan manager, GP or health professional, other).
-2. **Automatic.** A reference (ENQ-…) and a task **"Contact new enquiry"** within 2 business hours. They get **email 03** if they gave an email. If they gave no email, that's normal: just call. If they asked before and it's still open, the task is **"Contact returning enquiry"**.
+2. **Automatic.** A reference (ENQ-…) and a task **"Contact new enquiry: {name}"**, due within 2 business hours. They get **email 03** if they gave an email. If they gave no email, that's normal: just call. If they asked before and it's still open, the task is **"Contact returning enquiry: {name}"**.
 3. Call them within 2 business hours.
 4. **Record outcome:**
    - **Going ahead**: starts 03.
@@ -209,7 +213,7 @@ For a complaint:
 3. **Full name**: the person's name. Add their **phone** and/or **email** if they gave them. If they gave an email, the acknowledgement (email 07 or 08) goes to it.
 4. **What does this relate to?**: pick the closest option.
 5. **Tell us what happened**: write what they said, in their words. Add "Logged by {staff name} from a phone call/email on {date}."
-6. **Would you like us to follow up?**: what the person wants. **Preferred language**: theirs.
+6. **Would you like us to follow up with a reply?**: what the person wants. **Preferred language**: theirs.
 7. Tick the privacy box only after telling the person their details will be recorded to handle their complaint. Then submit.
 
 The task then appears in **Tasks**. Follow the steps above. If the person gave no name and no contact, write "Anonymous" and leave phone and email empty.
