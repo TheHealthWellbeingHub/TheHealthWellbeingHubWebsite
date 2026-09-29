@@ -217,6 +217,14 @@ The worker is trying to complete a task. Get them to the next action and stop.
   Gmail `source_message_id`; no consent is attested on anyone's behalf). Details:
   `docs/workflow-01-referral.md`, `docs/workflow-02-enquiry.md` and
   `docs/workflow-03-new-participant.md`, "Current triggers".
+- **Appointments and meetings:** when a worker tells Claude about one, Claude adds it to the
+  office Google Calendar (`thehealthwellbeinghub@gmail.com`, Google Calendar connector), with
+  the participant's full name in the title and their email as a guest when known — the
+  Command Centre calendar picks it up within 15 minutes and links it to the participant. Only
+  if that calendar isn't connected to the Command Centre yet (no `GOOGLE_CALENDAR_ICS_URL`),
+  insert it into Supabase `calendar_events` instead with `source = 'claude'`. Never both.
+  NDIS plan start/end dates are never entered as events — the calendar reads them from
+  `participants`. See `docs/shiftcare-sync.md`, "Calendar".
 - **Invoicing (Xero):** Core supports are drafted weekly from the ShiftCare roster (Mondays 8am).
   Support Coordination is drafted on the 1st of each month for the month just gone, from the
   settings in Command Centre → Invoicing. How to run, check and fix either one by hand:

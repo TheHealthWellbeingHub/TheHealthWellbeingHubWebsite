@@ -91,3 +91,23 @@ Every change is a row in `sync_log` (`run_id`, direction pull/push, field change
 Command Centre (mostly NDIS numbers); 10 had gaps in the Command Centre filled from ShiftCare;
 20 held for a person (7 dates of birth, 12 addresses, 2 names, a few phone numbers). Verified
 in ShiftCare that a written NDIS number landed. The next run changed nothing.
+
+## Calendar (from 29 Sep 2026)
+
+The Command Centre calendar (`/dashboard/calendar`) shows, in Brisbane time:
+
+- **NDIS plan start and end dates** for every participant who isn't exited — read live from
+  `participants.plan_start` / `plan_end`, never stored as events — plus a list of plans ending
+  in the next 60 days.
+- **Appointments and meetings** in `calendar_events`, from three places:
+  - **+ New appointment** in the Command Centre (`source = 'command_centre'`);
+  - **the office Google Calendar** (`thehealthwellbeinghub@gmail.com`), brought in by the
+    15-minute sync (`lib/google-calendar-sync.js`, `source = 'google'`) from the calendar's
+    private iCal address in the `GOOGLE_CALENDAR_ICS_URL` env var — 60 days back to a year
+    ahead, repeating events included; changed and deleted events follow; a guest email or a
+    title containing a participant's full name links it to them. Change these in Google, not
+    here;
+  - **Claude**, when a worker mentions one: added to that Google Calendar, so it arrives the
+    same way (see CLAUDE.md, "Appointments and meetings").
+
+Times used to be read and shown in UTC on the server (10 hours out); fixed on 29 Sep 2026.
