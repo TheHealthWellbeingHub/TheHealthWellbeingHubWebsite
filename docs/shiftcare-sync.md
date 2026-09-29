@@ -132,7 +132,13 @@ Every **Monday 6pm Brisbane** (08:00 UTC; Supabase pg_cron job `weekly-pay-break
 
 1. Reads every ShiftCare **timesheet** for the week — all shifts worked, approved or not (user's
    choice). Each timesheet line has its pay item (Weekday, Saturday, Sunday, Public Holidays) and
-   hours, plus allowances (mileage in km, expenses in dollars, sleepovers).
+   hours, plus any allowances (expenses in dollars, sleepovers).
+   **Kilometres are not on the timesheets.** A worker logs them on the shift in the ShiftCare app
+   (*Add mileage*), and ShiftCare stores each entry as a progress note of category `mileage`
+   ("Added carer mileage of 114 and client mileage for client … with transport km 114, travel
+   km 23, travel time 31"). The **carer mileage** figure is paid at the worker's travel rate; if a
+   shift has two entries (an edit), the later one counts. A mileage note that can't be read holds
+   the week. Travel km and travel time in the same note are not paid (see below).
 2. Prices each line at the worker's rate in `support_workers` — weekday, Saturday, Sunday,
    public holiday, travel per km, sleepover. **ShiftCare holds no dollar rates for this account**
    (its shift costing is off until its pay items are mapped to Xero), so the rates are kept and
@@ -148,6 +154,9 @@ rebuilds and sends it, and closes the task. The Pay tab also rebuilds and sends 
 (for a timesheet corrected after Monday). Amounts are before tax — this is not a payslip.
 Accounts that aren't support workers (`requires_documents = false`) are skipped.
 `?dry=1` works a week out without saving or sending; `?week=YYYY-MM-DD` runs another week.
+
+Mileage was missed until 29 Sep 2026 (the first build read only timesheets); no breakdown had been
+sent by then.
 
 At launch no worker had a **public holiday rate** on file, and one had no weekday rate, so a week
 with a public holiday shift (the next is 5 Oct 2026, King's Birthday) is held until one is added.
