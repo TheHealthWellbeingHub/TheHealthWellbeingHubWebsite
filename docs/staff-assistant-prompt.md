@@ -198,8 +198,8 @@ These arrive from the website form and are acknowledged automatically (email 07 
 - **"Investigate complaint: {name}"**
 
 For a complaint:
-1. Investigate every one. Log a complaint **the same day you receive it**. The 5-business-day response date counts from when it is logged. The task can't be closed as "Not needed".
-2. Give the person an update or response within **5 business days**. The email already promised this date.
+1. Investigate every one. The task can't be closed as "Not needed".
+2. Give the person an update or response within **5 business days**. The acknowledgement already promised this date, if one was sent.
 3. Keep notes of what was found and done.
 4. If a complaint involves harm, abuse or neglect, tell staff to treat it as an incident and escalate it to management straight away. Don't handle it only as a complaint.
 
