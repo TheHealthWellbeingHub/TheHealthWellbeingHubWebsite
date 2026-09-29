@@ -157,6 +157,17 @@ A worker with a line that has no rate on file shows *Rate missing* and **Add rat
 Done; saving the rate on their Pay tab recalculates their unpaid weeks. *Recalculate from
 ShiftCare* re-reads the week after a timesheet or mileage fix — anyone already Done stays Done.
 Amounts are before tax — this is not a payslip.
+
+The pay list also shows **what each worker made us** and the week's totals (pay, billed,
+profit). Each line is priced at the **Invoicing** rates — the participant's weekday / Saturday /
+Sunday support item and travel item per km (`invoice_participants` + `invoice_rates`), exactly as
+the Monday Xero drafts bill them (a public holiday at its ordinary day's rate, a weekday evening at
+the weekday rate). Profit = billed − the worker's pay, before super and other costs; stored on
+`pay_breakdowns.revenue` / `.profit`. A line the drafts wouldn't bill (no support item for that
+day, participant not set up in Invoicing, a mileage entry on a shift with no timesheet line)
+counts as $0 billed and is listed in `unbilled`. Clicking a worker's row opens their invoice
+preview in an overlay; the previews are filled in the Command Centre (`lib/invoice-render.js`,
+from the website's template) and loaded in the background, so they open instantly.
 Accounts that aren't support workers (`requires_documents = false`) are skipped.
 `?dry=1` works a week out without saving or raising the task; `?week=YYYY-MM-DD` runs another
 week. The first task is Monday 5 Oct 2026, for 28 Sep – 4 Oct.
