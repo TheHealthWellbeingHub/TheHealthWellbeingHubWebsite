@@ -126,7 +126,7 @@ Times used to be read and shown in UTC on the server (10 hours out); fixed on 29
 
 ## Weekly pay breakdown (from 29 Sep 2026)
 
-Every **Monday 8:30am Brisbane** (Supabase pg_cron job `weekly-pay-breakdown` →
+Every **Monday 6pm Brisbane** (08:00 UTC; Supabase pg_cron job `weekly-pay-breakdown` →
 `/dashboard/api/cron/pay`, same Vault secret as the sync), for the Monday–Sunday week just gone,
 `lib/pay-breakdown.js` in `command_centre`:
 
