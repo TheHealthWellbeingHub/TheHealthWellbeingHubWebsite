@@ -146,13 +146,19 @@ Every **Monday 8am Brisbane** (22:00 UTC Sunday; Supabase pg_cron job `weekly-pa
    edited on the worker's profile, **Pay** tab. Evening and night hours on a weekday are paid at
    the weekday rate. Expenses are paid at face value.
 3. Saves the week to `pay_breakdowns` (one row per worker per week) and raises one task,
-   **"Pay support workers for {dates}"** (`tasks.pay_week`). **Nothing is emailed to workers**
-   (user's change, 29 Sep 2026 — the automatic email was switched off before it ever sent).
+   **"Pay support workers for {dates}"** (`tasks.pay_week`). Nothing is emailed by the run
+   itself (user's change, 29 Sep 2026 — the automatic email was switched off before it ever
+   sent); the invoice goes to a worker when staff press **Done** for them.
 
 The task opens **Command Centre → Pay** (`/dashboard/pay?week=…`): every support worker with
-their pay period, hours, km and total before tax, and two buttons — **Preview invoice** (email
-15's invoice layout, filled but never sent) and **Done** once they've been paid (`paid_at`,
-`paid_by`). The task closes by itself when every worker for the week is Done; *Undo* reopens it.
+their pay period, hours, pay and profit (centre aligned). Clicking a worker's row previews their
+invoice (email 15's layout) in an overlay. **Done** marks them paid (`paid_at`, `paid_by`) **and
+emails them the invoice** (email 15, `emailed_at` / `emailed_to`, logged in `sent_emails` as
+`pay_breakdown`) — once only: it's claimed before sending, so a double-click or Done after *Undo*
+never sends it twice. A failed send (or no email address in ShiftCare) leaves them paid, shows
+the reason, and offers **Send invoice** to try again. The task closes by itself when every
+worker for the week is Done; *Undo* reopens it (an emailed invoice can't be recalled).
+In dark mode the preview is shown dark to match the dashboard; the emailed invoice is light.
 A worker with a line that has no rate on file shows *Rate missing* and **Add rate** instead of
 Done; saving the rate on their Pay tab recalculates their unpaid weeks. *Recalculate from
 ShiftCare* re-reads the week after a timesheet or mileage fix — anyone already Done stays Done.
