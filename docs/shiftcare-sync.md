@@ -124,9 +124,9 @@ that started in Google are never written back. The calendar page says when it la
 
 Times used to be read and shown in UTC on the server (10 hours out); fixed on 29 Sep 2026.
 
-## Weekly pay breakdown (from 29 Sep 2026)
+## Weekly support worker pay (from 29 Sep 2026)
 
-Every **Monday 6pm Brisbane** (08:00 UTC; Supabase pg_cron job `weekly-pay-breakdown` →
+Every **Monday 8am Brisbane** (22:00 UTC Sunday; Supabase pg_cron job `weekly-pay-breakdown` →
 `/dashboard/api/cron/pay`, same Vault secret as the sync), for the Monday–Sunday week just gone,
 `lib/pay-breakdown.js` in `command_centre`:
 
@@ -137,26 +137,32 @@ Every **Monday 6pm Brisbane** (08:00 UTC; Supabase pg_cron job `weekly-pay-break
    (*Add mileage*), and ShiftCare stores each entry as a progress note of category `mileage`
    ("Added carer mileage of 114 and client mileage for client … with transport km 114, travel
    km 23, travel time 31"). The **carer mileage** figure is paid at the worker's travel rate; if a
-   shift has two entries (an edit), the later one counts. A mileage note that can't be read holds
-   the week. Travel km and travel time in the same note are not paid (see below).
+   shift has two entries (an edit), the later one counts. A mileage note that can't be read stops
+   that worker being marked paid. Travel km and travel time in the same note are not paid (user
+   confirmed, 29 Sep 2026).
 2. Prices each line at the worker's rate in `support_workers` — weekday, Saturday, Sunday,
    public holiday, travel per km, sleepover. **ShiftCare holds no dollar rates for this account**
    (its shift costing is off until its pay items are mapped to Xero), so the rates are kept and
    edited on the worker's profile, **Pay** tab. Evening and night hours on a weekday are paid at
    the weekday rate. Expenses are paid at face value.
-3. Saves the week to `pay_breakdowns` (one row per worker per week) and emails the worker
-   **email 15, "Your pay breakdown"** — automatically, no office check (user's choice). Logged in
-   `sent_emails` as `pay_breakdown`.
+3. Saves the week to `pay_breakdowns` (one row per worker per week) and raises one task,
+   **"Pay support workers for {dates}"** (`tasks.pay_week`). **Nothing is emailed to workers**
+   (user's change, 29 Sep 2026 — the automatic email was switched off before it ever sent).
 
-A week with any line that has no rate on file is **held, not emailed**, and raises a task
-*Pay breakdown held — {worker}, week of {dates}: missing {rate}*. Saving the rate on the Pay tab
-rebuilds and sends it, and closes the task. The Pay tab also rebuilds and sends any week by hand
-(for a timesheet corrected after Monday). Amounts are before tax — this is not a payslip.
+The task opens **Command Centre → Pay** (`/dashboard/pay?week=…`): every support worker with
+their pay period, hours, km and total before tax, and two buttons — **Preview invoice** (email
+15's invoice layout, filled but never sent) and **Done** once they've been paid (`paid_at`,
+`paid_by`). The task closes by itself when every worker for the week is Done; *Undo* reopens it.
+A worker with a line that has no rate on file shows *Rate missing* and **Add rate** instead of
+Done; saving the rate on their Pay tab recalculates their unpaid weeks. *Recalculate from
+ShiftCare* re-reads the week after a timesheet or mileage fix — anyone already Done stays Done.
+Amounts are before tax — this is not a payslip.
 Accounts that aren't support workers (`requires_documents = false`) are skipped.
-`?dry=1` works a week out without saving or sending; `?week=YYYY-MM-DD` runs another week.
+`?dry=1` works a week out without saving or raising the task; `?week=YYYY-MM-DD` runs another
+week. The first task is Monday 5 Oct 2026, for 28 Sep – 4 Oct.
 
-Mileage was missed until 29 Sep 2026 (the first build read only timesheets); no breakdown had been
-sent by then.
+Mileage was missed until 29 Sep 2026 (the first build read only timesheets); nothing had been
+built or sent by then.
 
 **Public holiday rates** were added on 29 Sep 2026 for all seven active support workers, so
 public holiday shifts are priced. ShiftCare decides which hours are public holiday hours: it marked

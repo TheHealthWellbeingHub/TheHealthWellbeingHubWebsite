@@ -212,7 +212,7 @@ File `14-new-support-worker-welcome.html` · subject: Welcome to the team, {{Wor
 
 ## `pay-breakdown` — 15
 
-File `15-support-worker-pay-breakdown.html` · subject: Your pay breakdown — {{Week}} · sent to each support worker every Monday by the Command Centre (`lib/pay-breakdown.js`), for the Monday–Sunday week just gone
+File `15-support-worker-pay-breakdown.html` · subject: Your pay breakdown — {{Week}} · **not sent** — the Command Centre's Pay page (`lib/pay-breakdown.js`) fills it as the *Preview invoice* for a worker's week (dry run only, since 29 Sep 2026)
 
 | Field | Required | Fallback |
 |---|---|---|
