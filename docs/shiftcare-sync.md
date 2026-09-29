@@ -110,4 +110,16 @@ The Command Centre calendar (`/dashboard/calendar`) shows, in Brisbane time:
   - **Claude**, when a worker mentions one: added to that Google Calendar, so it arrives the
     same way (see CLAUDE.md, "Appointments and meetings").
 
+**Both ways (from 29 Sep 2026).** Appointments made in the Command Centre or by Claude, and every
+participant's NDIS plan start and end dates (not exited; 60 days back to two years ahead, as
+all-day events titled "NDIS plan starts/ends — {name}"), are written to the Google Calendar by a
+Google Apps Script on thehealthwellbeinghub@gmail.com, every 5 minutes. The script
+(`docs/google-calendar-apps-script.js` in `command_centre`) asks `/dashboard/api/gcal/outbox`
+(key: `GCAL_SCRIPT_TOKEN` on the Command Centre's Vercel project) what to add, change or remove,
+and reports each Google event id back into `google_calendar_links`, so nothing is added twice.
+Reading the calendar back skips those events; a move or rename made to one of our appointments
+in Google comes back to it, and one deleted in Google is deleted here after 2 hours. Plan dates
+always follow the participant's profile — a change made to one in Google is overwritten. Events
+that started in Google are never written back. The calendar page says when it last sent.
+
 Times used to be read and shown in UTC on the server (10 hours out); fixed on 29 Sep 2026.
