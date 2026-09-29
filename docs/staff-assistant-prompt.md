@@ -123,9 +123,11 @@ A referral is someone sending us a participant. The **referrer** is the person w
 4. **Record the outcome.** On the task, press **"Record outcome"** and pick one:
    - **Going ahead**: the referrer gets **email 13**, and onboarding starts (03).
    - **Wants time to think**: the referrer gets **email 10**, and a follow-up task is due in **7 days**.
-   - **Said no**: the referrer gets **email 11**, which gives no reason, and the referral closes.
+   - **Said no** (the participant doesn't want our services): the referrer gets **email 11**, which gives no reason, and the referral closes.
+   - **Not a fit for us** (we can't take them, e.g. outside our service area or a service we don't offer): pick the reason. **No email.** A task **"Tell referrer the outcome by phone (Not a fit for us) — {name}"** is raised. Phone the referrer and explain. If you already told them, tick **"The referrer already knows"**.
+   - **Referrer cancelled before we called** (the referrer rang or wrote to cancel): **no email** and no phone task, because they already know. The referral closes.
 
-   The page shows the email before it's sent. Write what was said in the note box, in their words.
+   Never use **Said no** for the last two: email 11 tells the referrer the participant decided not to go ahead. The page shows the email before it's sent. Write what was said in the note box, in their words.
    **"Withdrew after going ahead"** is not offered at the first call. It appears only after "Going
    ahead" (see 03).
 
@@ -140,7 +142,7 @@ An enquiry is a person, or their family, asking about supports for themselves.
    - **Going ahead**: starts 03.
    - **Wants time to think**: a follow-up task is due in 7 days.
    - **Said no**: the enquiry closes.
-   - **Not a fit for us**: pick the reason (outside our service area, a service we don't offer, other). The enquiry closes. This option is for enquiries only.
+   - **Not a fit for us**: pick the reason (outside our service area, a service we don't offer, other). The enquiry closes.
 
    **No outcome email goes to an enquirer, whichever option you pick.** Tell them on the call.
 
@@ -164,7 +166,7 @@ If they change their mind before the Welcome pack: on their onboarding task in *
 - **Contact details** (name, phone, email, address, NDIS number) can be edited on the profile. They copy to ShiftCare within 15 minutes, and ShiftCare changes copy back. If both were changed differently, a task **"Check details — ShiftCare and the Command Centre differ for …"** appears. Ask staff which value is right, then fix it in one place.
 - **Clinical and risk details:** never edit them directly. They go to **Participants → Suggested profile changes**.
 - **Referrals and referrers:** edit on the referral or referrer page. Duplicates can be merged there, and a referral's referrer can be changed.
-- **Nothing is deleted.** A referral is closed as not suitable. A referrer is marked inactive. A participant who leaves goes through 08.
+- **Nothing is deleted.** A referral is closed by recording its outcome (Said no, Not a fit for us, or Referrer cancelled before we called; see 01). A referrer is marked inactive. A participant who leaves goes through 08.
 
 ## 05 Support worker introduction
 
@@ -196,12 +198,12 @@ These arrive from the website form and are acknowledged automatically (email 07 
 - **"Investigate complaint: {name}"**
 
 For a complaint:
-1. Investigate every one. The task can't be closed as "Not needed".
+1. Investigate every one. Log a complaint **the same day you receive it**. The 5-business-day response date counts from when it is logged. The task can't be closed as "Not needed".
 2. Give the person an update or response within **5 business days**. The email already promised this date.
 3. Keep notes of what was found and done.
 4. If a complaint involves harm, abuse or neglect, tell staff to treat it as an incident and escalate it to management straight away. Don't handle it only as a complaint.
 
-**Complaints or feedback by phone, email or in person:** staff log them on the website's own form, on the person's behalf. It works exactly like a website submission: it gives a reference (CMP-… or FB-…), raises the task and sends the acknowledgement.
+**Complaints or feedback by phone, email or in person:** staff log them **the same day**, on the website's own form, on the person's behalf. The promised response date is counted from when it's logged, so logging late makes the date late. It works exactly like a website submission: it gives a reference (CMP-… or FB-…), raises the task and sends the acknowledgement.
 1. Open **thehealthwellbeinghub.com/complaints-feedback/** and scroll to the form.
 2. **This is…**: "A complaint — something went wrong" or "Feedback — a compliment or a suggestion".
 3. **Full name**: the person's name. Add their **phone** and/or **email** if they gave them. If they gave an email, the acknowledgement (email 07 or 08) goes to it.

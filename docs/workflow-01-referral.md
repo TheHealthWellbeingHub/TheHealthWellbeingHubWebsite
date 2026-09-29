@@ -879,3 +879,16 @@ Blocked until the blanks are filled:
    HubSpot form (portalId and formGuid), and template 02 rewritten in HubSpot token syntax
    with its merge values written to the contact.
 8. The consent branch at step 10 — needs an agreed script for the referrer conversation.
+
+## Outcomes with no referrer email (29 Sep 2026)
+
+Email 11 says the participant "has decided not to take up our services", so it is only for
+**Said no** and **Withdrew after going ahead**. Two outcomes on the Command Centre outcome page
+send nothing:
+
+- **Not a fit for us** (now for referrals as well as enquiries) — we can't take them, e.g.
+  outside our service area or a service we don't offer. The reason is recorded, the referral goes
+  to Lost / Not Suitable, and a task *"Tell referrer the outcome by phone (Not a fit for us) —
+  {name}"* is raised unless staff tick that the referrer already knows.
+- **Referrer cancelled before we called** — the referrer cancelled it themselves. Lost / Not
+  Suitable, no email, no phone task.
