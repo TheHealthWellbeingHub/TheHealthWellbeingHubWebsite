@@ -158,5 +158,9 @@ Accounts that aren't support workers (`requires_documents = false`) are skipped.
 Mileage was missed until 29 Sep 2026 (the first build read only timesheets); no breakdown had been
 sent by then.
 
-At launch no worker had a **public holiday rate** on file, and one had no weekday rate, so a week
-with a public holiday shift (the next is 5 Oct 2026, King's Birthday) is held until one is added.
+**Public holiday rates** were added on 29 Sep 2026 for all seven active support workers, so
+public holiday shifts are priced. ShiftCare decides which hours are public holiday hours: it marked
+Labour Day (4 May 2026) as *Public Holidays*, so Queensland-wide holidays such as the King's
+Birthday (5 Oct 2026) are expected to come through the same way. Local show days (e.g. the Brisbane
+Ekka, 12 Aug 2026) came through as ordinary weekday hours. One worker still has no weekday rate, so
+a weekday shift of theirs holds their week. No sleepover rates are on file yet.
