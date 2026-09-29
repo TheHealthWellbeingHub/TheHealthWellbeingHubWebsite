@@ -217,9 +217,15 @@ File `15-support-worker-pay-breakdown.html` · subject: Your pay breakdown — {
 | Field | Required | Fallback |
 |---|---|---|
 | `Worker First Name` | yes | — |
+| `Worker Full Name` | yes | — |
+| `Reference` | yes | — (`PB-{week start YYYYMMDD}-{ShiftCare staff id}`) |
+| `Issued Date` | yes | — |
 | `Week` | yes | — |
 | `Gross Pay` | yes | — |
 | `Total Hours` | yes | — |
+
+Laid out like an invoice (from/to, pay period, line items, totals by pay type), but it is not a
+tax invoice or a payslip — amounts are before tax.
 
 **Repeat blocks** — the template marks a block `<!--repeat:Name-->…<!--/repeat:Name-->`, and
 `merge.Name` is an array of rows; the block is copied once per row, each filled from its own
