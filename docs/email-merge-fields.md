@@ -209,3 +209,23 @@ File `14-new-support-worker-welcome.html` · subject: Welcome to the team, {{Wor
 |---|---|---|
 | `Worker First Name` | yes | — |
 | `Staff Member` | yes | — |
+
+## `pay-breakdown` — 15
+
+File `15-support-worker-pay-breakdown.html` · subject: Your pay breakdown — {{Week}} · sent to each support worker every Monday by the Command Centre (`lib/pay-breakdown.js`), for the Monday–Sunday week just gone
+
+| Field | Required | Fallback |
+|---|---|---|
+| `Worker First Name` | yes | — |
+| `Week` | yes | — |
+| `Gross Pay` | yes | — |
+| `Total Hours` | yes | — |
+
+**Repeat blocks** — the template marks a block `<!--repeat:Name-->…<!--/repeat:Name-->`, and
+`merge.Name` is an array of rows; the block is copied once per row, each filled from its own
+row. The email is refused if a block has no rows or a row lacks a field.
+
+| Block | Row fields |
+|---|---|
+| `Summary` | `Item`, `Quantity`, `Rate`, `Amount` |
+| `Shifts` | `Date`, `Client`, `Time`, `Pay Type`, `Quantity`, `Rate`, `Amount` |

@@ -123,3 +123,31 @@ always follow the participant's profile — a change made to one in Google is ov
 that started in Google are never written back. The calendar page says when it last sent.
 
 Times used to be read and shown in UTC on the server (10 hours out); fixed on 29 Sep 2026.
+
+## Weekly pay breakdown (from 29 Sep 2026)
+
+Every **Monday 8:30am Brisbane** (Supabase pg_cron job `weekly-pay-breakdown` →
+`/dashboard/api/cron/pay`, same Vault secret as the sync), for the Monday–Sunday week just gone,
+`lib/pay-breakdown.js` in `command_centre`:
+
+1. Reads every ShiftCare **timesheet** for the week — all shifts worked, approved or not (user's
+   choice). Each timesheet line has its pay item (Weekday, Saturday, Sunday, Public Holidays) and
+   hours, plus allowances (mileage in km, expenses in dollars, sleepovers).
+2. Prices each line at the worker's rate in `support_workers` — weekday, Saturday, Sunday,
+   public holiday, travel per km, sleepover. **ShiftCare holds no dollar rates for this account**
+   (its shift costing is off until its pay items are mapped to Xero), so the rates are kept and
+   edited on the worker's profile, **Pay** tab. Evening and night hours on a weekday are paid at
+   the weekday rate. Expenses are paid at face value.
+3. Saves the week to `pay_breakdowns` (one row per worker per week) and emails the worker
+   **email 15, "Your pay breakdown"** — automatically, no office check (user's choice). Logged in
+   `sent_emails` as `pay_breakdown`.
+
+A week with any line that has no rate on file is **held, not emailed**, and raises a task
+*Pay breakdown held — {worker}, week of {dates}: missing {rate}*. Saving the rate on the Pay tab
+rebuilds and sends it, and closes the task. The Pay tab also rebuilds and sends any week by hand
+(for a timesheet corrected after Monday). Amounts are before tax — this is not a payslip.
+Accounts that aren't support workers (`requires_documents = false`) are skipped.
+`?dry=1` works a week out without saving or sending; `?week=YYYY-MM-DD` runs another week.
+
+At launch no worker had a **public holiday rate** on file, and one had no weekday rate, so a week
+with a public holiday shift (the next is 5 Oct 2026, King's Birthday) is held until one is added.
