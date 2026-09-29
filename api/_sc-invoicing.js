@@ -142,6 +142,7 @@ async function runScMonth({ today = brisbaneToday(), clientIds = null, dryRun = 
         client_id: c.id,
         period_start: p.start,
         period_end: p.end,
+        invoice_date: today,
         xero_invoice_id: saved.invoiceId,
         xero_invoice_number: saved.invoiceNumber,
         total: saved.total,

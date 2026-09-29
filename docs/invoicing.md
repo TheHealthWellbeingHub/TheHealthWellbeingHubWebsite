@@ -131,6 +131,13 @@ Hours, contacts and wording were copied from each client's latest Xero invoice. 
 spreadsheet differed, the client's notes say how. Participant details live only in Supabase.
 Nothing about a client goes in this repository.
 
+### Seeing the drafts
+
+Command Centre → **Invoicing** (the page with support workers' pay) lists the month's Support
+Coordination drafts under the pay list. Clicking one shows it laid out like Xero's invoice screen,
+read live from Xero through `xero?action=get-invoice` (which also accepts the Command Centre's send
+token, read-only). Client settings are under **Invoice settings**.
+
 ### Running it by hand
 
 `GET /api/xero?action=sc-monthly` with `Authorization: Bearer <XERO_STATUS_TOKEN>`:
