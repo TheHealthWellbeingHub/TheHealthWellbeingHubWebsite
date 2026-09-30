@@ -13,7 +13,9 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SIGNATURE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ibrahim-zakariya-signature.png")
+# The signature image is deliberately not in this repository (it's public on
+# GitHub). Pass its path as the first argument; the user holds the file.
+SIGNATURE = sys.argv[1] if len(sys.argv) > 1 else ""
 SIGNER = "Ibrahim Zakariya"
 
 FORMS = [
@@ -93,6 +95,8 @@ def stamp(rel_path, sig_field, name_field):
 
 
 if __name__ == "__main__":
+    if not os.path.isfile(SIGNATURE):
+        sys.exit("usage: python3 stamp_signature.py /path/to/signature.png")
     for form in FORMS:
         stamp(*form)
     sys.exit(0)

@@ -16,12 +16,13 @@ instruction, 30 Sep 2026).
 
 **Pre-signed.** Ibrahim Zakariya's signature is stamped into the H&W signature box of the
 Support Worker Agreement and of the Service Agreement (`participant-documents/`) by
-`source/stamp_signature.py`, from `source/ibrahim-zakariya-signature.png`. The signature
+`source/stamp_signature.py`. The signature image itself is **not** kept in this repository
+(the repository is public on GitHub) — ask the user for it and pass its path to the script. The signature
 becomes page content and that one field is removed; every other field stays fillable, and
 each field gets its own appearance so filling one never shows up in another. If
 either agreement is ever rebuilt, run the script again afterwards (it skips a form that's
 already signed).
 
 **Not public.** `vercel.json` redirects `/staff-documents/*` away from the site, because
-this folder holds contractor pay rates and the signature image. The send function reads the files from its own
+this folder holds contractor pay rates. The send function reads the files from its own
 bundle, so the redirect doesn't affect it.
