@@ -35,6 +35,11 @@
       "permanent": false
     },
     {
+      "source": "/participant-documents/:path*",
+      "destination": "/",
+      "permanent": false
+    },
+    {
       "source": "/:path*",
       "has": [
         {

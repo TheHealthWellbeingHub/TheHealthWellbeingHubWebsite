@@ -7,7 +7,7 @@ they're available to any session, not only the one that built them.
 |---|---|---|---|
 | `The Health & Well-being Hub - Referral Form (Fillable).pdf` | The Onboarding email (`04-participant-welcome-onboarding.html`) | 53 | H&W-authored |
 | `NDIS Consent for Your Information (Fillable).pdf` | The Onboarding email | 20 | Fillable fields overlaid on the NDIA's own unaltered "Consent for your NDIS information" form — the form content itself is the NDIA's, not ours to edit |
-| `The Health & Well-being Hub - Service Agreement (Fillable).pdf` | The Onboarding email, and the Service Agreement follow-up (`13-service-agreement-followup.html`) | 239 | The 25 Sep 2026 service agreement wording, rebuilt word for word as a branded fillable PDF in the Referral Form's style. Wording changes need a human's sign-off first |
+| `The Health & Well-being Hub - Service Agreement (Fillable).pdf` | The Onboarding email, and the Service Agreement follow-up (`13-service-agreement-followup.html`) | 238 | The 25 Sep 2026 service agreement wording, rebuilt word for word as a branded fillable PDF in the Referral Form's style. Wording changes need a human's sign-off first. The Provider's signature is pre-signed by Ibrahim Zakariya and his name prefilled (30 Sep 2026, `staff-documents/source/stamp_signature.py`); the participant's side stays fillable |
 | `Privacy & Confidentiality (Easy Read Guide).pdf` | The Welcome email (`12-welcome-pack.html`) | — | Supplied as finished content |
 | `Feedback & Complaints (Easy Read Guide).pdf` | The Welcome email | — | Supplied as finished content |
 | `Your Rights & Responsibilities (Easy Read Guide).pdf` | The Welcome email | — | Supplied as finished content |
@@ -18,8 +18,9 @@ they're available to any session, not only the one that built them.
 
 The four easy-read guides are image-only PDFs (no selectable text, nothing to fill in).
 
-Not served by the site build (`build.py` doesn't touch this directory) — these exist purely
-to be attached to emails Claude sends from the H&W mailbox.
+Not served on the site: `vercel.json` redirects `/participant-documents/*` away (since 30 Sep
+2026 — the Service Agreement carries a real signature). These exist purely to be attached
+to emails; the send functions read them from their own bundle.
 
 ## Earlier service agreement (removed 25 Sep 2026)
 
