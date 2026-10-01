@@ -109,6 +109,10 @@ Each client is billed for **the 1st of the month to their end day**, e.g.
 - **Already invoiced** → left alone. "Invoiced" means a live Xero invoice to that plan
   manager with a line whose period starts on the same day, under the same reference **or**
   naming the client. So an invoice made by hand counts, even with a different reference.
+  Except: an invoice under **another client's** reference (same plan manager) never counts
+  by name. One person can be two clients — Ismail is "Ismail SC" (Support Coordination) and
+  "Ismail Training" — and each only counts invoices under its own reference or no other
+  client's.
   Deleting a draft in Xero lets the run make it again.
 - **On hold, settings missing, or plan ended** → not invoiced; listed in the email.
 

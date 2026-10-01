@@ -61,6 +61,15 @@ async function runScMonth({ today = brisbaneToday(), clientIds = null, dryRun = 
     selectMany('invoice_rates', 'order=code.asc', 'code,rate'),
   ]);
   const rateOf = new Map(rates.map((r) => [r.code, Number(r.rate)]));
+  // Every client's reference, by plan manager: an invoice carrying another
+  // client's reference is that client's, even when it names the same person.
+  const allClients = await selectMany('sc_invoice_clients', 'order=name.asc', 'reference,xero_contact_name');
+  const refsByContact = new Map();
+  for (const x of allClients) {
+    const key = String(x.xero_contact_name || '').trim().toLowerCase();
+    if (!refsByContact.has(key)) refsByContact.set(key, []);
+    refsByContact.get(key).push(x.reference);
+  }
   const results = [];
   // Many clients share a plan manager: look each one up in Xero once per run
   // (Xero allows 60 calls a minute).
@@ -119,6 +128,7 @@ async function runScMonth({ today = brisbaneToday(), clientIds = null, dryRun = 
         starts: new Set([p.start]),
         reference: c.reference,
         names: [invoiceName, c.name],
+        otherReferences: refsByContact.get(String(c.xero_contact_name || '').trim().toLowerCase()) || [],
         cache: invoiceCache,
       });
       if (existing.length) {

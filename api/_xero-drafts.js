@@ -30,8 +30,11 @@ async function withRetry(fn) {
  * Live invoices to this contact that already cover a period starting on one
  * of `starts` (YYYY-MM-DD) — matched by the same reference (any case), or by
  * a line naming one of `names`, since references drift ("Htoo SC"/"Htwoo SC").
+ * An invoice whose reference is in `otherReferences` belongs to another
+ * client of the same plan manager, so a name alone never matches it — one
+ * person can have two clients ("Ismail SC" and "Ismail Training").
  */
-async function findExisting({ contactId, starts, reference, names = [], cache = null }) {
+async function findExisting({ contactId, starts, reference, names = [], otherReferences = [], cache = null }) {
   const earliest = [...starts].sort()[0];
   // A period is invoiced after it starts, so invoices dated from shortly
   // before its start are enough (a wider window times out on big contacts).
@@ -50,12 +53,16 @@ async function findExisting({ contactId, starts, reference, names = [], cache = 
   }
   const ref = String(reference || '').trim().toLowerCase();
   const lowerNames = names.map((n) => String(n).trim().toLowerCase()).filter(Boolean);
+  const others = new Set(otherReferences.map((r) => String(r).trim().toLowerCase()).filter((r) => r && r !== ref));
   return found
     .filter((i) => i.Status !== 'DELETED' && i.Status !== 'VOIDED')
     .filter((i) => (i.LineItems || []).some((l) => {
       if (!starts.has(periodStart(l.Description))) return false;
+      const invRef = String(i.Reference || '').trim().toLowerCase();
+      if (invRef === ref) return true;
+      if (others.has(invRef)) return false;
       const desc = String(l.Description || '').toLowerCase();
-      return String(i.Reference || '').trim().toLowerCase() === ref || lowerNames.some((n) => desc.includes(n));
+      return lowerNames.some((n) => desc.includes(n));
     }))
     .map((i) => ({ id: i.InvoiceID, number: i.InvoiceNumber, status: i.Status, date: i.DateString, total: i.Total }));
 }
