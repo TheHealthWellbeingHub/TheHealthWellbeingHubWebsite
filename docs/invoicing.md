@@ -29,6 +29,10 @@ Monday–Sunday week just gone:
      - weekday hours (Mon–Fri), Saturday hours and Sunday hours, each with the participant's own
        support item. Hours come from the **roster**, not clock-ins (most workers forget to clock
        in). Every worker on a shift counts: two workers for 8 hours is 16 hours.
+     - optionally a second weekday line: chosen weekdays (e.g. Thursday and Friday) billed under
+       another support item, so one participant's hours can be split between two budget
+       categories (e.g. Daily Life on home days, Social & Community on community days). Set in the
+       Command Centre → Invoicing → participant → "Second weekday line".
      - travel: the week's mileage entries added up, at the travel item's price. When a worker
        enters mileage more than once for the same shift, only their **latest** entry counts —
        the later one is a correction (e.g. 78 km then 83 km on one shift counts as 83). Two
