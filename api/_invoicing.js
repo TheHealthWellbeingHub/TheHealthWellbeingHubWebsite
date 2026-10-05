@@ -6,7 +6,8 @@
 // invoices by hand (see docs/invoicing.md):
 //   - hours come from the ROSTER (ShiftCare shifts), not clock-ins — most
 //     workers forget to clock in. Each worker on a shift counts, so two
-//     workers for 8 hours is 16 hours.
+//     workers for 8 hours is 16 hours — except workers marked
+//     invoice_shifts = false (paid, but never billed to the participant).
 //   - weekday, Saturday and Sunday hours are separate lines, each with the
 //     participant's own support item; a participant can also have chosen
 //     weekdays (weekday_alt_days) billed on a second weekday line under
@@ -76,10 +77,15 @@ async function pagedShiftcare(pathname, params, key) {
   return out;
 }
 
-async function shiftStaffCount(shift) {
-  if (Array.isArray(shift.staff) && shift.staff.length) return shift.staff.length;
-  const body = await shiftcareApiFetch(`/api/v3/shifts/${encodeURIComponent(shift.id)}/staffs`, { per_page: 20 });
-  return (body.staffs || []).length;
+/** Workers on a shift, leaving out those whose hours are never invoiced
+ * (support_workers.invoice_shifts = false, e.g. a cleaner paid separately). */
+async function shiftStaffCount(shift, notInvoiced = new Set()) {
+  let staff = Array.isArray(shift.staff) && shift.staff.length ? shift.staff : null;
+  if (!staff) {
+    const body = await shiftcareApiFetch(`/api/v3/shifts/${encodeURIComponent(shift.id)}/staffs`, { per_page: 20 });
+    staff = body.staffs || [];
+  }
+  return staff.filter((w) => !notInvoiced.has(String(w.staff_id || w.id || ''))).length;
 }
 
 async function weekShifts(start, end) {
@@ -110,9 +116,10 @@ function carerKm(note) {
 // ---- Supabase settings --------------------------------------------------
 
 async function loadSettings() {
-  const [participants, rates] = await Promise.all([
+  const [participants, rates, notInvoiced] = await Promise.all([
     selectMany('invoice_participants', 'active=eq.true'),
     selectMany('invoice_rates', 'order=code.asc'),
+    selectMany('support_workers', 'invoice_shifts=eq.false&shiftcare_staff_id=not.is.null', 'shiftcare_staff_id'),
   ]);
   const ids = participants.map((p) => p.shiftcare_client_id);
   const ndis = ids.length
@@ -125,6 +132,7 @@ async function loadSettings() {
   return {
     participants,
     rates: new Map(rates.map((r) => [r.code, Number(r.rate)])),
+    notInvoiced: new Set(notInvoiced.map((w) => String(w.shiftcare_staff_id))),
     ndisById: new Map(ndis.map((r) => [String(r.shiftcare_client_id), r.ndis_number])),
   };
 }
@@ -186,7 +194,8 @@ async function buildWeek({ start, end, clientIds = null }) {
       const date = String(shift.start_at).slice(0, 10);
       if (shift.cancelled_at && !client.absent_reason) continue; // cancelled without charge
       if (shift.cancelled_at) flags.push(`${dmy(date)}: cancelled by the client (${client.absent_reason}) — billed`);
-      const workers = await shiftStaffCount(shift);
+      const workers = await shiftStaffCount(shift, settings.notInvoiced);
+      if (!workers && (await shiftStaffCount(shift))) continue; // only workers whose hours aren't invoiced
       if (!workers) {
         flags.push(`${dmy(date)}: shift has no worker assigned — not billed`);
         continue;
