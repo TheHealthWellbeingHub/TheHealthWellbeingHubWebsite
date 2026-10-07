@@ -90,7 +90,7 @@ summary { cursor: pointer; padding: 11px 16px; font-size: 14px; font-weight: 500
 <main>
   <div class="eyebrow">Team only · Social media</div>
   <h1>Now You Know videos</h1>
-  <p class="lede">Every video with its Instagram and TikTok files, TikTok cover and captions. Tick the review once it's approved, and set the status when it goes live.</p>
+  <p class="lede">Every video with its Instagram and TikTok files, covers for each platform, and captions. Tick the review once it's approved, and set the status when it goes live.</p>
   <div class="tally">
     <div><b id="t-all">–</b><span>Videos</span></div>
     <div><b id="t-review">–</b><span>Need review</span></div>
@@ -151,6 +151,7 @@ function render() {
         <a class="ig" href="${file("ig", r.slug, 1)}">Instagram video <small>MP4</small></a>
         <a href="${file("tt", r.slug, 1)}">TikTok video <small>MP4 · no captions</small></a>
         <a href="${file("cover", r.slug, 1)}">TikTok cover <small>1080×1920 JPG</small></a>
+        <a href="${file("igcover", r.slug, 1)}">Instagram cover <small>1080×1920 JPG</small></a>
       </div>
     </div>
     <details data-slug="${esc(r.slug)}"${open.has(r.slug) ? " open" : ""}>

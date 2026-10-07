@@ -12,7 +12,8 @@
 //   POST /api/social?r=logout
 //   GET  /api/social?r=status              statuses for every video
 //   POST /api/social?r=update              JSON: { slug, field, value }
-//   GET  /api/social?r=file&kind=ig|tt|cover&slug=…[&dl=1]   302 to a signed link
+//   GET  /api/social?r=file&kind=ig|tt|cover|igcover&slug=…[&dl=1]   302 to a signed link
+//        (cover = TikTok cover, igcover = Instagram cover; both 1080x1920)
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -53,7 +54,8 @@ function html(res, status, body) {
   return res.status(status).send(body);
 }
 const redirect = (res, to) => { res.setHeader('Cache-Control', 'no-store'); res.setHeader('Location', to); return res.status(303).end(); };
-const objectPath = (kind, slug) => `${kind}/${slug}.${kind === 'cover' ? 'jpg' : 'mp4'}`;
+const FOLDERS = { ig: 'ig', tt: 'tt', cover: 'tt-cover', igcover: 'ig-cover' };
+const objectPath = (kind, slug) => `${FOLDERS[kind]}/${slug}.${kind.endsWith('cover') ? 'jpg' : 'mp4'}`;
 
 module.exports = async (req, res) => {
   const r = req.query.r || 'page';
@@ -104,7 +106,7 @@ module.exports = async (req, res) => {
     if (r === 'file' && req.method === 'GET') {
       const { kind, slug, dl } = req.query;
       const video = LIBRARY.find((v) => v.slug === slug);
-      if (!video || !['ig', 'tt', 'cover'].includes(kind)) return res.status(404).json({ ok: false, error: 'Not found.' });
+      if (!video || !Object.prototype.hasOwnProperty.call(FOLDERS, kind)) return res.status(404).json({ ok: false, error: 'Not found.' });
       const url = await storageSignedUrl(BUCKET, objectPath(kind, slug), 3600, dl ? video.files[kind] : undefined);
       res.setHeader('Cache-Control', 'private, max-age=600');
       res.setHeader('Location', url);
