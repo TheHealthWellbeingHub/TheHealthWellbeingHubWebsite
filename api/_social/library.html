@@ -19,7 +19,7 @@ header.bar { background: var(--w); border-bottom: 1px solid var(--b); }
 .bar .in, main { max-width: 1100px; margin: 0 auto; padding-inline: 20px; }
 .bar .in { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 12px; }
 .brand { display: flex; align-items: center; gap: 10px; font: 700 17px var(--fd); color: var(--n); text-decoration: none; }
-.brand b { width: 36px; height: 36px; border-radius: 50%; background: var(--pt); color: var(--p); display: grid; place-items: center; font-size: 13px; }
+.brand b { width: 36px; height: 36px; border-radius: 50%; background: var(--pt); color: var(--p); display: grid; place-items: center; font-size: 11px; }
 .brand b i { color: var(--g); }
 .out { font: 500 14px var(--fb); background: none; border: 1px solid var(--b); border-radius: 8px; padding: 7px 12px; color: var(--tm); cursor: pointer; }
 main { padding-block: 28px 64px; }
@@ -84,7 +84,7 @@ summary { cursor: pointer; padding: 11px 16px; font-size: 14px; font-weight: 500
 </head>
 <body>
 <header class="bar"><div class="in">
-  <a class="brand" href="/"><b>H<i>&amp;</i>W</b> The Health &amp; Well-being Hub</a>
+  <a class="brand" href="/"><b><span>H<i>&amp;</i>W</span></b> The Health &amp; Well-being Hub</a>
   <form method="post" action="/api/social?r=logout"><button class="out" type="submit">Log out</button></form>
 </div></header>
 <main>
