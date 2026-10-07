@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Social media | The Health &amp; Well-being Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* One row per video: cover, what it is and what's left to do, files. Captions fold open underneath. */
+:root { --p: #7B2D8B; --pd: #5C2068; --pt: #F5EDF8; --pt2: #EAD8F0; --n: #1D3461; --g: #4A7C3F; --gl: #EAF3DE;
+  --amber: #8A5A12; --amber-l: #FBF0DC; --t: #1a1a2e; --tm: #5a5a7a; --b: #E8E0ED; --w: #fff; --ow: #FAFAFA;
+  --fd: 'Playfair Display', Georgia, serif; --fb: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ow); color: var(--t); font: 16px/1.5 var(--fb); }
+header.bar { background: var(--w); border-bottom: 1px solid var(--b); }
+.bar .in, main { max-width: 1100px; margin: 0 auto; padding-inline: 20px; }
+.bar .in { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 17px var(--fd); color: var(--n); text-decoration: none; }
+.brand b { width: 36px; height: 36px; border-radius: 50%; background: var(--pt); color: var(--p); display: grid; place-items: center; font-size: 13px; }
+.brand b i { color: var(--g); }
+.out { font: 500 14px var(--fb); background: none; border: 1px solid var(--b); border-radius: 8px; padding: 7px 12px; color: var(--tm); cursor: pointer; }
+main { padding-block: 28px 64px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--tm); }
+h1 { font: 700 clamp(30px, 5vw, 42px)/1.1 var(--fd); color: var(--n); margin: 4px 0 6px; text-wrap: balance; }
+.lede { color: var(--tm); max-width: 64ch; margin: 0; }
+.tally { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 16px; }
+.tally div { background: var(--w); border: 1px solid var(--b); border-radius: 12px; padding: 10px 16px; min-width: 130px; }
+.tally b { display: block; font: 700 28px/1.1 var(--fd); color: var(--n); font-variant-numeric: tabular-nums; }
+.tally span { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tm); }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.filters button { font: 500 14px var(--fb); padding: 7px 14px; border-radius: 99px; border: 1px solid var(--b); background: var(--w); color: var(--t); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--p); color: var(--w); border-color: var(--p); }
+.list { display: flex; flex-direction: column; gap: 12px; }
+.row { background: var(--w); border: 1px solid var(--b); border-radius: 14px; overflow: hidden; }
+.row.pin { border-color: var(--p); box-shadow: inset 4px 0 0 var(--p); }
+.top { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 18px; padding: 16px; align-items: start; }
+.media { width: 96px; aspect-ratio: 9/16; max-width: 100%; border-radius: 8px; overflow: hidden; background: var(--pt); position: relative; }
+.media img, .media video { width: 100%; height: 100%; object-fit: cover; display: block; border: 0; }
+.play { position: absolute; inset: auto 6px 6px 6px; font: 700 12px var(--fb); border: 0; border-radius: 6px; padding: 5px; background: rgba(29,52,97,.85); color: var(--w); cursor: pointer; }
+.meta { min-width: 0; }
+.no { font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--tm); }
+.no .pinflag { color: var(--p); }
+.title { font: 700 21px/1.25 var(--fd); color: var(--n); margin: 2px 0 4px; text-wrap: balance; }
+.hook { color: var(--tm); margin: 0 0 10px; font-style: italic; }
+.state { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.chip { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 99px; }
+.chip.warn { background: var(--amber-l); color: var(--amber); }
+.chip.ok { background: var(--gl); color: var(--g); }
+label.tick { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+select { font: 14px var(--fb); color: var(--t); background: var(--w); border: 1px solid var(--b); border-radius: 8px; padding: 5px 8px; }
+.review { font-size: 14px; color: var(--tm); margin: 8px 0 0; max-width: 70ch; }
+.files { display: flex; flex-direction: column; gap: 6px; min-width: 210px; }
+.files a, .copy { font: 700 14px var(--fb); display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--b); background: var(--w); color: var(--t); cursor: pointer; text-decoration: none; text-align: left; }
+.files a:hover, .copy:hover { border-color: var(--p); }
+.files a small { font-weight: 400; font-size: 12px; color: var(--tm); }
+.files a.ig { background: var(--p); color: var(--w); border-color: var(--p); }
+.files a.ig small { color: var(--pt2); }
+:is(button, select, summary, textarea, input, a):focus-visible { outline: 2px solid var(--p); outline-offset: 2px; }
+details { border-top: 1px solid var(--b); }
+summary { cursor: pointer; padding: 11px 16px; font-size: 14px; font-weight: 500; color: var(--tm); }
+.caps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 0 16px 14px; }
+.cap { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.cap h3 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--p); }
+.cap pre { margin: 0; white-space: pre-wrap; word-break: break-word; font: 15px/1.55 var(--fb); background: var(--ow); border: 1px solid var(--b); border-radius: 8px; padding: 12px; }
+.cap .tags { font-size: 13px; color: var(--tm); word-break: break-word; }
+.copy { align-self: flex-start; font-size: 13px; padding: 7px 11px; }
+.notes { padding: 0 16px 16px; }
+.notes label { font-size: 13px; font-weight: 500; color: var(--tm); display: block; margin-bottom: 4px; }
+.notes textarea { width: 100%; min-height: 60px; font: 15px var(--fb); color: var(--t); border: 1px solid var(--b); border-radius: 8px; padding: 8px 10px; resize: vertical; }
+.empty { background: var(--w); border: 1px dashed var(--b); border-radius: 14px; padding: 28px; text-align: center; color: var(--tm); }
+.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--n); color: var(--w); padding: 9px 16px; border-radius: 99px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.on { opacity: 1; }
+@media (max-width: 740px) {
+  .top { grid-template-columns: 80px minmax(0, 1fr); }
+  .media { width: 80px; }
+  .files { grid-column: 1 / -1; min-width: 0; }
+  .caps { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+</head>
+<body>
+<header class="bar"><div class="in">
+  <a class="brand" href="/"><b>H<i>&amp;</i>W</b> The Health &amp; Well-being Hub</a>
+  <form method="post" action="/api/social?r=logout"><button class="out" type="submit">Log out</button></form>
+</div></header>
+<main>
+  <div class="eyebrow">Team only · Social media</div>
+  <h1>Now You Know videos</h1>
+  <p class="lede">Every video with its Instagram and TikTok files, TikTok cover and captions. Tick the review once it's approved, and set the status when it goes live.</p>
+  <div class="tally">
+    <div><b id="t-all">–</b><span>Videos</span></div>
+    <div><b id="t-review">–</b><span>Need review</span></div>
+    <div><b id="t-ig">–</b><span>Live on Instagram</span></div>
+    <div><b id="t-tt">–</b><span>Live on TikTok</span></div>
+  </div>
+  <div class="filters" role="group" aria-label="Show">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="review" aria-pressed="false">Needs review</button>
+    <button type="button" data-f="ready" aria-pressed="false">Ready to post</button>
+    <button type="button" data-f="live" aria-pressed="false">Posted</button>
+  </div>
+  <div class="list" id="list"></div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const LIBRARY = /*{{LIBRARY}}*/[];
+const STATUS = ["Not posted", "Scheduled", "Posted"];
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const file = (kind, slug, dl) => `/api/social?r=file&kind=${kind}&slug=${encodeURIComponent(slug)}${dl ? "&dl=1" : ""}`;
+let state = {}, filter = "all";
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), 2200); }
+const rows = () => LIBRARY.map((v) => ({ ...v, review_ok: false, ig_status: "Not posted", tt_status: "Not posted", notes: "", ...(state[v.slug] || {}) }));
+function matches(r) {
+  if (filter === "review") return !r.review_ok;
+  if (filter === "ready") return r.review_ok && (r.ig_status !== "Posted" || r.tt_status !== "Posted");
+  if (filter === "live") return r.ig_status === "Posted" || r.tt_status === "Posted";
+  return true;
+}
+function render() {
+  const all = rows();
+  $("#t-all").textContent = all.length;
+  $("#t-review").textContent = all.filter((r) => !r.review_ok).length;
+  $("#t-ig").textContent = all.filter((r) => r.ig_status === "Posted").length;
+  $("#t-tt").textContent = all.filter((r) => r.tt_status === "Posted").length;
+  const list = $("#list"), shown = all.filter(matches);
+  const open = new Set([...list.querySelectorAll("details[open]")].map((d) => d.dataset.slug));
+  if (!shown.length) { list.innerHTML = '<div class="empty">Nothing here with this filter.</div>'; return; }
+  list.innerHTML = shown.map((r) => `
+  <article class="row${r.pin ? " pin" : ""}" data-slug="${esc(r.slug)}">
+    <div class="top">
+      <div class="media"><img src="${file("cover", r.slug)}" alt="TikTok cover for ${esc(r.title)}" loading="lazy"><button type="button" class="play" data-play>▶ Play</button></div>
+      <div class="meta">
+        <div class="no">${r.no ? "NO. " + r.no : (r.pin ? '<span class="pinflag">PIN THIS · START HERE</span>' : "SERIES")} · ${esc(r.length)}</div>
+        <div class="title">${esc(r.title)}</div>
+        <p class="hook">“${esc(r.hook)}”</p>
+        <div class="state">
+          <span class="chip ${r.review_ok ? "ok" : "warn"}">${r.review_ok ? "Reviewed" : "Needs review"}</span>
+          <label class="tick"><input type="checkbox" data-k="review_ok" ${r.review_ok ? "checked" : ""}> Approved to post</label>
+          <label class="tick">Instagram <select data-k="ig_status">${STATUS.map((s) => `<option${s === r.ig_status ? " selected" : ""}>${s}</option>`).join("")}</select></label>
+          <label class="tick">TikTok <select data-k="tt_status">${STATUS.map((s) => `<option${s === r.tt_status ? " selected" : ""}>${s}</option>`).join("")}</select></label>
+        </div>
+        <p class="review">${esc(r.review)}</p>
+      </div>
+      <div class="files">
+        <a class="ig" href="${file("ig", r.slug, 1)}">Instagram video <small>MP4</small></a>
+        <a href="${file("tt", r.slug, 1)}">TikTok video <small>MP4 · no captions</small></a>
+        <a href="${file("cover", r.slug, 1)}">TikTok cover <small>1080×1920 JPG</small></a>
+      </div>
+    </div>
+    <details data-slug="${esc(r.slug)}"${open.has(r.slug) ? " open" : ""}>
+      <summary>Captions and notes</summary>
+      <div class="caps">
+        <div class="cap"><h3>Instagram caption</h3><pre>${esc(r.ig)}</pre><div class="tags">${esc(r.tags_ig)}</div><button type="button" class="copy" data-copy="ig">Copy Instagram caption</button></div>
+        <div class="cap"><h3>TikTok caption</h3><pre>${esc(r.tt)}</pre><div class="tags">${esc(r.tags_tt)}</div><button type="button" class="copy" data-copy="tt">Copy TikTok caption</button></div>
+      </div>
+      <div class="notes"><label for="n-${esc(r.slug)}">Team notes</label><textarea id="n-${esc(r.slug)}" data-k="notes" placeholder="Who approved it, when it went live, links…">${esc(r.notes)}</textarea></div>
+    </details>
+  </article>`).join("");
+}
+async function api(r, opts) {
+  const res = await fetch("/api/social?r=" + r, opts);
+  if (res.status === 401) { location.reload(); throw new Error("logged out"); }
+  const body = await res.json();
+  if (!body.ok) throw new Error(body.error || "Something went wrong.");
+  return body;
+}
+async function load() {
+  try { const { rows } = await api("status"); state = Object.fromEntries(rows.map((x) => [x.slug, x])); }
+  catch (e) { toast("Couldn't load the latest statuses. Refresh to try again."); }
+  render();
+}
+async function save(slug, field, value) {
+  state[slug] = { ...(state[slug] || {}), [field]: value };
+  render();
+  try { await api("update", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, field, value }) }); toast("Saved"); }
+  catch (e) { toast(e.message || "Couldn't save. Try again."); load(); }
+}
+document.addEventListener("change", (e) => {
+  const el = e.target, row = el.closest(".row"); if (!row || !el.dataset.k) return;
+  save(row.dataset.slug, el.dataset.k, el.type === "checkbox" ? el.checked : el.value);
+});
+document.addEventListener("click", async (e) => {
+  const f = e.target.closest(".filters button");
+  if (f) { filter = f.dataset.f; document.querySelectorAll(".filters button").forEach((b) => b.setAttribute("aria-pressed", b === f)); render(); return; }
+  const row = e.target.closest(".row"); if (!row) return;
+  const r = rows().find((x) => x.slug === row.dataset.slug);
+  if (e.target.closest("[data-play]")) {
+    row.querySelector(".media").innerHTML = `<video src="${file("ig", r.slug)}" controls autoplay playsinline poster="${file("cover", r.slug)}"></video>`;
+    return;
+  }
+  const c = e.target.closest("[data-copy]");
+  if (c) {
+    const text = c.dataset.copy === "ig" ? r.ig + "\n\n" + r.tags_ig : r.tt + " " + r.tags_tt;
+    try { await navigator.clipboard.writeText(text); toast("Caption copied"); }
+    catch { const sel = getSelection(), rg = document.createRange(); rg.selectNodeContents(c.parentElement.querySelector("pre")); sel.removeAllRanges(); sel.addRange(rg); toast("Selected. Press copy on your keyboard."); }
+  }
+});
+render();
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Team login · Social media | The Health &amp; Well-being Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root { --p: #7B2D8B; --pd: #5C2068; --pt: #F5EDF8; --n: #1D3461; --t: #1a1a2e; --tm: #5a5a7a; --b: #E8E0ED; --w: #fff;
+  --fd: 'Playfair Display', Georgia, serif; --fb: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--pt); color: var(--t); font: 16px/1.5 var(--fb); }
+.card { width: 100%; max-width: 380px; background: var(--w); border: 1px solid var(--b); border-radius: 18px; padding: 32px 28px; box-shadow: 0 2px 20px rgba(123,45,139,.08); }
+.mark { width: 52px; height: 52px; border-radius: 50%; background: var(--pt); display: grid; place-items: center; font: 700 18px var(--fd); color: var(--p); margin-bottom: 18px; }
+.mark i { color: #4A7C3F; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--tm); }
+h1 { font: 700 28px/1.15 var(--fd); color: var(--n); margin: 4px 0 6px; }
+p.sub { color: var(--tm); margin: 0 0 22px; font-size: 15px; }
+label { display: block; font-weight: 500; font-size: 14px; margin: 14px 0 6px; }
+input { width: 100%; font: 16px var(--fb); padding: 12px 14px; border: 1px solid var(--b); border-radius: 10px; color: var(--t); }
+input:focus { outline: 2px solid var(--p); outline-offset: 1px; border-color: var(--p); }
+button { width: 100%; margin-top: 22px; font: 700 16px var(--fb); padding: 13px; border: 0; border-radius: 10px; background: var(--p); color: var(--w); cursor: pointer; }
+button:hover { background: var(--pd); }
+button:focus-visible { outline: 2px solid var(--n); outline-offset: 2px; }
+.err { background: #FBEAEA; color: #8A1F1F; border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 0 0 6px; }
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="mark" aria-hidden="true">H<i>&amp;</i>W</div>
+  <div class="eyebrow">Team only</div>
+  <h1>Social media</h1>
+  <p class="sub">Log in to see our videos, covers and captions.</p>
+  {{ERROR}}
+  <form method="post" action="/api/social?r=login">
+    <label for="username">Username</label>
+    <input id="username" name="username" autocomplete="username" autocapitalize="none" required>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button type="submit">Log in</button>
+  </form>
+</main>
+</body>
+</html>

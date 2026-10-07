@@ -2,7 +2,7 @@
 // work and shows which Xero organisation they're scoped to, without
 // touching any invoice, contact or accounting data. Safe to call as often
 // as needed.
-const { isConfigured, xeroApiFetch, tokenMatches } = require('./_xero');
+const { isConfigured, xeroApiFetch, tokenMatches } = require('../_xero');
 
 const XERO_STATUS_TOKEN = process.env.XERO_STATUS_TOKEN || '';
 
