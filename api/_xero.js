@@ -1,5 +1,5 @@
 // Xero "Custom Connection" API helper. Not a route itself (Vercel skips
-// files prefixed with "_"). Used by xero-status.js and, later, the
+// files prefixed with "_"). Used by the status action (api/_xero-actions/status.js) and, later, the
 // invoicing functions.
 //
 // A Custom Connection is a Xero app type registered once, in the Xero

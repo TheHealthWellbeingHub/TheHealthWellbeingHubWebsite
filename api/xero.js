@@ -13,8 +13,7 @@
 //   /api/xero?action=ensure-contact   POST  find a contact by name, or create it (Command Centre invoicing)
 //   /api/xero?action=payroll-employee GET/POST  can we reach Payroll? / a new support worker as an employee
 //   /api/xero?action=admin-invoice    POST  change a draft invoice's status (e.g. DELETED)
-//
-// The read-only health check stays at /api/xero-status.
+//   /api/xero?action=status           GET   read-only health check, also served at /api/xero-status
 const ACTIONS = {
   'list-contacts': () => require('./_xero-actions/list-contacts'),
   'get-invoice': () => require('./_xero-actions/get-invoice'),
@@ -26,6 +25,7 @@ const ACTIONS = {
   'ensure-contact': () => require('./_xero-actions/ensure-contact'),
   'payroll-employee': () => require('./_xero-actions/payroll-employee'),
   'admin-invoice': () => require('./_xero-actions/admin-invoice'),
+  status: () => require('./_xero-actions/status'),
 };
 
 module.exports = (req, res) => {

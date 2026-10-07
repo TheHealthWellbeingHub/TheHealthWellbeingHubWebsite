@@ -61,6 +61,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/xero-status",
+      "destination": "/api/xero?action=status"
+    },
+    {
       "source": "/socialmedia",
       "destination": "/api/social"
     },
