@@ -88,4 +88,17 @@ async function storageDownload(bucket, objectPath) {
   return Buffer.from(await res.arrayBuffer());
 }
 
-module.exports = { isConfigured, rest, insertOne, updateOne, selectOne, selectMany, storageUpload, storageDownload };
+// A short-lived link to a private object. `download` names the saved file and makes the browser save it.
+async function storageSignedUrl(bucket, objectPath, expiresIn = 3600, download) {
+  const safe = objectPath.split('/').map(encodeURIComponent).join('/');
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/${encodeURIComponent(bucket)}/${safe}`, {
+    method: 'POST',
+    headers: { apikey: SERVICE_ROLE_KEY, Authorization: `Bearer ${SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ expiresIn }),
+  });
+  if (!res.ok) throw new Error(`Supabase Storage sign failed (${res.status})`);
+  const { signedURL } = await res.json();
+  return `${SUPABASE_URL}/storage/v1${signedURL}${download ? `&download=${encodeURIComponent(download)}` : ''}`;
+}
+
+module.exports = { isConfigured, rest, insertOne, updateOne, selectOne, selectMany, storageUpload, storageDownload, storageSignedUrl };

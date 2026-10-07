@@ -16,6 +16,9 @@
     },
     "api/xero.js": {
       "maxDuration": 60
+    },
+    "api/social.js": {
+      "includeFiles": "api/_social/**"
     }
   },
   "crons": [
@@ -32,6 +35,11 @@
     {
       "source": "/staff-documents/:path*",
       "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/api/_social/:path*",
+      "destination": "/socialmedia",
       "permanent": false
     },
     {
@@ -52,6 +60,14 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/socialmedia",
+      "destination": "/api/social"
+    },
+    {
+      "source": "/socialmedia/",
+      "destination": "/api/social"
+    },
     {
       "source": "/api/sc-monthly-invoice-draft",
       "destination": "/api/xero?action=sc-monthly"
@@ -113,6 +129,24 @@
     },
     {
       "source": "/participant-documents/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/socialmedia",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/api/_social/(.*)",
       "headers": [
         {
           "key": "X-Robots-Tag",
