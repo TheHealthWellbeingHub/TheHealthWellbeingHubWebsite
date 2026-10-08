@@ -69,6 +69,21 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .nav-cta:hover{background:#3a6232;transform:translateY(-1px);box-shadow:0 4px 16px rgba(74,124,63,.3)}
 .nav-refer{background:var(--p);color:#fff;font-size:13px;font-weight:700;padding:10px 20px;border-radius:30px;transition:all .2s}
 .nav-refer:hover{background:var(--pd)}
+.nav-phone,.nav-cta,.nav-refer,.nav-logo-name{white-space:nowrap}
+/* Between the phone menu (1024px) and wide screens the full menu is tight: close it up, and drop the
+   phone pill there (the phone number is in the top bar just above). */
+@media(min-width:1025px) and (max-width:1400px){
+  .site-nav{padding:0 20px}
+  .nav-menu{gap:12px}
+  .nav-link{padding:8px 7px}
+  .nav-phone{display:none}
+  .nav-refer,.nav-cta{padding:10px 14px}
+}
+@media(min-width:1025px) and (max-width:1120px){
+  .nav-logo-sub{display:none}
+  .nav-link{font-size:12.5px;padding:8px 5px}
+  .nav-refer,.nav-cta{padding:9px 12px;font-size:12.5px}
+}
 
 /* ── BREADCRUMBS ── */
 .breadcrumbs{max-width:1200px;margin:0 auto;padding:18px 32px 0}
