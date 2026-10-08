@@ -216,14 +216,14 @@ def build(render, SITE, C):
     # (Was /ndis-check/ — that address redirects here, see vercel.json.)
     # ------------------------------------------------------------------
     path = "/ndis-eligibility-checker/"
-    checker_desc = ("Free NDIS eligibility checker. Answer 7 quick questions to see if the NDIS could help, "
-                    "what a plan could include, and a funding estimate. Takes 1 minute.")
+    checker_desc = ("Can I get the NDIS? Check your NDIS eligibility in 1 minute, free. See what a plan could "
+                    "include and a funding estimate, then get help to apply.")
     render(
         "ndis_check.html", path,
         priority="0.9",
-        title="NDIS Eligibility Checker + Funding Estimate (Free, 1 Minute)",
+        title="NDIS Eligibility Checker: Can I Get the NDIS? Free, 1 Minute",
         meta_description=checker_desc,
-        og_title="NDIS Eligibility Checker: could the NDIS help, and how much?",
+        og_title="Can I get the NDIS? Free NDIS eligibility checker",
         og_image="/static/img/ndis-check/og.jpg",
         breadcrumbs=crumbs(("NDIS Eligibility Checker", path)),
         faqs=C.NDIS_CHECKER_FAQS,
