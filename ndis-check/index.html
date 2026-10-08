@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NDIS Check: Could the NDIS Help? | The Health &amp; Well-being Hub</title>
-<meta name="description" content="Can the NDIS help? Find out in 5 taps. Takes 1 minute. Only the NDIA can decide who can join.">
+<meta name="description" content="Can the NDIS help, and how much might a plan be? Find out in 1 minute. Only the NDIA can decide who can join.">
 <link rel="canonical" href="https://www.thehealthwellbeinghub.com/ndis-check/">
 <meta name="robots" content="noindex, nofollow"><meta property="og:type" content="website">
 <meta property="og:url" content="https://www.thehealthwellbeinghub.com/ndis-check/">
 <meta property="og:title" content="NDIS Check: Could the NDIS Help? | The Health &amp; Well-being Hub">
-<meta property="og:description" content="Can the NDIS help? Find out in 5 taps. Takes 1 minute. Only the NDIA can decide who can join.">
+<meta property="og:description" content="Can the NDIS help, and how much might a plan be? Find out in 1 minute. Only the NDIA can decide who can join.">
 <meta property="og:site_name" content="The Health &amp; Well-being Hub">
 <meta property="og:locale" content="en_AU">
 <meta name="twitter:card" content="summary">
@@ -117,7 +117,8 @@
 @keyframes nc-draw{to{stroke-dashoffset:0}}
 .nc-hint{font:400 21px/1.35 var(--body);color:var(--gr);margin:0 0 16px}
 .nc-opts{display:grid;gap:12px;text-align:left}
-.nc-opts.two{grid-template-columns:1fr 1fr}
+.nc-opts.two,.nc-opts.grid{grid-template-columns:1fr 1fr}
+.nc-opts.grid .nc-ans:last-child:nth-child(odd){grid-column:1/-1}
 .nc-btn{appearance:none;cursor:pointer;width:100%;text-align:left;font:400 26px/1.15 var(--body);color:var(--ink);background:#F6F2EA;
   border:2px solid var(--ink);border-radius:255px 14px 225px 14px/14px 225px 14px 255px;padding:13px 20px;
   box-shadow:3px 4px 0 var(--ink);transition:transform .12s,box-shadow .12s,background .15s,color .15s}
@@ -210,6 +211,10 @@
   .nc-snaps{right:3%;top:58px;width:58%;height:calc(var(--lead) - 70px)}
   .nc-card{padding:26px 16px 20px}
   .nc-opts.two,.nc-ctas{grid-template-columns:1fr}
+  .nc-opts.grid{gap:10px}
+  .nc-opts.grid .nc-ans{flex-direction:column;gap:5px;font-size:19px;line-height:1.1;padding:10px 6px;text-align:center;justify-content:center}
+  .nc-opts.grid .nc-ans:last-child:nth-child(odd){flex-direction:row}
+  .nc-opts.grid .nc-ic{flex:0 0 32px;width:32px;height:32px;font-size:18px}
   .nc-tile{flex-direction:column;gap:4px;font-size:18px;line-height:1.1;padding:9px 6px;text-align:center;justify-content:center}
   .nc-tile svg{flex-basis:28px;width:28px;height:28px}
   .nc-tile.none{flex-direction:row}
@@ -523,12 +528,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="nc-snaps" id="nc-snaps"></div>
     </div>
     <div class="nc-card in" id="nc-card" aria-live="polite">
-      <h1 class="nc-q" id="nc-title" tabindex="-1">Can the NDIS help? Find out in <em>5 taps<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8 C 50 2, 120 12, 198 5"/></svg></em></h1>
+      <h1 class="nc-q" id="nc-title" tabindex="-1">Can the NDIS help? Find out in <em>1 minute<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8 C 50 2, 120 12, 198 5"/></svg></em></h1>
       <p class="nc-hint">Tap the answers. That’s it.</p>
       <div class="nc-opts">
         <button class="nc-btn nc-go" type="button" data-action="begin" data-track="ndis_check_start" data-track-location="ndis_check">Start &rarr;</button>
       </div>
-      <p class="nc-note">Takes 1 minute. We only see your answers if you send them to us.</p>
+      <p class="nc-note">7 quick taps. We only see your answers if you send them to us.</p>
     </div>
   </div>
   <!-- Call-back form: shown inside the result card. Sent by the site's usual enquiry handling (static/js/main.js). -->
@@ -536,19 +541,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <p class="nc-form-h"></p>
     <label class="nc-fl" for="nc-name">Name</label>
     <input class="nc-in" id="nc-name" name="name" autocomplete="name" required>
-    <label class="nc-fl" for="nc-phone">Phone</label>
-    <input class="nc-in" id="nc-phone" name="phone" type="tel" autocomplete="tel" required>
-    <label class="nc-fl" for="nc-lang">Language</label>
-    <select class="nc-in" id="nc-lang" name="preferred_language">
-      <option>English</option><option>Arabic — العربية</option><option>Somali — Soomaali</option><option>Dari — دری</option><option>Amharic — አማርኛ</option><option>Other</option>
-    </select>
+    <label class="nc-fl" for="nc-email">Email</label>
+    <input class="nc-in" id="nc-email" name="email" type="email" autocomplete="email" required>
     <input type="hidden" name="enquirer_role" value="">
     <input type="hidden" name="service_needed" value="">
     <input type="hidden" name="additional_info" value="">
-    <input type="hidden" name="preferred_contact_method" value="Phone call">
+    <input type="hidden" name="preferred_contact_method" value="Email">
     <div class="hp-field" aria-hidden="true"><label for="nc-company-website">Company website</label><input type="text" id="nc-company-website" name="company_website" tabindex="-1" autocomplete="off"></div>
-    <label class="nc-consent"><input type="checkbox" name="privacy_consent" required> <span>OK to call me. <a href="/privacy-policy/">Privacy</a></span></label>
-    <button class="nc-btn nc-go form-submit" type="submit" data-track="ndis_check_callback" data-track-location="ndis_check_result">Call me back &rarr;</button>
+    <label class="nc-consent"><input type="checkbox" name="privacy_consent" required> <span>OK to email me. <a href="/privacy-policy/">Privacy</a></span></label>
+    <button class="nc-btn nc-go form-submit" type="submit" data-track="ndis_check_callback" data-track-location="ndis_check_result">Send &rarr;</button>
     <div class="form-status" role="status" aria-live="polite"></div>
   </form>
   <noscript><p class="nc-hint" style="text-align:center">This check needs JavaScript. You can call us on <a href="tel:0433604507">0433 604 507</a> instead.</p></noscript>
@@ -658,7 +659,8 @@ window.NC_SITE = { phone: "0433 604 507", tel: "0433604507", wa: "https://wa.me/
   // load the scenes for this question's answers ahead, so the swap is instant
   function preload(names) { names.forEach(function (n) { var i = new Image(); i.src = IMG + n + '.webp'; }); }
 
-  var GLYPH = { yes: '✓', no: '✗', unsure: '?', me: '☺', them: '♥', u9: '★', '9to64': '●', '65': '◆' };
+  var GLYPH = { yes: '✓', no: '✗', unsure: '?', me: '☺', them: '♥', u9: '★', '9to18': '●', '19to34': '▲', '35to64': '■', '65': '◆',
+    autism: '∞', learn: '✎', body: '✚', brain: '✱', mind: '☁', sense: '◉', little: '•', most: '••', lot: '•••', '247': '☾' };
   var ICON = {
     move: '<svg viewBox="0 0 34 34"><circle cx="18" cy="6" r="3"/><path d="M17 10 L15 19 L21 24 L22 31 M15 19 L11 25 L7 26 M16 13 L22 16 L25 14 M16 13 L11 16"/></svg>',
     talk: '<svg viewBox="0 0 34 34"><path d="M5 8 Q5 4 9 4 H25 Q29 4 29 8 V17 Q29 21 25 21 H14 L8 27 V21 Q5 21 5 17 Z"/><path d="M11 11 H23 M11 15 H19"/></svg>',
@@ -673,16 +675,21 @@ window.NC_SITE = { phone: "0433 604 507", tel: "0433604507", wa: "https://wa.me/
     who: function () { return { base: 'who', n: 1, q: 'Who is this ' + U('for') + '?',
       opts: [['me', 'Me', 'me'], ['them', 'Someone else', 'carer']], two: true }; },
     age: function () { return { base: 'family', n: 2, q: 'How ' + U('old') + '?',
-      opts: [['u9', 'Under 9', 'u9'], ['9to64', '9 to 64', 'adult'], ['65', '65 or older', 'older']] }; },
+      opts: [['u9', 'Under 9', 'u9'], ['9to18', '9 to 18', 'family'], ['19to34', '19 to 34', 'adult'], ['35to64', '35 to 64', 'me'], ['65', '65 or older', 'older']], grid: true }; },
     home: function () { return { base: 'street', n: 3,
       q: t('Do you ', 'Do they ') + U('live in Australia') + '?',
       hint: 'As a citizen or permanent resident. (Some NZ citizens too.)',
       opts: [['yes', 'Yes', 'home'], ['unsure', 'Not sure', 'unsure'], ['no', 'No', 'street']] }; },
     lifelong: function () { return { base: 'lifelong', n: 4,
       q: t('Do you', 'Do they') + ' have a disability that ' + U('won’t go away') + '?',
-      hint: 'Like body, learning, seeing, hearing, or mental health.',
+      hint: A.age === 'u9' ? 'Or slow to grow, move, talk or learn.' : 'Like body, learning, seeing, hearing, or mental health.',
       opts: [['yes', 'Yes', 'move'], ['unsure', 'Not sure', 'unsure'], ['no', 'No', 'lifelong']] }; },
-    daily: function () { return { base: 'daily', n: 5, multi: true,
+    kind: function () { return { base: 'lifelong', n: 5, q: 'What ' + U('kind') + '?', hint: 'Pick the main one.', grid: true,
+      opts: [['autism', 'Autism', 'people'], ['learn', 'Learning', 'learn'], ['body', 'Body or moving', 'move'], ['brain', 'Brain injury or stroke', 'lifelong'],
+             ['mind', 'Mental health', 'unsure'], ['sense', 'Seeing or hearing', 'talk'], ['unsure', 'Not sure', 'chat']] }; },
+    help: function () { return { base: 'daily', n: 6, q: 'How much ' + U('help') + ' every day?', hint: '“Day and night” means someone is always there.', grid: true,
+      opts: [['little', 'A little', 'home'], ['most', 'Some', 'daily'], ['lot', 'A lot', 'wash'], ['247', 'Day and night', 'carer']] }; },
+    daily: function () { return { base: 'daily', n: 7, multi: true,
       q: 'What is ' + U('hard') + ' without help?', hint: 'Tap all that fit.',
       tiles: [['move', 'Moving', 'move'], ['talk', 'Talking', 'talk'], ['care', 'Washing and dressing', 'wash'],
               ['learn', 'Learning', 'learn'], ['people', 'Being with people', 'people'], ['manage', 'Money and appointments', 'money']] }; }
@@ -693,7 +700,7 @@ window.NC_SITE = { phone: "0433 604 507", tel: "0433604507", wa: "https://wa.me/
     if (!n) { prog.hidden = true; return; }
     prog.hidden = false;
     var h = '';
-    for (var i = 1; i <= 5; i++) h += (i > 1 ? '<i></i>' : '') + '<span class="' + (i <= n ? 'on' : '') + '"></span>';
+    for (var i = 1; i <= 7; i++) h += (i > 1 ? '<i></i>' : '') + '<span class="' + (i <= n ? 'on' : '') + '"></span>';
     prog.innerHTML = h;
   }
 
@@ -729,7 +736,7 @@ window.NC_SITE = { phone: "0433 604 507", tel: "0433604507", wa: "https://wa.me/
         + '<div class="nc-opts"><button type="button" class="nc-btn nc-go" data-action="daily-done">Done &rarr;</button></div>';
       preload(Q.tiles.map(function (x) { return x[2]; }));
     } else {
-      body += '<div class="nc-opts' + (Q.two ? ' two' : '') + '">' + Q.opts.map(function (o) {
+      body += '<div class="nc-opts' + (Q.two ? ' two' : '') + (Q.grid ? ' grid' : '') + '">' + Q.opts.map(function (o) {
         if (A[key] === o[0]) chosen = o;
         return '<button type="button" class="nc-btn nc-ans' + (A[key] === o[0] ? ' sel' : '') + '" data-answer="' + key + ':' + o[0] + '" data-pic="' + o[2] + '" data-label="' + o[1] + '"><span class="nc-ic" aria-hidden="true">' + (GLYPH[o[0]] || '') + '</span>' + o[1] + '</button>';
       }).join('') + '</div>';
@@ -762,15 +769,16 @@ window.NC_SITE = { phone: "0433 604 507", tel: "0433604507", wa: "https://wa.me/
   function next(from) {
     history.push(from);
     if (from === 'who') return ask('age');
-    if (from === 'age') return (A.age === '9to64') ? ask('home') : think();
+    if (from === 'age') return A.age === '65' ? think() : ask('home');
     if (from === 'home') return A.home === 'no' ? think() : ask('lifelong');
-    if (from === 'lifelong') return A.lifelong === 'no' ? think() : ask('daily');
+    if (from === 'lifelong') return A.lifelong === 'no' ? think() : ask('kind');
+    if (from === 'kind') return ask('help');
+    if (from === 'help') return ask('daily');
     if (from === 'daily') return think();
   }
 
   function outcome() {
     if (A.age === '65') return 'aged';
-    if (A.age === 'u9') return 'child';
     if (A.home === 'no') return 'residency';
     if (A.lifelong === 'no' || (A.daily && !A.daily.length)) return 'other';
     if (A.home === 'unsure' || A.lifelong === 'unsure') return 'chat';
@@ -779,7 +787,7 @@ window.NC_SITE = { phone: "0433 604 507", tel: "0433604507", wa: "https://wa.me/
 
   function think() {
     snaps.innerHTML = '';
-    show('<div class="nc-think"><p>Checking…</p><span class="nc-pencil"></span></div>', 5);
+    show('<div class="nc-think"><p>Checking…</p><span class="nc-pencil"></span></div>', 7);
     setTimeout(result, reduce ? 50 : 1000);
   }
 
@@ -796,6 +804,37 @@ window.NC_SITE = { phone: "0433 604 507", tel: "0433604507", wa: "https://wa.me/
     people: [['Support to go out and join in', 'Social and Community Participation', 'core'], ['Help to build friendships', 'Improved Relationships', 'cb']],
     manage: [['A support coordinator', 'Support Coordination', 'cb'], ['A plan manager to pay the bills', 'Plan Management', 'cb']]
   };
+  // A rough yearly plan range, from NDIA averages (Quarterly Report, Supplement E, March 2026, and the
+  // participant plan budgets data, June 2026). Not a prediction for any one person.
+  //  - AGE: average plan for people not in 24/7 supported living (SIL), by age (Table E.62).
+  //  - KIND: average plan for this disability within the age group, against everyone that age (plan budgets data).
+  //  - HELP: the middle half of average plans across the NDIA's 'level of function' scores this answer covers,
+  //    not in SIL (Tables E.64 and E.13: 1-5 a little, 6-10 some, 11-14 a lot), against everyone not in SIL.
+  //  KIND and HELP overlap (some disabilities mostly need more help), so each is softened to the power 0.7.
+  //  - Day and night, adults: average plan for people in SIL by age (E.62) and disability (E.63), x0.85 to x1.25.
+  var AGE_NS = { u9: 27800, '9to18': 36200, '19to34': 86200, '35to64': 113800 };
+  var KIND = { u9: { autism: 1.04, learn: .9, body: 2.71, brain: 3.73, sense: .77 }, '9to18': { autism: .88, learn: 1.49, body: 2.56, brain: 2.6, sense: .41 },
+    '19to34': { autism: .76, learn: 1.29, body: 1.8, brain: 1.6, mind: 1.21, sense: .24 }, '35to64': { autism: .65, learn: 1.27, body: 1.23, brain: 1.42, mind: .74, sense: .29 } };
+  var HELP = { little: [22700, 32600], most: [36400, 80000], lot: [97100, 173400] }, ALL_NS = 65000, SOFT = .7;
+  var SIL_AGE = { '19to34': 560000, '35to64': 470000 }, SIL_ALL = 488600;
+  var SIL_KIND = { autism: 549200, learn: 435000, body: 570000, brain: 535000, mind: 437300, sense: 409300 };
+  function estimate() {
+    var a = A.age, k = A.kind, h = A.help;
+    if (!AGE_NS[a] || !h) return null;
+    if (h === '247' && SIL_AGE[a]) { var c = SIL_AGE[a] * (SIL_KIND[k] || SIL_ALL) / SIL_ALL; return [c * .85, c * 1.25]; }
+    var band = HELP[h === '247' ? 'lot' : h], base = AGE_NS[a] * Math.pow((KIND[a] || {})[k] || 1, SOFT);
+    return [base * Math.pow(band[0] / ALL_NS, SOFT), base * Math.pow(band[1] / ALL_NS, SOFT)];
+  }
+  function dollars(x, up) {
+    var step = x < 20000 ? 1000 : 5000;
+    return '$' + Math.max(step, (up ? Math.ceil : Math.floor)(x / step) * step).toLocaleString('en-AU');
+  }
+  function money() {
+    var e = estimate();
+    if (!e) return '<div class="nc-money"><b>How much?</b> Every plan is different. The average NDIS plan is about <strong>$85,000 a year</strong>.<small>NDIA quarterly report, March 2026</small></div>';
+    return '<div class="nc-money"><b>How much?</b> Plans for people like ' + t('you', 'them') + ' are often about <strong>' + dollars(e[0]) + ' to ' + dollars(e[1], true) + ' a year</strong>.'
+      + '<small>Our guess, from NDIA figures for March 2026. Every plan is different.</small></div>';
+  }
   var BUDGET = { core: ['Core', 'Everyday help'], cb: ['Capacity Building', 'Skills and therapy'], capital: ['Capital', 'Equipment and home'] };
   var SERVICE = { manage: 'Support Coordination', care: 'Core Supports & Daily Living', people: 'Community Participation', move: 'Therapy Services', talk: 'Therapy Services', learn: 'Therapy Services' };
   var ROLE = { me: 'NDIS Participant', them: 'Parent / Family member / Carer' };
@@ -803,25 +842,24 @@ window.NC_SITE = { phone: "0433 604 507", tel: "0433604507", wa: "https://wa.me/
 
   function helpList(picked) {
     var groups = { core: [], cb: [], capital: [] }, seen = {};
+    if (A.help === '247' && SIL_AGE[A.age]) groups.core.push(['A home with support day and night', 'Supported Independent Living', 'core']);
     picked.forEach(function (k) { SUPPORTS[k].forEach(function (x) { if (!seen[x[1] + x[0]]) { seen[x[1] + x[0]] = 1; groups[x[2]].push(x); } }); });
     return '<div class="nc-help">' + ['core', 'cb', 'capital'].filter(function (g) { return groups[g].length; }).map(function (g) {
       return '<div class="nc-budget"><div class="nc-bh"><b>' + BUDGET[g][0] + '</b> <span>' + BUDGET[g][1] + '</span></div><ul>'
         + groups[g].map(function (x) { return '<li>' + x[0] + '<small>' + x[1] + '</small></li>'; }).join('') + '</ul></div>';
     }).join('') + '</div>'
-      + '<div class="nc-money"><b>How much?</b> Every plan is different. The average NDIS plan is about <strong>$85,000 a year</strong>.<small>NDIA quarterly report, March 2026</small></div>';
+      + money();
   }
 
   function result() {
     var r = outcome(), R, picked = A.daily || [];
-    var lead = 'Leave your number. We’ll call you back within 2 business hours.';
+    var lead = 'Leave your email. We’ll get back to you within 2 business hours.';
     if (r === 'promising') R = { img: 'yes', stamp: 'Looks good', burst: true,
       h: t('You', 'They') + ' may be able to ' + U('join') + '!', p: 'An NDIS plan could include:', list: true,
-      after: 'We’ll take care of the rest.' };
+      after: A.age === 'u9' ? 'For kids under 9, it starts with an early childhood partner. We’ll take care of the rest.' : 'We’ll take care of the rest.' };
     else if (r === 'chat') R = { img: 'chat', stamp: 'Let’s talk',
       h: 'It may be ' + U('worth applying') + '.', p: picked.length ? 'If ' + t('you', 'they') + ' can join, a plan could include:' : 'Not sure? That’s OK.', list: picked.length > 0,
       after: 'Not sure? That’s OK. We’ll work it out with you.' };
-    else if (r === 'child') R = { img: 'u9', stamp: 'Under 9', grey: true,
-      h: 'Kids under 9 start in a ' + U('different place') + '.', p: 'We’ll show you where to start.' };
     else if (r === 'aged') R = { img: 'older', stamp: '65+', grey: true,
       h: 'Over 65? Start with ' + U('aged care') + '.', p: 'We can help you find the right support.' };
     else if (r === 'residency') R = { img: 'street', stamp: 'Other help', grey: true,
@@ -846,17 +884,22 @@ window.NC_SITE = { phone: "0433 604 507", tel: "0433604507", wa: "https://wa.me/
     // The call-back form lives in the page (so the site's form code handles it) and is moved in here.
     if (form) {
       form.querySelector('.nc-form-h').textContent = lead;
-      var firstService = picked.length ? SERVICE[picked[0]] : '';
+      var firstService = ['manage', 'care', 'people', 'move', 'talk', 'learn'].filter(function (k) { return picked.indexOf(k) > -1; }).map(function (k) { return SERVICE[k]; })[0] || '';
       form.elements.enquirer_role.value = ROLE[A.who] || 'Other';
       form.elements.service_needed.value = firstService;
-      var said = { u9: 'Under 9', '9to64': '9 to 64', '65': '65 or older' };
+      var said = { u9: 'Under 9', '9to18': '9 to 18', '19to34': '19 to 34', '35to64': '35 to 64', '65': '65 or older' };
+      var words = function (key) { var o = A[key] && QUESTIONS[key]().opts.filter(function (x) { return x[0] === A[key]; })[0]; return o ? o[1] : ''; };
+      var e = R.list ? estimate() : null;
       form.elements.additional_info.value = ['From the NDIS Check on the website.',
         'Result: ' + R.stamp + '.',
         'For: ' + (A.who === 'them' ? 'someone they care for' : 'themselves') + '.',
         'Age: ' + (said[A.age] || '-') + '.',
         A.home ? 'Lives in Australia (citizen/PR/PSCV): ' + A.home + '.' : '',
         A.lifelong ? 'Disability that won’t go away: ' + A.lifelong + '.' : '',
-        A.daily ? 'Hard without help: ' + (A.daily.length ? A.daily.map(function (k) { return TILE[k][1]; }).join(', ') : 'none') + '.' : ''
+        A.kind ? 'Kind: ' + words('kind') + '.' : '',
+        A.help ? 'Help needed each day: ' + words('help') + '.' : '',
+        A.daily ? 'Hard without help: ' + (A.daily.length ? A.daily.map(function (k) { return TILE[k][1]; }).join(', ') : 'none') + '.' : '',
+        e ? 'Plan range shown: ' + dollars(e[0]) + ' to ' + dollars(e[1], true) + ' a year.' : ''
       ].filter(Boolean).join(' ');
       form.hidden = false;
       card.querySelector('.nc-slot').appendChild(form);
@@ -879,9 +922,9 @@ window.NC_SITE = { phone: "0433 604 507", tel: "0433604507", wa: "https://wa.me/
       var kv = ans.split(':'); A[kv[0]] = kv[1];
       card.querySelectorAll('.nc-ans').forEach(function (x) { x.classList.toggle('sel', x === b); });
       pic(b.getAttribute('data-pic'), b.getAttribute('data-label'));
-      if (kv[0] === 'age' && kv[1] !== '9to64') { delete A.home; delete A.lifelong; delete A.daily; }
-      if (kv[0] === 'home' && kv[1] === 'no') { delete A.lifelong; delete A.daily; }
-      if (kv[0] === 'lifelong' && kv[1] === 'no') { delete A.daily; }
+      if (kv[0] === 'age' && kv[1] === '65') { delete A.home; delete A.lifelong; delete A.kind; delete A.help; delete A.daily; }
+      if (kv[0] === 'home' && kv[1] === 'no') { delete A.lifelong; delete A.kind; delete A.help; delete A.daily; }
+      if (kv[0] === 'lifelong' && kv[1] === 'no') { delete A.kind; delete A.help; delete A.daily; }
       // Hold a moment so the picture can show the answer before the next question.
       return setTimeout(function () { next(kv[0]); }, reduce ? 150 : 750);
     }
