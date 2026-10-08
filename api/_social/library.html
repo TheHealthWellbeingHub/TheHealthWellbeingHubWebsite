@@ -57,6 +57,19 @@ tbody tr.pin td:first-child { box-shadow: inset 4px 0 0 var(--p); }
 .open:hover { color: var(--p); }
 .hook { color: var(--tm); margin: 0; font-style: italic; font-size: 14px; }
 .review { font-size: 13px; color: var(--tm); margin: 4px 0 0; max-width: 60ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.c-when { white-space: nowrap; width: 1%; }
+.when { font-weight: 700; color: var(--n); font-variant-numeric: tabular-nums; }
+.when.none { color: var(--tm); font-weight: 400; }
+.flag { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 99px; }
+.flag.next { background: var(--p); color: var(--w); }
+.flag.today { background: var(--n); color: var(--w); }
+.flag.late { background: #FBEAEA; color: #8A1F1F; }
+.flag.done { background: var(--gl); color: var(--g); }
+tr.is-next td { background: #FCF8FD; }
+.tally .next-card { min-width: 240px; border-color: var(--p); }
+.tally .next-card b { font-size: 22px; }
+.tally .next-card small { display: block; font-size: 14px; color: var(--t); margin: 2px 0 2px; max-width: 34ch; }
+input[type="date"] { font: 14px var(--fb); color: var(--t); border: 1px solid var(--b); border-radius: 8px; padding: 4px 8px; }
 .c-review { white-space: nowrap; }
 .c-review .tick { margin-top: 6px; }
 .chip { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
@@ -105,7 +118,7 @@ dialog .toast { bottom: 24px; }
   /* Each row becomes a card. */
   thead { display: none; }
   table, tbody { display: block; }
-  tbody tr { display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-areas: "cover video" "cover review" "cover ig" "cover tt" "files files"; gap: 10px 12px; padding: 14px; border-bottom: 1px solid var(--b); }
+  tbody tr { display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-areas: "cover when" "cover video" "cover review" "cover ig" "cover tt" "files files"; gap: 10px 12px; padding: 14px; border-bottom: 1px solid var(--b); }
   tbody tr:last-child { border-bottom: 0; }
   tbody tr.pin { box-shadow: inset 4px 0 0 var(--p); }
   tbody tr.pin td:first-child { box-shadow: none; }
@@ -113,6 +126,8 @@ dialog .toast { bottom: 24px; }
   tbody tr:hover td { background: none; }
   .c-cover { grid-area: cover; width: auto; } .thumb { width: 64px; }
   .c-video { grid-area: video; min-width: 0; } .c-review { grid-area: review; white-space: normal; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; } .c-review .tick { margin: 0; }
+  .c-when { grid-area: when; width: auto; display: flex; align-items: center; gap: 8px; } .c-when .flag { margin: 0; }
+  tbody tr.is-next { background: #FCF8FD; } tbody tr.is-next td { background: none; }
   .c-ig { grid-area: ig; } .c-tt { grid-area: tt; } .c-files { grid-area: files; }
   .c-ig, .c-tt { display: flex; align-items: center; }
   .c-ig::before, .c-tt::before { content: attr(data-label); flex: 0 0 88px; font-size: 14px; color: var(--tm); }
@@ -132,8 +147,9 @@ dialog .toast { bottom: 24px; }
 <main>
   <div class="eyebrow">Team only · Social media</div>
   <h1>Now You Know videos</h1>
-  <p class="lede">Every video with its Instagram and TikTok files, covers for each platform, and captions. Click a row to watch the video full size. Tick the review once it's approved, and set the status when it goes live.</p>
+  <p class="lede">Every video with its Instagram and TikTok files, covers for each platform, and captions. New videos go out every Monday and Thursday, in the order below. Click a row to watch the video full size. Tick the review once it's approved, and set the status when it goes live.</p>
   <div class="tally">
+    <div class="next-card"><span>Next post</span><b id="t-next">–</b><small id="t-next-what"></small></div>
     <div><b id="t-all">–</b><span>Videos</span></div>
     <div><b id="t-review">–</b><span>Need review</span></div>
     <div><b id="t-ig">–</b><span>Live on Instagram</span></div>
@@ -147,7 +163,7 @@ dialog .toast { bottom: 24px; }
   </div>
   <div class="wrap">
     <table>
-      <thead><tr><th scope="col">Cover</th><th scope="col">Video</th><th scope="col">Review</th><th scope="col">Instagram</th><th scope="col">TikTok</th><th scope="col">Downloads</th></tr></thead>
+      <thead><tr><th scope="col">Cover</th><th scope="col">Post on</th><th scope="col">Video</th><th scope="col">Review</th><th scope="col">Instagram</th><th scope="col">TikTok</th><th scope="col">Downloads</th></tr></thead>
       <tbody id="list"></tbody>
     </table>
   </div>
@@ -173,7 +189,21 @@ function toast(msg) {
   const t = $("#toast"); (viewer.open ? viewer : document.body).appendChild(t);
   t.textContent = msg; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), 2200);
 }
-const rows = () => LIBRARY.map((v) => ({ ...v, review_ok: false, ig_status: "Not posted", tt_status: "Not posted", notes: "", ...(state[v.slug] || {}) }));
+const rows = () => LIBRARY.map((v) => ({ ...v, review_ok: false, ig_status: "Not posted", tt_status: "Not posted", notes: "", post_on: null, ...(state[v.slug] || {}) }))
+  // Schedule order: dated videos by date, then the rest (already posted, or not planned) by number.
+  .sort((a, b) => (a.post_on ? 0 : 1) - (b.post_on ? 0 : 1) || String(a.post_on).localeCompare(String(b.post_on)) || a.no - b.no);
+// Dates are days in Brisbane, stored as YYYY-MM-DD.
+const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Australia/Brisbane" }).format(new Date());
+const day = (d) => new Date(d + "T00:00:00Z").toLocaleDateString("en-AU", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short" }).replace(",", "");
+const posted = (r) => r.ig_status === "Posted" && r.tt_status === "Posted";
+const nextUp = (all) => all.find((r) => r.post_on && r.post_on >= today() && !posted(r));
+function flag(r, next) {
+  if (posted(r)) return '<span class="flag done">Posted</span>';
+  if (!r.post_on) return "";
+  if (r.post_on < today()) return '<span class="flag late">Overdue</span>';
+  if (r.post_on === today()) return '<span class="flag today">Today</span>';
+  return next && next.slug === r.slug ? '<span class="flag next">Next</span>' : "";
+}
 function matches(r) {
   if (filter === "review") return !r.review_ok;
   if (filter === "ready") return r.review_ok && (r.ig_status !== "Posted" || r.tt_status !== "Posted");
@@ -188,15 +218,19 @@ const downloads = (r) => `
   <div class="dl"><span>TikTok</span><a href="${file("tt", r.slug, 1)}" aria-label="Download TikTok video, no captions">Video</a><a href="${file("cover", r.slug, 1)}" aria-label="Download TikTok cover">Cover</a></div>`;
 function render() {
   const all = rows();
+  const next = nextUp(all);
+  $("#t-next").textContent = next ? day(next.post_on) : "Nothing planned";
+  $("#t-next-what").textContent = next ? (next.no ? "No. " + next.no + " · " : "") + next.title : "";
   $("#t-all").textContent = all.length;
   $("#t-review").textContent = all.filter((r) => !r.review_ok).length;
   $("#t-ig").textContent = all.filter((r) => r.ig_status === "Posted").length;
   $("#t-tt").textContent = all.filter((r) => r.tt_status === "Posted").length;
   const list = $("#list"), shown = all.filter(matches);
-  if (!shown.length) { list.innerHTML = '<tr><td colspan="6" class="empty">Nothing here with this filter.</td></tr>'; return; }
+  if (!shown.length) { list.innerHTML = '<tr><td colspan="7" class="empty">Nothing here with this filter.</td></tr>'; return; }
   list.innerHTML = shown.map((r) => `
-  <tr class="${r.pin ? "pin" : ""}" data-slug="${esc(r.slug)}">
+  <tr class="${r.pin ? "pin" : ""}${next && next.slug === r.slug ? " is-next" : ""}" data-slug="${esc(r.slug)}">
     <td class="c-cover"><span class="thumb"><img src="${file("cover", r.slug)}" alt="" loading="lazy"></span></td>
+    <td class="c-when">${r.post_on ? `<div class="when">${day(r.post_on)}</div>` : (posted(r) ? "" : '<div class="when none">Not planned</div>')}${flag(r, next)}</td>
     <td class="c-video">
       <div class="no">${label(r)} · ${esc(r.length)}</div>
       <button type="button" class="open" data-open>${esc(r.title)}</button>
@@ -229,6 +263,7 @@ function renderPanel() {
       <label class="tick"><input type="checkbox" data-k="review_ok" ${r.review_ok ? "checked" : ""}> Approved to post</label>
       <label class="tick">Instagram ${statusSelect("ig_status", r, "Instagram")}</label>
       <label class="tick">TikTok ${statusSelect("tt_status", r, "TikTok")}</label>
+      <label class="tick">Post on <input type="date" data-k="post_on" value="${esc(r.post_on || "")}"></label>
     </div>
     <div>${downloads(r)}</div>
     <div><h3>Instagram caption</h3><pre>${esc(r.ig)}</pre><div class="tags">${esc(r.tags_ig)}</div><button type="button" class="copy" data-copy="ig">Copy Instagram caption</button></div>
@@ -276,7 +311,7 @@ async function save(slug, field, value) {
 }
 document.addEventListener("change", (e) => {
   const el = e.target, row = el.closest("[data-slug]"); if (!row || !el.dataset.k) return;
-  save(row.dataset.slug, el.dataset.k, el.type === "checkbox" ? el.checked : el.value);
+  save(row.dataset.slug, el.dataset.k, el.type === "checkbox" ? el.checked : (el.type === "date" ? el.value || null : el.value));
 });
 document.addEventListener("click", async (e) => {
   const f = e.target.closest(".filters button");
