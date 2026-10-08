@@ -210,19 +210,29 @@ def build(render, SITE, C):
     )
 
     # ------------------------------------------------------------------
-    # NDIS CHECK — a quick, illustrated "could the NDIS help?" guide with a
-    # rough plan range. Eligibility and funding wording is a compliance
-    # matter: reviewed and approved for publishing 8 Oct 2026.
+    # NDIS ELIGIBILITY CHECKER — a quick, illustrated "could the NDIS help?"
+    # guide with a rough plan range. Eligibility and funding wording is a
+    # compliance matter: a person reviews it before it is published.
+    # (Was /ndis-check/ — that address redirects here, see vercel.json.)
     # ------------------------------------------------------------------
-    path = "/ndis-check/"
+    path = "/ndis-eligibility-checker/"
+    checker_desc = ("Free NDIS eligibility checker. Answer 7 quick questions to see if the NDIS could help, "
+                    "what a plan could include, and a funding estimate. Takes 1 minute.")
     render(
         "ndis_check.html", path,
-        title="NDIS Check: Could the NDIS Help? | The Health & Well-being Hub",
-        meta_description="Can the NDIS help, and how much might a plan be? Find out in 1 minute. Only the NDIA can decide who can join.",
-        breadcrumbs=crumbs(("NDIS Check", path)),
+        priority="0.9",
+        title="NDIS Eligibility Checker + Funding Estimate (Free, 1 Minute)",
+        meta_description=checker_desc,
+        og_title="NDIS Eligibility Checker: could the NDIS help, and how much?",
+        og_image="/static/img/ndis-check/og.jpg",
+        breadcrumbs=crumbs(("NDIS Eligibility Checker", path)),
+        faqs=C.NDIS_CHECKER_FAQS,
+        plan_averages=C.NDIS_PLAN_AVERAGES_BY_AGE,
         schema_json=S.graph(
-            S.webpage_node(SITE, path, "NDIS Check", "A quick guide to whether the NDIS could help."),
-            S.breadcrumb_node(SITE, path, crumbs(("NDIS Check", path))),
+            S.webpage_node(SITE, path, "NDIS Eligibility Checker", checker_desc),
+            S.web_application_node(SITE, path, "NDIS Eligibility Checker", checker_desc),
+            S.faqpage_node(SITE, path, C.NDIS_CHECKER_FAQS),
+            S.breadcrumb_node(SITE, path, crumbs(("NDIS Eligibility Checker", path))),
         ),
     )
 

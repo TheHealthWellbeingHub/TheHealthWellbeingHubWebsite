@@ -674,3 +674,35 @@ CONTENT_OPPORTUNITIES = [
     "Community Participation Ideas for NDIS Participants in Logan",
     "How Plan Managers and Support Coordinators Work Together",
 ]
+
+
+# ----------------------------------------------------------------------
+# NDIS ELIGIBILITY CHECKER (/ndis-eligibility-checker/)
+# Eligibility and funding wording is a compliance matter: reviewed by a
+# person before publishing. Plain words, short sentences.
+# ----------------------------------------------------------------------
+NDIS_CHECKER_FAQS = [
+    {"q": "Is the NDIS eligibility checker free?",
+     "a": "Yes. It is free, and you don't need to sign up. We only see your answers if you send them to us."},
+    {"q": "Does the checker decide if I can join the NDIS?",
+     "a": "No. It is a guide only. The NDIA (National Disability Insurance Agency) decides who can join, after you apply."},
+    {"q": "Does my income affect NDIS eligibility?",
+     "a": "No. The NDIS is not means-tested. Your income and savings do not change whether you can join."},
+    {"q": "I am over 65. Can I get the NDIS?",
+     "a": "You need to be under 65 when you apply. If you are 65 or older, aged care is the place to start. We can help you find the right support."},
+    {"q": "Can children get the NDIS?",
+     "a": "Yes. Children under 9 start with an early childhood partner. They can get early support, and some go on to an NDIS plan."},
+    {"q": "How accurate is the funding estimate?",
+     "a": "It is a rough guess from NDIA averages, not a quote. Your own plan depends on your needs and goals. It could be more or less."},
+    {"q": "What do I need to apply for the NDIS?",
+     "a": "You will need proof of age and residency, and evidence of your disability, like letters or reports from your doctor or therapist. We can help you work out what to gather."},
+    {"q": "Can I get help in my language?",
+     "a": "Yes. Our team speaks English, Arabic, Somali, Dari and Amharic."},
+]
+
+# Average yearly NDIS plan by age, for people not in 24/7 supported living
+# (NDIA Quarterly Report, Supplement E, March 2026, Table E.62).
+NDIS_PLAN_AVERAGES_BY_AGE = [
+    ("0 to 8", "$27,800"), ("9 to 14", "$31,300"), ("15 to 18", "$45,500"), ("19 to 24", "$78,100"),
+    ("25 to 34", "$94,900"), ("35 to 44", "$104,300"), ("45 to 54", "$110,900"), ("55 to 64", "$123,700"),
+]

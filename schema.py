@@ -147,5 +147,21 @@ def article_node(site, post, path):
     }
 
 
+def web_application_node(site, path, name, description):
+    return {
+        "@type": "WebApplication",
+        "@id": site["base_url"] + path + "#app",
+        "name": name,
+        "url": site["base_url"] + path,
+        "description": description,
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Any",
+        "isAccessibleForFree": True,
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "AUD"},
+        "provider": {"@id": _org_id(site)},
+        "inLanguage": "en-AU",
+    }
+
+
 def graph(*nodes):
     return json.dumps({"@context": "https://schema.org", "@graph": list(nodes)}, indent=2, ensure_ascii=False)

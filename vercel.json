@@ -33,6 +33,16 @@
   ],
   "redirects": [
     {
+      "source": "/ndis-check",
+      "destination": "/ndis-eligibility-checker/",
+      "permanent": true
+    },
+    {
+      "source": "/ndis-check/",
+      "destination": "/ndis-eligibility-checker/",
+      "permanent": true
+    },
+    {
       "source": "/staff-documents/:path*",
       "destination": "/",
       "permanent": false
