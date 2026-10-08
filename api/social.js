@@ -55,7 +55,12 @@ function html(res, status, body) {
 }
 const redirect = (res, to) => { res.setHeader('Cache-Control', 'no-store'); res.setHeader('Location', to); return res.status(303).end(); };
 const FOLDERS = { ig: 'ig', tt: 'tt', cover: 'tt-cover', igcover: 'ig-cover' };
-const objectPath = (kind, slug) => `${FOLDERS[kind]}/${slug}.${kind.endsWith('cover') ? 'jpg' : 'mp4'}`;
+// `rev` in library.json points a video at a re-rendered file (e.g. more-doors-v2.mp4): the bucket
+// doesn't allow overwriting, so a fix is uploaded under a new name.
+const objectPath = (kind, video) => {
+  const isCover = kind.endsWith('cover');
+  return `${FOLDERS[kind]}/${video.slug}${isCover ? '' : video.rev || ''}.${isCover ? 'jpg' : 'mp4'}`;
+};
 
 module.exports = async (req, res) => {
   const r = req.query.r || 'page';
@@ -107,7 +112,7 @@ module.exports = async (req, res) => {
       const { kind, slug, dl } = req.query;
       const video = LIBRARY.find((v) => v.slug === slug);
       if (!video || !Object.prototype.hasOwnProperty.call(FOLDERS, kind)) return res.status(404).json({ ok: false, error: 'Not found.' });
-      const url = await storageSignedUrl(BUCKET, objectPath(kind, slug), 3600, dl ? video.files[kind] : undefined);
+      const url = await storageSignedUrl(BUCKET, objectPath(kind, video), 3600, dl ? video.files[kind] : undefined);
       res.setHeader('Cache-Control', 'private, max-age=600');
       res.setHeader('Location', url);
       return res.status(302).end();
