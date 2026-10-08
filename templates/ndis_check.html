@@ -103,6 +103,34 @@
 .nc-burst i::before{content:"✶";font-size:22px;color:var(--pur);line-height:1}
 .nc-burst i:nth-child(3n)::before{content:"✷";color:var(--ink)}
 @keyframes nc-pop{0%{opacity:1;transform:translate(0,0) scale(.3)}80%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.1) rotate(80deg)}}
+/* what an NDIS plan could include, by budget */
+.nc-help{display:grid;gap:8px;margin:0 0 10px;text-align:left}
+.nc-budget{background:#F6F2EA;border:1.5px solid rgba(30,25,18,.45);padding:9px 12px 8px;border-radius:12px 4px 12px 4px;animation:nc-fadeup .4s both}
+.nc-budget:nth-child(2){animation-delay:.12s}.nc-budget:nth-child(3){animation-delay:.24s}
+.nc-bh b{font:400 23px/1 var(--hand);color:var(--pur)}
+.nc-bh span{font:400 16px var(--body);color:var(--gr)}
+.nc-budget ul{list-style:none;margin:4px 0 0;padding:0}
+.nc-budget li{font:400 20px/1.2 var(--body);padding:4px 0 4px 24px;position:relative}
+.nc-budget li::before{content:"✓";position:absolute;left:2px;color:var(--pur)}
+.nc-budget li small{display:block;font-size:14px;color:var(--gr)}
+.nc-money{background:var(--pur);color:#fff;padding:10px 14px;border-radius:4px 12px 4px 12px;font:400 19px/1.3 var(--body);text-align:left;margin:0 0 6px;transform:rotate(-.6deg)}
+.nc-money b{font:400 24px var(--hand);margin-right:4px}
+.nc-money strong{font-weight:400;font-family:var(--hand);font-size:25px}
+.nc-money small{display:block;font-size:13px;opacity:.8;margin-top:2px}
+@keyframes nc-fadeup{from{opacity:0;transform:translateY(8px)}}
+.nc-after{font:400 24px/1.2 var(--hand);color:var(--pur);margin:6px 0 10px}
+/* call-back form */
+.nc-form{text-align:left;background:#F6F2EA;border:2px dashed rgba(123,45,139,.55);padding:14px 14px 12px;margin:6px 0 4px}
+.nc-form-h{font:400 22px/1.2 var(--hand);color:var(--ink);margin:0 0 8px;text-align:center}
+.nc-fl{display:block;font:400 17px var(--body);color:var(--gr);margin:6px 0 2px}
+.nc-in{width:100%;font:400 22px var(--body);color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:8px 3px 8px 3px;padding:8px 10px}
+.nc-in:focus{outline:3px solid var(--pur);outline-offset:1px}
+.nc-consent{display:flex;gap:8px;align-items:center;font:400 18px var(--body);margin:10px 0}
+.nc-consent input{width:22px;height:22px;accent-color:var(--pur)}
+.nc-consent a{color:var(--pur);text-decoration:underline}
+.nc-form .form-status{font:400 19px/1.3 var(--body);margin-top:8px;text-align:center}
+.nc-form .form-status.ok{color:#2f6b2a}
+.nc-or{font:400 20px var(--hand);color:var(--gr);margin:8px 0}
 .nc-more{max-width:760px;margin:44px auto 0;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;text-align:center}
 .nc-more h2{grid-column:1/-1;font:400 36px/1.05 var(--hand);margin:0}
 .nc-rule{background:var(--card);border:1.5px solid rgba(30,25,18,.45);padding:14px 12px;transform:rotate(var(--r,-.8deg));box-shadow:4px 5px 0 rgba(30,25,18,.1)}
@@ -152,9 +180,29 @@
       <div class="nc-opts">
         <button class="nc-btn nc-go" type="button" data-action="begin" data-track="ndis_check_start" data-track-location="ndis_check">Start &rarr;</button>
       </div>
-      <p class="nc-note">Takes 1 minute. We don't save your answers.</p>
+      <p class="nc-note">Takes 1 minute. We only see your answers if you send them to us.</p>
     </div>
   </div>
+  <!-- Call-back form: shown inside the result card. Sent by the site's usual enquiry handling (static/js/main.js). -->
+  <form id="nc-form" class="nc-form" data-form-name="enquiry" novalidate hidden>
+    <p class="nc-form-h"></p>
+    <label class="nc-fl" for="nc-name">Name</label>
+    <input class="nc-in" id="nc-name" name="name" autocomplete="name" required>
+    <label class="nc-fl" for="nc-phone">Phone</label>
+    <input class="nc-in" id="nc-phone" name="phone" type="tel" autocomplete="tel" required>
+    <label class="nc-fl" for="nc-lang">Language</label>
+    <select class="nc-in" id="nc-lang" name="preferred_language">
+      <option>English</option><option>Arabic — العربية</option><option>Somali — Soomaali</option><option>Dari — دری</option><option>Amharic — አማርኛ</option><option>Other</option>
+    </select>
+    <input type="hidden" name="enquirer_role" value="">
+    <input type="hidden" name="service_needed" value="">
+    <input type="hidden" name="additional_info" value="">
+    <input type="hidden" name="preferred_contact_method" value="Phone call">
+    <div class="hp-field" aria-hidden="true"><label for="nc-company-website">Company website</label><input type="text" id="nc-company-website" name="company_website" tabindex="-1" autocomplete="off"></div>
+    <label class="nc-consent"><input type="checkbox" name="privacy_consent" required> <span>OK to call me. <a href="{{ url('/privacy-policy/') }}">Privacy</a></span></label>
+    <button class="nc-btn nc-go form-submit" type="submit" data-track="ndis_check_callback" data-track-location="ndis_check_result">Call me back &rarr;</button>
+    <div class="form-status" role="status" aria-live="polite"></div>
+  </form>
   <noscript><p class="nc-hint" style="text-align:center">This check needs JavaScript. You can call us on <a href="tel:{{ site.phone_tel }}">{{ site.phone_display }}</a> instead.</p></noscript>
 
   <div class="nc-more">
@@ -332,30 +380,48 @@ window.NC_SITE = { phone: "{{ site.phone_display }}", tel: "{{ site.phone_tel }}
   var S = window.NC_SITE;
   var CALL = '<a class="nc-btn nc-go" href="tel:' + S.tel + '" data-track="phone_click" data-track-location="ndis_check_result">Call ' + S.phone + '</a>';
   var WA = '<a class="nc-btn" href="' + S.wa + '" target="_blank" rel="noopener" data-track="whatsapp_click" data-track-location="ndis_check_result">WhatsApp</a>';
-  var ENQ = '<a class="nc-btn wide" href="' + S.enquire + '" data-track="enquiry_cta_click" data-track-location="ndis_check_result">Message us &rarr;</a>';
-  var NDIA = 'Call the NDIA: <a href="tel:1800800110">1800 800 110</a>';
-  var US = 'Or call us. We can help.';
+
+  // Supports the NDIS can fund for each thing picked as hard: [plain words, official NDIS category, budget].
+  var SUPPORTS = {
+    move:   [['Equipment, like a wheelchair or walker', 'Assistive Technology', 'capital'], ['Help with transport', 'Transport', 'core'], ['Physio or OT', 'Improved Daily Living', 'cb']],
+    talk:   [['Speech therapy', 'Improved Daily Living', 'cb'], ['Talking aids and devices', 'Assistive Technology', 'capital']],
+    care:   [['A support worker at home', 'Assistance with Daily Life', 'core'], ['Everyday care items', 'Consumables', 'core'], ['Changes to the home, like rails', 'Home Modifications', 'capital']],
+    learn:  [['Help to learn and study', 'Improved Learning', 'cb'], ['Help to find and keep a job', 'Finding and Keeping a Job', 'cb']],
+    people: [['Support to go out and join in', 'Social and Community Participation', 'core'], ['Help to build friendships', 'Improved Relationships', 'cb']],
+    manage: [['A support coordinator', 'Support Coordination', 'cb'], ['A plan manager to pay the bills', 'Plan Management', 'cb']]
+  };
+  var BUDGET = { core: ['Core', 'Everyday help'], cb: ['Capacity Building', 'Skills and therapy'], capital: ['Capital', 'Equipment and home'] };
+  var SERVICE = { manage: 'Support Coordination', care: 'Core Supports & Daily Living', people: 'Community Participation', move: 'Therapy Services', talk: 'Therapy Services', learn: 'Therapy Services' };
+  var ROLE = { me: 'NDIS Participant', them: 'Parent / Family member / Carer' };
+  var form = document.getElementById('nc-form');
+
+  function helpList(picked) {
+    var groups = { core: [], cb: [], capital: [] }, seen = {};
+    picked.forEach(function (k) { SUPPORTS[k].forEach(function (x) { if (!seen[x[1] + x[0]]) { seen[x[1] + x[0]] = 1; groups[x[2]].push(x); } }); });
+    return '<div class="nc-help">' + ['core', 'cb', 'capital'].filter(function (g) { return groups[g].length; }).map(function (g) {
+      return '<div class="nc-budget"><div class="nc-bh"><b>' + BUDGET[g][0] + '</b> <span>' + BUDGET[g][1] + '</span></div><ul>'
+        + groups[g].map(function (x) { return '<li>' + x[0] + '<small>' + x[1] + '</small></li>'; }).join('') + '</ul></div>';
+    }).join('') + '</div>'
+      + '<div class="nc-money"><b>How much?</b> Every plan is different. The average NDIS plan is about <strong>$85,000 a year</strong>.<small>NDIA quarterly report, March 2026</small></div>';
+  }
 
   function result() {
-    var r = outcome(), R;
+    var r = outcome(), R, picked = A.daily || [];
+    var lead = 'Leave your number. We’ll call you back within 2 business hours.';
     if (r === 'promising') R = { img: 'yes', stamp: 'Looks good', burst: true,
-      h: t('You', 'They') + ' may be able to ' + U('join') + '!', p: 'Only the NDIA can decide.',
-      steps: ['Get reports from a doctor.', NDIA + '.'] };
+      h: t('You', 'They') + ' may be able to ' + U('join') + '!', p: 'An NDIS plan could include:', list: true,
+      after: 'We’ll take care of the rest.' };
     else if (r === 'chat') R = { img: 'chat', stamp: 'Let’s talk',
-      h: 'It may be ' + U('worth applying') + '.', p: 'Not sure? That’s OK.',
-      steps: ['Talk to a doctor.', US] };
+      h: 'It may be ' + U('worth applying') + '.', p: picked.length ? 'If ' + t('you', 'they') + ' can join, a plan could include:' : 'Not sure? That’s OK.', list: picked.length > 0,
+      after: 'Not sure? That’s OK. We’ll work it out with you.' };
     else if (r === 'child') R = { img: 'u9', stamp: 'Under 9', grey: true,
-      h: 'Kids under 9 start in a ' + U('different place') + '.', p: 'An early childhood partner can help.',
-      steps: [NDIA + '. Ask for an early childhood partner.', US] };
+      h: 'Kids under 9 start in a ' + U('different place') + '.', p: 'We’ll show you where to start.' };
     else if (r === 'aged') R = { img: 'older', stamp: '65+', grey: true,
-      h: 'Start with ' + U('aged care') + '.', p: 'The NDIS is for people under 65.',
-      steps: ['Call My Aged Care: <a href="tel:1800200422">1800 200 422</a>.', US] };
+      h: 'Over 65? Start with ' + U('aged care') + '.', p: 'We can help you find the right support.' };
     else if (r === 'residency') R = { img: 'street', stamp: 'Other help', grey: true,
-      h: 'The NDIS has ' + U('visa rules') + '.', p: 'But other help may be there.',
-      steps: ['Talk to a doctor.', US] };
+      h: 'The NDIS has ' + U('visa rules') + '.', p: 'But other help may be there. We’ll help you find it.' };
     else R = { img: 'chat', stamp: 'Other help', grey: true,
-      h: 'The NDIS may not ' + U('fit') + ' right now.', p: 'But other help may be there.',
-      steps: ['Talk to a doctor.', US] };
+      h: 'The NDIS may not ' + U('fit') + ' right now.', p: 'But other help may be there. We’ll help you find it.' };
 
     push({ event: 'ndis_check_result', ndis_check_result: r });
     current = null; base = R.img;
@@ -365,10 +431,31 @@ window.NC_SITE = { phone: "{{ site.phone_display }}", tel: "{{ site.phone_tel }}
     history.push('daily-result');
     show(burst + '<div class="nc-stamp' + (R.grey ? ' grey' : '') + '">' + R.stamp + '</div>'
       + '<h2 class="nc-q" tabindex="-1">' + R.h + '</h2><p class="nc-hint">' + R.p + '</p>'
-      + '<ol class="nc-steps">' + R.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol>'
-      + '<div class="nc-ctas">' + CALL + WA + ENQ + '</div><p class="nc-note">We speak English, Arabic, Somali, Dari and Amharic.</p>'
-      + '<p class="nc-fine">This is a guide, not a decision. Only the NDIA decides. <a href="https://www.ndis.gov.au/applying-access-ndis/am-i-eligible" target="_blank" rel="noopener">NDIS checklist</a></p>'
+      + (R.list ? helpList(picked) : '') + (R.after && R.list ? '<p class="nc-after">' + R.after + '</p>' : '')
+      + '<div class="nc-slot"></div>'
+      + '<p class="nc-or">or</p><div class="nc-ctas">' + CALL + WA + '</div><p class="nc-note">We speak English, Arabic, Somali, Dari and Amharic.</p>'
+      + '<p class="nc-fine">This is a guide, not a decision. Only the NDIA decides who can join.</p>'
       + '<button type="button" class="nc-back" data-action="restart">Start again</button>', 0);
+
+    // The call-back form lives in the page (so the site's form code handles it) and is moved in here.
+    if (form) {
+      form.querySelector('.nc-form-h').textContent = lead;
+      var firstService = picked.length ? SERVICE[picked[0]] : '';
+      form.elements.enquirer_role.value = ROLE[A.who] || 'Other';
+      form.elements.service_needed.value = firstService;
+      var said = { u9: 'Under 9', '9to64': '9 to 64', '65': '65 or older' };
+      form.elements.additional_info.value = ['From the NDIS Check on the website.',
+        'Result: ' + R.stamp + '.',
+        'For: ' + (A.who === 'them' ? 'someone they care for' : 'themselves') + '.',
+        'Age: ' + (said[A.age] || '-') + '.',
+        A.home ? 'Lives in Australia (citizen/PR/PSCV): ' + A.home + '.' : '',
+        A.lifelong ? 'Disability that won’t go away: ' + A.lifelong + '.' : '',
+        A.daily ? 'Hard without help: ' + (A.daily.length ? A.daily.map(function (k) { return TILE[k][1]; }).join(', ') : 'none') + '.' : ''
+      ].filter(Boolean).join(' ');
+      form.hidden = false;
+      card.querySelector('.nc-slot').appendChild(form);
+    }
+    fit();
   }
 
   card.addEventListener('click', function (e) {
