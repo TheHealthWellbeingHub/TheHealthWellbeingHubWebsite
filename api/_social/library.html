@@ -9,14 +9,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap">
 <style>
-/* One row per video: cover, what it is and what's left to do, files. Captions fold open underneath. */
+/* One table row per video. Clicking a row opens the Instagram video full size, with its captions,
+   status and notes beside it. */
 :root { --p: #7B2D8B; --pd: #5C2068; --pt: #F5EDF8; --pt2: #EAD8F0; --n: #1D3461; --g: #4A7C3F; --gl: #EAF3DE;
   --amber: #8A5A12; --amber-l: #FBF0DC; --t: #1a1a2e; --tm: #5a5a7a; --b: #E8E0ED; --w: #fff; --ow: #FAFAFA;
   --fd: 'Playfair Display', Georgia, serif; --fb: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--ow); color: var(--t); font: 16px/1.5 var(--fb); }
+body.locked { overflow: hidden; }
 header.bar { background: var(--w); border-bottom: 1px solid var(--b); }
-.bar .in, main { max-width: 1100px; margin: 0 auto; padding-inline: 20px; }
+.bar .in, main { max-width: 1280px; margin: 0 auto; padding-inline: 20px; }
 .bar .in { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 12px; }
 .brand { display: flex; align-items: center; gap: 10px; font: 700 17px var(--fd); color: var(--n); text-decoration: none; }
 .brand b { width: 36px; height: 36px; border-radius: 50%; background: var(--pt); color: var(--p); display: grid; place-items: center; font-size: 11px; }
@@ -33,51 +35,91 @@ h1 { font: 700 clamp(30px, 5vw, 42px)/1.1 var(--fd); color: var(--n); margin: 4p
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .filters button { font: 500 14px var(--fb); padding: 7px 14px; border-radius: 99px; border: 1px solid var(--b); background: var(--w); color: var(--t); cursor: pointer; }
 .filters button[aria-pressed="true"] { background: var(--p); color: var(--w); border-color: var(--p); }
-.list { display: flex; flex-direction: column; gap: 12px; }
-.row { background: var(--w); border: 1px solid var(--b); border-radius: 14px; overflow: hidden; }
-.row.pin { border-color: var(--p); box-shadow: inset 4px 0 0 var(--p); }
-.top { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 18px; padding: 16px; align-items: start; }
-.media { width: 96px; aspect-ratio: 9/16; max-width: 100%; border-radius: 8px; overflow: hidden; background: var(--pt); position: relative; }
-.media img, .media video { width: 100%; height: 100%; object-fit: cover; display: block; border: 0; }
-.play { position: absolute; inset: auto 6px 6px 6px; font: 700 12px var(--fb); border: 0; border-radius: 6px; padding: 5px; background: rgba(29,52,97,.85); color: var(--w); cursor: pointer; }
-.meta { min-width: 0; }
-.no { font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--tm); }
+
+/* Table */
+.wrap { background: var(--w); border: 1px solid var(--b); border-radius: 14px; overflow: clip; }
+table { width: 100%; border-collapse: collapse; }
+th { position: sticky; top: 0; z-index: 1; background: var(--w); text-align: left; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tm); padding: 12px 12px; border-bottom: 1px solid var(--b); white-space: nowrap; }
+td { padding: 12px; vertical-align: middle; border-bottom: 1px solid var(--b); }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr { cursor: pointer; }
+tbody tr:hover td { background: #FCF8FD; }
+tbody tr.pin td:first-child { box-shadow: inset 4px 0 0 var(--p); }
+.c-cover { width: 76px; }
+.thumb { position: relative; width: 52px; aspect-ratio: 9/16; border-radius: 6px; overflow: hidden; background: var(--pt); display: block; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb::after { content: ""; position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+  background: rgba(29,52,97,.82) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M3.5 2.5v5l4-2.5z' fill='white'/%3E%3C/svg%3E") center/14px no-repeat; }
+.c-video { min-width: 260px; }
+.no { font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--tm); white-space: nowrap; }
 .no .pinflag { color: var(--p); }
-.title { font: 700 21px/1.25 var(--fd); color: var(--n); margin: 2px 0 4px; text-wrap: balance; }
-.hook { color: var(--tm); margin: 0 0 10px; font-style: italic; }
-.state { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
-.chip { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 99px; }
+.open { all: unset; cursor: pointer; display: block; font: 700 18px/1.25 var(--fd); color: var(--n); margin: 1px 0 2px; text-wrap: balance; }
+.open:hover { color: var(--p); }
+.hook { color: var(--tm); margin: 0; font-style: italic; font-size: 14px; }
+.review { font-size: 13px; color: var(--tm); margin: 4px 0 0; max-width: 60ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.c-review { white-space: nowrap; }
+.c-review .tick { margin-top: 6px; }
+.chip { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
 .chip.warn { background: var(--amber-l); color: var(--amber); }
 .chip.ok { background: var(--gl); color: var(--g); }
-label.tick { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+label.tick { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
 select { font: 14px var(--fb); color: var(--t); background: var(--w); border: 1px solid var(--b); border-radius: 8px; padding: 5px 8px; }
-.review { font-size: 14px; color: var(--tm); margin: 8px 0 0; max-width: 70ch; }
-.files { display: flex; flex-direction: column; gap: 6px; min-width: 210px; }
-.files a, .copy { font: 700 14px var(--fb); display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--b); background: var(--w); color: var(--t); cursor: pointer; text-decoration: none; text-align: left; }
-.files a:hover, .copy:hover { border-color: var(--p); }
-.files a small { font-weight: 400; font-size: 12px; color: var(--tm); }
-.files a.ig { background: var(--p); color: var(--w); border-color: var(--p); }
-.files a.ig small { color: var(--pt2); }
+select.posted { background: var(--gl); border-color: #C9DFB4; color: var(--g); font-weight: 700; }
+select.scheduled { background: var(--pt); border-color: var(--pt2); color: var(--pd); font-weight: 700; }
+.c-files { white-space: nowrap; }
+.dl { display: grid; grid-template-columns: 74px auto auto; align-items: center; gap: 6px; font-size: 13px; }
+.dl + .dl { margin-top: 6px; }
+.dl span { color: var(--tm); font-weight: 500; }
+.dl a, .copy, .nav button { font: 700 13px var(--fb); padding: 5px 10px; border-radius: 7px; border: 1px solid var(--b); background: var(--w); color: var(--t); cursor: pointer; text-decoration: none; text-align: center; }
+.dl a:hover, .copy:hover, .nav button:hover:not(:disabled) { border-color: var(--p); color: var(--p); }
+.dl a.main { background: var(--p); border-color: var(--p); color: var(--w); }
+.dl a.main:hover { background: var(--pd); color: var(--w); }
 :is(button, select, summary, textarea, input, a):focus-visible { outline: 2px solid var(--p); outline-offset: 2px; }
-details { border-top: 1px solid var(--b); }
-summary { cursor: pointer; padding: 11px 16px; font-size: 14px; font-weight: 500; color: var(--tm); }
-.caps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 0 16px 14px; }
-.cap { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
-.cap h3 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--p); }
-.cap pre { margin: 0; white-space: pre-wrap; word-break: break-word; font: 15px/1.55 var(--fb); background: var(--ow); border: 1px solid var(--b); border-radius: 8px; padding: 12px; }
-.cap .tags { font-size: 13px; color: var(--tm); word-break: break-word; }
-.copy { align-self: flex-start; font-size: 13px; padding: 7px 11px; }
-.notes { padding: 0 16px 16px; }
-.notes label { font-size: 13px; font-weight: 500; color: var(--tm); display: block; margin-bottom: 4px; }
-.notes textarea { width: 100%; min-height: 60px; font: 15px var(--fb); color: var(--t); border: 1px solid var(--b); border-radius: 8px; padding: 8px 10px; resize: vertical; }
-.empty { background: var(--w); border: 1px dashed var(--b); border-radius: 14px; padding: 28px; text-align: center; color: var(--tm); }
-.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--n); color: var(--w); padding: 9px 16px; border-radius: 99px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.empty { padding: 28px; text-align: center; color: var(--tm); }
+
+/* Full-size preview */
+dialog { padding: 0; border: 0; background: transparent; width: 100vw; height: 100dvh; max-width: none; max-height: none; overflow-y: auto; }
+dialog::backdrop { background: rgba(14,16,36,.9); }
+.viewer { min-height: 100%; display: grid; grid-template-columns: auto minmax(320px, 400px); justify-content: center; align-items: center; gap: 24px; padding: 20px 64px 20px 20px; }
+.viewer video:focus { outline: none; }
+.viewer video { display: block; height: calc(100dvh - 40px); aspect-ratio: 9/16; max-width: calc(100vw - 528px); object-fit: contain; background: #000; border-radius: 12px; }
+.panel { background: var(--w); border-radius: 14px; padding: 18px; max-height: calc(100dvh - 40px); overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.panel .title { font: 700 22px/1.2 var(--fd); color: var(--n); margin: 2px 0 4px; text-wrap: balance; }
+.panel .hook { font-size: 15px; }
+.panel .review { -webkit-line-clamp: unset; display: block; font-size: 14px; margin: 0; }
+.panel .state { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.panel .state label.tick { display: inline-flex; }
+.panel h3 { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--p); }
+.panel pre { margin: 0 0 6px; white-space: pre-wrap; word-break: break-word; font: 14px/1.55 var(--fb); background: var(--ow); border: 1px solid var(--b); border-radius: 8px; padding: 10px 12px; }
+.panel .tags { font-size: 13px; color: var(--tm); word-break: break-word; margin-bottom: 8px; }
+.panel textarea { width: 100%; min-height: 64px; font: 15px var(--fb); color: var(--t); border: 1px solid var(--b); border-radius: 8px; padding: 8px 10px; resize: vertical; }
+.panel .lbl { font-size: 13px; font-weight: 500; color: var(--tm); display: block; margin-bottom: 4px; }
+.nav { display: flex; gap: 6px; }
+.nav button:disabled { opacity: .4; cursor: default; }
+.close { position: fixed; top: 14px; right: 14px; z-index: 2; width: 42px; height: 42px; border-radius: 50%; border: 0; background: var(--w); color: var(--n); font: 700 22px/1 var(--fb); cursor: pointer; }
+.toast { position: fixed; left: 50%; bottom: 20px; z-index: 10; transform: translateX(-50%); background: var(--n); color: var(--w); padding: 9px 16px; border-radius: 99px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
 .toast.on { opacity: 1; }
-@media (max-width: 740px) {
-  .top { grid-template-columns: 80px minmax(0, 1fr); }
-  .media { width: 80px; }
-  .files { grid-column: 1 / -1; min-width: 0; }
-  .caps { grid-template-columns: minmax(0, 1fr); }
+dialog .toast { bottom: 24px; }
+
+@media (max-width: 900px) {
+  /* Each row becomes a card. */
+  thead { display: none; }
+  table, tbody { display: block; }
+  tbody tr { display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-areas: "cover video" "cover review" "cover ig" "cover tt" "files files"; gap: 10px 12px; padding: 14px; border-bottom: 1px solid var(--b); }
+  tbody tr:last-child { border-bottom: 0; }
+  tbody tr.pin { box-shadow: inset 4px 0 0 var(--p); }
+  tbody tr.pin td:first-child { box-shadow: none; }
+  td { padding: 0; border: 0; }
+  tbody tr:hover td { background: none; }
+  .c-cover { grid-area: cover; width: auto; } .thumb { width: 64px; }
+  .c-video { grid-area: video; min-width: 0; } .c-review { grid-area: review; white-space: normal; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; } .c-review .tick { margin: 0; }
+  .c-ig { grid-area: ig; } .c-tt { grid-area: tt; } .c-files { grid-area: files; }
+  .c-ig, .c-tt { display: flex; align-items: center; }
+  .c-ig::before, .c-tt::before { content: attr(data-label); flex: 0 0 88px; font-size: 14px; color: var(--tm); }
+  .c-ig select, .c-tt select { flex: 1; max-width: 200px; }
+  .viewer { grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: start; padding: 64px 16px 16px; gap: 16px; }
+  .viewer video { height: auto; width: min(100%, calc((100dvh - 96px) * 9 / 16)); max-width: 100%; }
+  .panel { width: 100%; max-width: 520px; max-height: none; overflow: visible; }
 }
 @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
 </style>
@@ -90,7 +132,7 @@ summary { cursor: pointer; padding: 11px 16px; font-size: 14px; font-weight: 500
 <main>
   <div class="eyebrow">Team only · Social media</div>
   <h1>Now You Know videos</h1>
-  <p class="lede">Every video with its Instagram and TikTok files, covers for each platform, and captions. Tick the review once it's approved, and set the status when it goes live.</p>
+  <p class="lede">Every video with its Instagram and TikTok files, covers for each platform, and captions. Click a row to watch the video full size. Tick the review once it's approved, and set the status when it goes live.</p>
   <div class="tally">
     <div><b id="t-all">–</b><span>Videos</span></div>
     <div><b id="t-review">–</b><span>Need review</span></div>
@@ -103,8 +145,20 @@ summary { cursor: pointer; padding: 11px 16px; font-size: 14px; font-weight: 500
     <button type="button" data-f="ready" aria-pressed="false">Ready to post</button>
     <button type="button" data-f="live" aria-pressed="false">Posted</button>
   </div>
-  <div class="list" id="list"></div>
+  <div class="wrap">
+    <table>
+      <thead><tr><th scope="col">Cover</th><th scope="col">Video</th><th scope="col">Review</th><th scope="col">Instagram</th><th scope="col">TikTok</th><th scope="col">Downloads</th></tr></thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
 </main>
+<dialog id="viewer" aria-label="Video preview">
+  <button type="button" class="close" data-close aria-label="Close preview">×</button>
+  <div class="viewer">
+    <video id="player" controls playsinline preload="auto"></video>
+    <div class="panel" id="panel"></div>
+  </div>
+</dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -113,8 +167,12 @@ const STATUS = ["Not posted", "Scheduled", "Posted"];
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const file = (kind, slug, dl) => `/api/social?r=file&kind=${kind}&slug=${encodeURIComponent(slug)}${dl ? "&dl=1" : ""}`;
-let state = {}, filter = "all";
-function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), 2200); }
+let state = {}, filter = "all", current = null;
+const viewer = $("#viewer"), player = $("#player");
+function toast(msg) {
+  const t = $("#toast"); (viewer.open ? viewer : document.body).appendChild(t);
+  t.textContent = msg; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), 2200);
+}
 const rows = () => LIBRARY.map((v) => ({ ...v, review_ok: false, ig_status: "Not posted", tt_status: "Not posted", notes: "", ...(state[v.slug] || {}) }));
 function matches(r) {
   if (filter === "review") return !r.review_ok;
@@ -122,6 +180,12 @@ function matches(r) {
   if (filter === "live") return r.ig_status === "Posted" || r.tt_status === "Posted";
   return true;
 }
+const shownRows = () => rows().filter(matches);
+const label = (r) => r.no ? "NO. " + r.no : (r.pin ? '<span class="pinflag">PIN THIS · START HERE</span>' : "SERIES");
+const statusSelect = (k, r, name) => `<select data-k="${k}" class="${r[k].toLowerCase().replace(" ", "-")}" aria-label="${name} status for ${esc(r.title)}">${STATUS.map((s) => `<option${s === r[k] ? " selected" : ""}>${s}</option>`).join("")}</select>`;
+const downloads = (r) => `
+  <div class="dl"><span>Instagram</span><a class="main" href="${file("ig", r.slug, 1)}" aria-label="Download Instagram video">Video</a><a href="${file("igcover", r.slug, 1)}" aria-label="Download Instagram cover">Cover</a></div>
+  <div class="dl"><span>TikTok</span><a href="${file("tt", r.slug, 1)}" aria-label="Download TikTok video, no captions">Video</a><a href="${file("cover", r.slug, 1)}" aria-label="Download TikTok cover">Cover</a></div>`;
 function render() {
   const all = rows();
   $("#t-all").textContent = all.length;
@@ -129,41 +193,68 @@ function render() {
   $("#t-ig").textContent = all.filter((r) => r.ig_status === "Posted").length;
   $("#t-tt").textContent = all.filter((r) => r.tt_status === "Posted").length;
   const list = $("#list"), shown = all.filter(matches);
-  const open = new Set([...list.querySelectorAll("details[open]")].map((d) => d.dataset.slug));
-  if (!shown.length) { list.innerHTML = '<div class="empty">Nothing here with this filter.</div>'; return; }
+  if (!shown.length) { list.innerHTML = '<tr><td colspan="6" class="empty">Nothing here with this filter.</td></tr>'; return; }
   list.innerHTML = shown.map((r) => `
-  <article class="row${r.pin ? " pin" : ""}" data-slug="${esc(r.slug)}">
-    <div class="top">
-      <div class="media"><img src="${file("cover", r.slug)}" alt="TikTok cover for ${esc(r.title)}" loading="lazy"><button type="button" class="play" data-play>▶ Play</button></div>
-      <div class="meta">
-        <div class="no">${r.no ? "NO. " + r.no : (r.pin ? '<span class="pinflag">PIN THIS · START HERE</span>' : "SERIES")} · ${esc(r.length)}</div>
-        <div class="title">${esc(r.title)}</div>
-        <p class="hook">“${esc(r.hook)}”</p>
-        <div class="state">
-          <span class="chip ${r.review_ok ? "ok" : "warn"}">${r.review_ok ? "Reviewed" : "Needs review"}</span>
-          <label class="tick"><input type="checkbox" data-k="review_ok" ${r.review_ok ? "checked" : ""}> Approved to post</label>
-          <label class="tick">Instagram <select data-k="ig_status">${STATUS.map((s) => `<option${s === r.ig_status ? " selected" : ""}>${s}</option>`).join("")}</select></label>
-          <label class="tick">TikTok <select data-k="tt_status">${STATUS.map((s) => `<option${s === r.tt_status ? " selected" : ""}>${s}</option>`).join("")}</select></label>
-        </div>
-        <p class="review">${esc(r.review)}</p>
-      </div>
-      <div class="files">
-        <a class="ig" href="${file("ig", r.slug, 1)}">Instagram video <small>MP4</small></a>
-        <a href="${file("tt", r.slug, 1)}">TikTok video <small>MP4 · no captions</small></a>
-        <a href="${file("cover", r.slug, 1)}">TikTok cover <small>1080×1920 JPG</small></a>
-        <a href="${file("igcover", r.slug, 1)}">Instagram cover <small>1080×1920 JPG</small></a>
-      </div>
-    </div>
-    <details data-slug="${esc(r.slug)}"${open.has(r.slug) ? " open" : ""}>
-      <summary>Captions and notes</summary>
-      <div class="caps">
-        <div class="cap"><h3>Instagram caption</h3><pre>${esc(r.ig)}</pre><div class="tags">${esc(r.tags_ig)}</div><button type="button" class="copy" data-copy="ig">Copy Instagram caption</button></div>
-        <div class="cap"><h3>TikTok caption</h3><pre>${esc(r.tt)}</pre><div class="tags">${esc(r.tags_tt)}</div><button type="button" class="copy" data-copy="tt">Copy TikTok caption</button></div>
-      </div>
-      <div class="notes"><label for="n-${esc(r.slug)}">Team notes</label><textarea id="n-${esc(r.slug)}" data-k="notes" placeholder="Who approved it, when it went live, links…">${esc(r.notes)}</textarea></div>
-    </details>
-  </article>`).join("");
+  <tr class="${r.pin ? "pin" : ""}" data-slug="${esc(r.slug)}">
+    <td class="c-cover"><span class="thumb"><img src="${file("cover", r.slug)}" alt="" loading="lazy"></span></td>
+    <td class="c-video">
+      <div class="no">${label(r)} · ${esc(r.length)}</div>
+      <button type="button" class="open" data-open>${esc(r.title)}</button>
+      <p class="hook">“${esc(r.hook)}”</p>
+      <p class="review">${esc(r.review)}</p>
+    </td>
+    <td class="c-review">
+      <span class="chip ${r.review_ok ? "ok" : "warn"}">${r.review_ok ? "Reviewed" : "Needs review"}</span>
+      <label class="tick"><input type="checkbox" data-k="review_ok" ${r.review_ok ? "checked" : ""}> Approved</label>
+    </td>
+    <td class="c-ig" data-label="Instagram">${statusSelect("ig_status", r, "Instagram")}</td>
+    <td class="c-tt" data-label="TikTok">${statusSelect("tt_status", r, "TikTok")}</td>
+    <td class="c-files">${downloads(r)}</td>
+  </tr>`).join("");
 }
+function renderPanel() {
+  const list = shownRows(), i = list.findIndex((x) => x.slug === current);
+  const r = list[i] || rows().find((x) => x.slug === current);
+  $("#panel").dataset.slug = r.slug;
+  $("#panel").innerHTML = `
+    <div class="nav"><button type="button" data-step="-1" ${i <= 0 ? "disabled" : ""}>‹ Previous</button><button type="button" data-step="1" ${i < 0 || i >= list.length - 1 ? "disabled" : ""}>Next ›</button></div>
+    <div>
+      <div class="no">${label(r)} · ${esc(r.length)}</div>
+      <div class="title" id="v-title">${esc(r.title)}</div>
+      <p class="hook">“${esc(r.hook)}”</p>
+    </div>
+    <p class="review">${esc(r.review)}</p>
+    <div class="state">
+      <span class="chip ${r.review_ok ? "ok" : "warn"}">${r.review_ok ? "Reviewed" : "Needs review"}</span>
+      <label class="tick"><input type="checkbox" data-k="review_ok" ${r.review_ok ? "checked" : ""}> Approved to post</label>
+      <label class="tick">Instagram ${statusSelect("ig_status", r, "Instagram")}</label>
+      <label class="tick">TikTok ${statusSelect("tt_status", r, "TikTok")}</label>
+    </div>
+    <div>${downloads(r)}</div>
+    <div><h3>Instagram caption</h3><pre>${esc(r.ig)}</pre><div class="tags">${esc(r.tags_ig)}</div><button type="button" class="copy" data-copy="ig">Copy Instagram caption</button></div>
+    <div><h3>TikTok caption</h3><pre>${esc(r.tt)}</pre><div class="tags">${esc(r.tags_tt)}</div><button type="button" class="copy" data-copy="tt">Copy TikTok caption</button></div>
+    <div><label class="lbl" for="v-notes">Team notes</label><textarea id="v-notes" data-k="notes" placeholder="Who approved it, when it went live, links…">${esc(r.notes)}</textarea></div>`;
+  viewer.setAttribute("aria-labelledby", "v-title");
+}
+function openViewer(slug) {
+  current = slug;
+  renderPanel();
+  player.poster = file("igcover", slug);
+  player.src = file("ig", slug);
+  if (!viewer.open) { viewer.showModal(); document.body.classList.add("locked"); }
+  player.play().catch(() => {});
+  player.focus({ preventScroll: true });
+}
+function step(d) {
+  const list = shownRows(), i = list.findIndex((x) => x.slug === current);
+  if (list[i + d]) openViewer(list[i + d].slug);
+}
+viewer.addEventListener("close", () => { player.pause(); player.removeAttribute("src"); player.load(); document.body.classList.remove("locked"); current = null; });
+viewer.addEventListener("keydown", (e) => {
+  if (e.target.closest("textarea, input, select")) return;
+  if (e.key === "ArrowRight") { e.preventDefault(); step(1); }
+  if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
+});
 async function api(r, opts) {
   const res = await fetch("/api/social?r=" + r, opts);
   if (res.status === 401) { location.reload(); throw new Error("logged out"); }
@@ -179,28 +270,30 @@ async function load() {
 async function save(slug, field, value) {
   state[slug] = { ...(state[slug] || {}), [field]: value };
   render();
+  if (current === slug && field !== "notes") renderPanel();
   try { await api("update", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, field, value }) }); toast("Saved"); }
   catch (e) { toast(e.message || "Couldn't save. Try again."); load(); }
 }
 document.addEventListener("change", (e) => {
-  const el = e.target, row = el.closest(".row"); if (!row || !el.dataset.k) return;
+  const el = e.target, row = el.closest("[data-slug]"); if (!row || !el.dataset.k) return;
   save(row.dataset.slug, el.dataset.k, el.type === "checkbox" ? el.checked : el.value);
 });
 document.addEventListener("click", async (e) => {
   const f = e.target.closest(".filters button");
   if (f) { filter = f.dataset.f; document.querySelectorAll(".filters button").forEach((b) => b.setAttribute("aria-pressed", b === f)); render(); return; }
-  const row = e.target.closest(".row"); if (!row) return;
-  const r = rows().find((x) => x.slug === row.dataset.slug);
-  if (e.target.closest("[data-play]")) {
-    row.querySelector(".media").innerHTML = `<video src="${file("ig", r.slug)}" controls autoplay playsinline poster="${file("cover", r.slug)}"></video>`;
-    return;
-  }
+  if (e.target.closest("[data-close]") || e.target === viewer || e.target.classList.contains("viewer")) { viewer.close(); return; }
+  const s = e.target.closest("[data-step]"); if (s) { step(Number(s.dataset.step)); return; }
   const c = e.target.closest("[data-copy]");
   if (c) {
+    const r = rows().find((x) => x.slug === c.closest("[data-slug]").dataset.slug);
     const text = c.dataset.copy === "ig" ? r.ig + "\n\n" + r.tags_ig : r.tt + " " + r.tags_tt;
     try { await navigator.clipboard.writeText(text); toast("Caption copied"); }
     catch { const sel = getSelection(), rg = document.createRange(); rg.selectNodeContents(c.parentElement.querySelector("pre")); sel.removeAllRanges(); sel.addRange(rg); toast("Selected. Press copy on your keyboard."); }
+    return;
   }
+  // Anywhere else on a table row opens the preview; its own controls and download links keep working.
+  const tr = e.target.closest("#list tr[data-slug]");
+  if (tr && !e.target.closest("a, input, select, label, textarea")) openViewer(tr.dataset.slug);
 });
 render();
 load();
