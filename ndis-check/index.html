@@ -247,7 +247,7 @@
 .nc-thanks .nc-hint{font-size:23px}
 .nc-thanks .nc-go{margin-top:8px}
 @keyframes nc-stamp{from{opacity:0;transform:scale(1.8) rotate(-14deg)}to{opacity:1;transform:scale(1) rotate(-6deg)}}
-.nc-steps{counter-reset:s;list-style:none;margin:6px 0 18px;background:repeating-linear-gradient(#F6F2EA 0 33px,#C8D3DC 33px 34px);border:1.5px solid rgba(30,25,18,.4);padding:4px 14px 6px 46px;position:relative;text-align:left}
+.nc-steps{counter-reset:s;list-style:none;margin:14px 0 30px;background:repeating-linear-gradient(#F6F2EA 0 33px,#C8D3DC 33px 34px);border:1.5px solid rgba(30,25,18,.4);padding:4px 14px 6px 46px;position:relative;text-align:left}
 .nc-steps::before{content:"";position:absolute;left:34px;top:0;bottom:0;width:1.5px;background:#C98F8F}
 .nc-steps li{counter-increment:s;font:400 20px/34px var(--body);position:relative}
 .nc-steps li::before{content:counter(s);position:absolute;left:-36px;font:400 24px/34px var(--hand);color:var(--pur)}
@@ -293,20 +293,21 @@
 .nc-rule b{display:block;font:400 26px/1.1 var(--hand);color:var(--pur)}
 .nc-rule span{font:400 17px/1.3 var(--body);color:var(--gr)}
 /* Plain-language explainer under the checker: what search engines and people who want detail read. */
-.nc-info{max-width:760px;margin:52px auto 0;font:400 20px/1.45 var(--body);color:var(--ink)}
-.nc-info h2{font:400 34px/1.1 var(--hand);margin:36px 0 10px;text-align:center}
-.nc-info p{margin:0 0 12px}
+.nc-info{max-width:760px;margin:110px auto 0;font:400 20px/1.6 var(--body);color:var(--ink)}
+.nc-info h2{font:400 36px/1.1 var(--hand);margin:96px 0 24px;text-align:center}
+.nc-info h2:first-child{margin-top:0}
+.nc-info p{margin:0 0 22px}
 .nc-steps b{font-weight:400;font-family:var(--hand);font-size:21px;color:var(--pur)}
 .nc-info a{color:var(--pur);text-decoration:underline}
-.nc-table{width:100%;border-collapse:collapse;background:var(--card);border:1.5px solid rgba(30,25,18,.45);margin:8px 0 6px}
-.nc-table th,.nc-table td{padding:8px 14px;border-bottom:1px dashed rgba(30,25,18,.3);text-align:left}
+.nc-table{width:100%;border-collapse:collapse;background:var(--card);border:1.5px solid rgba(30,25,18,.45);margin:14px 0 14px}
+.nc-table th,.nc-table td{padding:12px 18px;border-bottom:1px dashed rgba(30,25,18,.3);text-align:left}
 .nc-table th{font:400 22px var(--hand);color:var(--pur)}
 .nc-table td:last-child,.nc-table th:last-child{text-align:right}
 .nc-src{font-size:15px;color:var(--gr)}
-.nc-faq details{background:var(--card);border:1.5px solid rgba(30,25,18,.45);margin:0 0 10px;padding:12px 16px}
+.nc-faq details{background:var(--card);border:1.5px solid rgba(30,25,18,.45);margin:0 0 16px;padding:16px 20px}
 .nc-faq summary{cursor:pointer;font:400 23px/1.2 var(--hand);color:var(--ink)}
-.nc-faq details p{margin:8px 0 0}
-.nc-again{text-align:center;margin-top:22px}
+.nc-faq details p{margin:10px 0 0}
+.nc-again{text-align:center;margin-top:48px}
 .nc-again a{display:inline-block;text-decoration:none;color:#F6F2EA}
 @media (max-width:700px){
   .nc{padding:14px 12px 44px}
