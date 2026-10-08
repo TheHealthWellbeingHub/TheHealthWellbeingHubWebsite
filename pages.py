@@ -218,7 +218,7 @@ def build(render, SITE, C):
     render(
         "ndis_check.html", path,
         title="NDIS Check: Could the NDIS Help? | The Health & Well-being Hub",
-        meta_description="A quick, plain-language guide to whether the NDIS could help you or someone you care for. Five taps, about a minute. Only the NDIA can decide who can join.",
+        meta_description="Can the NDIS help? Find out in 5 taps. Takes 1 minute. Only the NDIA can decide who can join.",
         robots="noindex, nofollow",
         sitemap=False,
         breadcrumbs=crumbs(("NDIS Check", path)),
