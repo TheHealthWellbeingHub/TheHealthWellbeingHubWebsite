@@ -88,6 +88,11 @@
 .nc-stamp{display:inline-block;font:400 26px/1 var(--hand);letter-spacing:.06em;color:var(--pur);border:3px solid var(--pur);border-radius:6px;padding:8px 14px 6px;transform:rotate(-6deg);margin:0 0 10px;
   animation:nc-stamp .5s .15s cubic-bezier(.3,1.6,.5,1) both;mix-blend-mode:multiply}
 .nc-stamp.grey{color:var(--gr);border-color:var(--gr)}
+.nc-done{width:110px;height:110px;margin:4px auto 14px;display:block}
+.nc-done circle{fill:var(--pur);stroke:var(--ink);stroke-width:3}
+.nc-done path{fill:none;stroke:#fff;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:90;stroke-dashoffset:90;animation:nc-draw .6s .25s ease-out forwards}
+.nc-thanks .nc-hint{font-size:23px}
+.nc-thanks .nc-go{margin-top:8px}
 @keyframes nc-stamp{from{opacity:0;transform:scale(1.8) rotate(-14deg)}to{opacity:1;transform:scale(1) rotate(-6deg)}}
 .nc-steps{counter-reset:s;list-style:none;margin:6px 0 18px;background:repeating-linear-gradient(#F6F2EA 0 33px,#C8D3DC 33px 34px);border:1.5px solid rgba(30,25,18,.4);padding:4px 14px 6px 46px;position:relative;text-align:left}
 .nc-steps::before{content:"";position:absolute;left:34px;top:0;bottom:0;width:1.5px;background:#C98F8F}
@@ -500,6 +505,28 @@
       card.querySelector('.nc-slot').appendChild(form);
     }
     fit();
+  }
+
+  // Sent: a full thank-you in place of the result. The form goes back to the page, ready for another check.
+  var firstName = '';
+  if (form) {
+    form.addEventListener('submit', function () { firstName = (form.elements.name.value || '').trim().split(/\s+/)[0]; });
+    form.addEventListener('hw:sent', function (e) {
+      if (!e.detail || e.detail.delivered !== 'server') return;
+      form.hidden = true;
+      piece.parentNode.insertBefore(form, piece.nextSibling);
+      form.dataset.hwSubmitted = 'false';
+      var btn = form.querySelector('.form-submit'); btn.disabled = false; btn.innerHTML = 'Send &rarr;';
+      var st = form.querySelector('.form-status'); st.textContent = ''; st.className = 'form-status';
+      history = [];
+      pic('yes', '');
+      show('<div class="nc-thanks"><svg class="nc-done" viewBox="0 0 110 110" aria-hidden="true"><circle cx="55" cy="55" r="50"/><path d="M32 57 L48 73 L79 40"/></svg>'
+        + '<h2 class="nc-q" tabindex="-1">Thank you' + (firstName ? ', ' + firstName.replace(/[<>&"]/g, '') : '') + '!</h2>'
+        + '<p class="nc-hint">We’ll get back to you within 2 business hours. After hours, it will be the next business day.</p>'
+        + '<p class="nc-note">Look out for our email.</p>'
+        + '<div class="nc-opts"><button type="button" class="nc-btn nc-go" data-action="restart">Do the check again</button></div></div>', 0);
+      fit();
+    });
   }
 
   card.addEventListener('click', function (e) {
