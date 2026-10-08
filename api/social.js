@@ -14,6 +14,7 @@
 //   POST /api/social?r=update              JSON: { slug, field, value }   (post_on: 'YYYY-MM-DD' or null)
 //   GET  /api/social?r=file&kind=ig|tt|cover|igcover&slug=…[&dl=1]   302 to a signed link
 //        (cover = TikTok cover, igcover = Instagram cover; both 1080x1920)
+//   GET  /api/social?r=links&slugs=a,b[&days=120]   JSON of long-lived ig/tt video links for a scheduler
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -108,6 +109,22 @@ module.exports = async (req, res) => {
         body: JSON.stringify({ [field]: value, updated_at: new Date().toISOString() }),
       });
       return res.status(200).json({ ok: true });
+    }
+    // Long-lived direct links for a scheduler (Buffer) that fetches the video only when the post goes
+    // out. Only the videos asked for, for at most 180 days.
+    if (r === 'links' && req.method === 'GET') {
+      const days = Math.min(Math.max(Number(req.query.days) || 120, 1), 180);
+      const wanted = String(req.query.slugs || '').split(',').filter((s) => SLUGS.has(s));
+      const links = {};
+      for (const slug of wanted) {
+        const video = LIBRARY.find((v) => v.slug === slug);
+        links[slug] = {
+          ig: await storageSignedUrl(BUCKET, objectPath('ig', video), days * 86400),
+          tt: await storageSignedUrl(BUCKET, objectPath('tt', video), days * 86400),
+        };
+      }
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({ ok: true, days, links });
     }
     if (r === 'file' && req.method === 'GET') {
       const { kind, slug, dl } = req.query;
