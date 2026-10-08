@@ -189,7 +189,7 @@
 {% block content %}
 <section class="nc" aria-labelledby="nc-title">
   <div class="nc-top">
-    <h1 class="nc-eyebrow"><span class="nc-mark" aria-hidden="true">H<i>&amp;</i>W</span>NDIS Eligibility Checker</h1>
+    <h1 class="nc-eyebrow"><span class="nc-mark" aria-hidden="true">H<i>&amp;</i>W</span>NDIS Check · Eligibility Checker</h1>
     <div class="nc-prog" id="nc-prog" hidden aria-hidden="true"></div>
   </div>
 
@@ -237,9 +237,9 @@
   </div>
 
   <div class="nc-info">
-    <h2>About this NDIS eligibility checker</h2>
-    <p>This free NDIS eligibility checker asks 7 quick questions. It shows if the NDIS could help you, or someone you care for. It also shows what an NDIS plan could include, and a rough guess of how much a plan could be each year.</p>
-    <p>It takes about 1 minute. You don’t need to sign up. It is a guide only. The NDIA (National Disability Insurance Agency) decides who can join, after you apply.</p>
+    <h2>About NDIS Check</h2>
+    <p>NDIS Check is a free NDIS eligibility checker. It asks 7 quick questions. It shows if the NDIS could help you, or someone you care for. It also shows what an NDIS plan could include, and a rough guess of how much a plan could be each year.</p>
+    <p>It takes about 1 minute. You don’t need to sign up. It is a guide only. The NDIA (National Disability Insurance Agency) decides who can join, after you apply. Read the full <a href="{{ url('/ndis-eligibility/') }}">NDIS eligibility criteria</a>.</p>
 
     <h2>How much NDIS funding could I get?</h2>
     <p>Every plan is different. It depends on your needs and goals, not your income. The checker’s guess uses the NDIA’s own figures for people of the same age, with the same kind of disability, who need about the same help.</p>
@@ -251,6 +251,7 @@
       {% endfor %}</tbody>
     </table>
     <p class="nc-src">Source: NDIA Quarterly Report, Supplement E, March 2026. The average across all NDIS plans is about $85,000 a year.</p>
+    <p>More figures, by disability too: <a href="{{ url('/ndis-funding/') }}">NDIS funding: how much could you get?</a></p>
 
     <h2>How to apply for the NDIS</h2>
     <ol class="nc-steps">
@@ -259,6 +260,7 @@
       <li><b>Send your application to the NDIA.</b> This is called an access request.</li>
       <li><b>The NDIA decides.</b> If you can join, you get an NDIS plan.</li>
     </ol>
+    <p>The full guide: <a href="{{ url('/how-to-apply-for-ndis/') }}">how to apply for the NDIS</a>.</p>
     <p>You don’t have to do this alone. Leave your name and email in the checker, and we’ll get back to you within 2 business hours. We’ll explain each step, in your language.</p>
     <p>We are a registered NDIS provider in Logan, Queensland. Our team speaks English, Arabic, Somali, Dari and Amharic. See <a href="{{ url('/services/') }}">our NDIS services</a> or <a href="{{ url('/multilingual-ndis-support/') }}">our multilingual support</a>.</p>
 
@@ -267,7 +269,7 @@
       {% for f in faqs %}<details><summary>{{ f.q }}</summary><p>{{ f.a }}</p></details>
       {% endfor %}
     </div>
-    <p class="nc-again"><a class="nc-btn nc-go" href="#nc-card" data-track="ndis_check_click" data-track-location="ndis_check_faq">Start the NDIS eligibility check &uarr;</a></p>
+    <p class="nc-again"><a class="nc-btn nc-go" href="#nc-card" data-track="ndis_check_click" data-track-location="ndis_check_faq">Start NDIS Check &uarr;</a></p>
   </div>
 </section>
 {% endblock %}

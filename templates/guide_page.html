@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-eyebrow">{{ icon('list-check') }} {{ guide.category }}</div>
+    <h1 class="page-h1">{{ guide.title }}</h1>
+    <p class="page-sub">{{ guide.dek }}</p>
+    <div class="page-hero-btns">
+      <a href="{{ url('/ndis-check/') }}" class="btn-hero-primary" data-track="ndis_check_click" data-track-location="guide_hero">{{ icon('arrow-right') }} Try NDIS Check, free</a>
+    </div>
+  </div>
+</section>
+
+<div class="section">
+  <div class="section-inner layout-split">
+    <article class="prose">
+      {% for block in guide.body %}
+        {% if block.type == 'p' %}<p>{{ block.text }}</p>
+        {% elif block.type == 'html' %}<p>{{ block.text | safe }}</p>
+        {% elif block.type == 'h2' %}<h2>{{ block.text }}</h2>
+        {% elif block.type == 'ul' %}<ul>{% for i in block['items'] %}<li>{{ i }}</li>{% endfor %}</ul>
+        {% elif block.type == 'ol' %}<ol>{% for i in block['items'] %}<li>{{ i }}</li>{% endfor %}</ol>
+        {% elif block.type == 'table' %}
+        <table class="guide-table">
+          <thead><tr>{% for h in block.head %}<th scope="col">{{ h }}</th>{% endfor %}</tr></thead>
+          <tbody>{% for r in block.rows %}<tr>{% for c in r %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+        </table>
+        {% if block.note %}<p class="guide-note">{{ block.note }}</p>{% endif %}
+        {% elif block.type == 'check' %}
+        <div class="guide-check">
+          <p>{{ block.text }}</p>
+          <a href="{{ url('/ndis-check/') }}" class="btn-hero-primary" data-track="ndis_check_click" data-track-location="guide_{{ guide.slug }}">{{ icon('list-check') }} Start NDIS Check</a>
+        </div>
+        {% endif %}
+      {% endfor %}
+
+      <h2>Questions people ask</h2>
+      <div class="faq-grid single">
+        {% for f in guide.faqs %}
+        <details class="faq-item">
+          <summary>{{ f.q }} {{ icon('chevron-down') }}</summary>
+          <div class="faq-a">{{ f.a }}</div>
+        </details>
+        {% endfor %}
+      </div>
+
+      <div class="article-cta">
+        <p>Can you get the NDIS? Find out in 1 minute.</p>
+        <div class="page-hero-btns" style="justify-content:center">
+          <a href="{{ url('/ndis-check/') }}" class="btn-hero-primary" data-track="ndis_check_click" data-track-location="guide_bottom_cta">{{ icon('list-check') }} Start NDIS Check</a>
+          <a href="{{ url(site.enquire_url) }}" class="btn-hero-ghost on-light" data-track="enquiry_cta_click" data-track-location="guide_bottom_cta">{{ icon('arrow-right') }} Talk to our team</a>
+        </div>
+      </div>
+      <p class="guide-note">This guide is general information, not advice about your situation. The NDIA decides who can join and what a plan includes.</p>
+    </article>
+
+    <aside>
+      <div class="side-card navy">
+        <div class="side-card-title">NDIS Check</div>
+        <p>Free NDIS eligibility checker. 7 quick questions. See what a plan could include, and a funding estimate.</p>
+        <a href="{{ url('/ndis-check/') }}" class="side-cta-btn" data-track="ndis_check_click" data-track-location="guide_sidebar">{{ icon('list-check') }} Start NDIS Check</a>
+      </div>
+      <div class="side-card">
+        <div class="side-card-title">NDIS guides</div>
+        <div class="side-list">
+          {% for g in guides %}{% if g.slug != guide.slug %}
+          <a href="{{ url('/' + g.slug + '/') }}">{{ icon('arrow-right') }} {{ g.nav }}</a>
+          {% endif %}{% endfor %}
+          <a href="{{ url('/blog/') }}">{{ icon('arrow-right') }} All NDIS resources</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}
