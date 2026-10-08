@@ -23,26 +23,28 @@
 .nc-prog[hidden]{display:none}
 
 /* the picture */
-.nc-piece{max-width:760px;margin:0 auto}
-.nc-scene{position:relative;aspect-ratio:16/10;mix-blend-mode:multiply}
-.nc-scene .lyr{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%;opacity:0;transition:opacity .45s ease;
-  -webkit-mask-image:radial-gradient(ellipse 66% 64% at 50% 44%,#000 52%,transparent 100%);mask-image:radial-gradient(ellipse 66% 64% at 50% 44%,#000 52%,transparent 100%)}
+.nc-piece{position:relative;max-width:1040px;margin:0 auto;--lead:300px;padding-top:var(--lead)}
+/* The picture sits behind the card: it shows above and beside it, and runs down behind ~80% of it (height set by JS). */
+.nc-scene{position:absolute;left:0;right:0;top:0;height:var(--sh,680px);mix-blend-mode:multiply;z-index:0;transition:height .4s ease}
+.nc-scene .lyr{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 8%;opacity:0;transition:opacity .45s ease;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 6%,#000 72%,transparent 100%),linear-gradient(to right,transparent 0,#000 12%,#000 88%,transparent 100%);-webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to bottom,transparent 0,#000 6%,#000 72%,transparent 100%),linear-gradient(to right,transparent 0,#000 12%,#000 88%,transparent 100%);mask-composite:intersect}
 .nc-scene .lyr.on{opacity:1;animation:nc-drift 14s ease-in-out infinite alternate}
 @keyframes nc-drift{from{transform:scale(1)}to{transform:scale(1.06) translateY(-1%)}}
 /* taped handwritten label on the picture */
-.nc-label{position:absolute;left:9%;top:12%;z-index:3;background:var(--card);padding:8px 18px 6px;font:400 30px/1 var(--hand);color:var(--ink);
+.nc-label{position:absolute;left:12%;top:34px;z-index:3;background:var(--card);padding:8px 18px 6px;font:400 30px/1 var(--hand);color:var(--ink);
   border:1.5px solid rgba(30,25,18,.4);box-shadow:3px 4px 0 rgba(30,25,18,.15);transform:rotate(-4deg) scale(.6);opacity:0;transition:opacity .2s,transform .3s cubic-bezier(.3,1.6,.5,1)}
 .nc-label::before{content:"";position:absolute;top:-10px;left:50%;width:60px;height:20px;margin-left:-30px;background:var(--tape);transform:rotate(4deg)}
 .nc-label.on{opacity:1;transform:rotate(-4deg) scale(1)}
 /* polaroids for the things picked in the last question */
-.nc-snaps{position:absolute;right:6%;top:8%;z-index:3;width:46%;height:70%;pointer-events:none}
+.nc-snaps{position:absolute;right:12%;top:18px;z-index:3;width:34%;height:calc(var(--lead) - 30px);pointer-events:none}
 .nc-snap{position:absolute;width:38%;background:#F8F5EE;padding:5px 5px 18px;box-shadow:2px 3px 6px rgba(0,0,0,.25);animation:nc-drop .35s cubic-bezier(.3,1.5,.5,1) both}
 .nc-snap img{width:100%;aspect-ratio:1;object-fit:cover;object-position:50% 35%;display:block;filter:sepia(.15)}
 .nc-snap b{position:absolute;left:0;right:0;bottom:1px;text-align:center;font:400 14px/1 var(--hand);color:var(--ink)}
 @keyframes nc-drop{from{opacity:0;transform:translateY(-30px) rotate(0) scale(1.3)}}
 
 /* the question card, laid over the bottom of the picture */
-.nc-card{position:relative;z-index:4;max-width:580px;margin:-92px auto 0;background:var(--card);border:1.5px solid rgba(30,25,18,.5);padding:30px 28px 24px;text-align:center;
+.nc-card{position:relative;z-index:4;max-width:580px;margin:0 auto;background:var(--card);border:1.5px solid rgba(30,25,18,.5);padding:30px 28px 24px;text-align:center;
   box-shadow:6px 8px 0 rgba(30,25,18,.12);transform:rotate(-.5deg);
   clip-path:polygon(0 1%,4% 0,12% 1.2%,25% .2%,40% 1%,55% 0,70% 1.1%,86% .2%,100% 1%,99.4% 30%,100% 62%,99.2% 100%,80% 99.2%,60% 100%,38% 99%,18% 100%,1% 99.3%,.4% 70%,0 35%)}
 .nc-card::before{content:"";position:absolute;top:-6px;left:50%;width:120px;height:28px;margin-left:-60px;background:var(--tape);transform:rotate(-3deg)}
@@ -111,10 +113,12 @@
   .nc-eyebrow{position:static;margin-right:auto}
   .nc-series{display:none}
   .nc-top{justify-content:space-between}
-  .nc-scene{aspect-ratio:4/3;margin:0 -12px}
-  .nc-label{font-size:24px;left:6%;top:8%}
-  .nc-snaps{right:2%;top:32%;width:60%;height:60%}
-  .nc-card{margin-top:-56px;padding:26px 16px 20px}
+  .nc-piece{--lead:215px}
+  .nc-scene{left:-12px;right:-12px}
+  .nc-scene .lyr{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 72%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 72%,transparent 100%)}
+  .nc-label{font-size:24px;left:5%;top:18px}
+  .nc-snaps{right:3%;top:58px;width:58%;height:calc(var(--lead) - 70px)}
+  .nc-card{padding:26px 16px 20px}
   .nc-opts.two,.nc-ctas{grid-template-columns:1fr}
   .nc-tile{flex-direction:column;gap:4px;font-size:18px;line-height:1.1;padding:9px 6px;text-align:center;justify-content:center}
   .nc-tile svg{flex-basis:28px;width:28px;height:28px}
@@ -173,6 +177,11 @@ window.NC_SITE = { phone: "{{ site.phone_display }}", tel: "{{ site.phone_tel }}
   var card = document.getElementById('nc-card'), prog = document.getElementById('nc-prog');
   var scene = document.getElementById('nc-scene'), label = document.getElementById('nc-label'), snaps = document.getElementById('nc-snaps');
   var lyrs = scene.querySelectorAll('.lyr');
+  // The picture runs down behind 80% of the card, whatever the card's height.
+  var piece = scene.parentNode;
+  function fit() { piece.style.setProperty('--sh', Math.round(card.offsetTop + card.offsetHeight * 0.8) + 'px'); }
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(card); else window.addEventListener('resize', fit);
+  fit();
   var IMG = '/static/img/ndis-check/';
   var A = {}, history = [], current = null, base = 'start';
   var them = function () { return A.who === 'them'; };
