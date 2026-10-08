@@ -210,17 +210,15 @@ def build(render, SITE, C):
     )
 
     # ------------------------------------------------------------------
-    # NDIS CHECK — a quick, illustrated "could the NDIS help?" guide.
-    # Eligibility wording is a compliance matter: kept noindex and out of
-    # the sitemap and nav until a human has reviewed it.
+    # NDIS CHECK — a quick, illustrated "could the NDIS help?" guide with a
+    # rough plan range. Eligibility and funding wording is a compliance
+    # matter: reviewed and approved for publishing 8 Oct 2026.
     # ------------------------------------------------------------------
     path = "/ndis-check/"
     render(
         "ndis_check.html", path,
         title="NDIS Check: Could the NDIS Help? | The Health & Well-being Hub",
         meta_description="Can the NDIS help, and how much might a plan be? Find out in 1 minute. Only the NDIA can decide who can join.",
-        robots="noindex, nofollow",
-        sitemap=False,
         breadcrumbs=crumbs(("NDIS Check", path)),
         schema_json=S.graph(
             S.webpage_node(SITE, path, "NDIS Check", "A quick guide to whether the NDIS could help."),
