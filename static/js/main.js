@@ -216,6 +216,8 @@
         }
         if (submitBtn) submitBtn.textContent = 'Sent';
         // submitBtn stays disabled: this form has already converted once.
+        // Lets a page show its own thank-you (the NDIS Check does).
+        form.dispatchEvent(new CustomEvent('hw:sent', { detail: { delivered: delivered } }));
       };
 
       if (FORM_ENDPOINT) {
