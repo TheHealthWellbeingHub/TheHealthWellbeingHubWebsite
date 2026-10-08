@@ -11,7 +11,7 @@
 //   POST /api/social?r=login               form: username, password
 //   POST /api/social?r=logout
 //   GET  /api/social?r=status              statuses for every video
-//   POST /api/social?r=update              JSON: { slug, field, value }
+//   POST /api/social?r=update              JSON: { slug, field, value }   (post_on: 'YYYY-MM-DD' or null)
 //   GET  /api/social?r=file&kind=ig|tt|cover|igcover&slug=…[&dl=1]   302 to a signed link
 //        (cover = TikTok cover, igcover = Instagram cover; both 1080x1920)
 const crypto = require('crypto');
@@ -91,7 +91,7 @@ module.exports = async (req, res) => {
 
   try {
     if (r === 'status' && req.method === 'GET') {
-      const rows = await rest('/social_videos?select=slug,review_ok,ig_status,tt_status,notes,updated_at', { method: 'GET' });
+      const rows = await rest('/social_videos?select=slug,review_ok,ig_status,tt_status,notes,post_on,updated_at', { method: 'GET' });
       res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json({ ok: true, rows });
     }
@@ -100,7 +100,8 @@ module.exports = async (req, res) => {
       if (!SLUGS.has(slug)) return res.status(400).json({ ok: false, error: 'Unknown video.' });
       const valid = (field === 'review_ok' && typeof value === 'boolean')
         || ((field === 'ig_status' || field === 'tt_status') && STATUSES.includes(value))
-        || (field === 'notes' && typeof value === 'string' && value.length <= 4000);
+        || (field === 'notes' && typeof value === 'string' && value.length <= 4000)
+        || (field === 'post_on' && (value === null || (/^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)))));
       if (!valid) return res.status(400).json({ ok: false, error: 'That change isn’t allowed.' });
       await rest(`/social_videos?slug=eq.${encodeURIComponent(slug)}`, {
         method: 'PATCH',
