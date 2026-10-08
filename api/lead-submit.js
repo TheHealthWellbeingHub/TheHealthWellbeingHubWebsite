@@ -12,7 +12,8 @@
 // written — no more "resubmit to a hidden HubSpot form to trigger a
 // workflow" detour, because there is no workflow to trigger any more.
 const { rest, insertOne, updateOne, selectOne, selectMany } = require('./_lib/supabase');
-const { sendTemplateEmail } = require('./_lib/mailer');
+const { sendTemplateEmail, escapeHtml } = require('./_lib/mailer');
+const { sendEmail } = require('./_mail');
 const { sendOnboardingEmail } = require('./_lib/onboarding');
 
 // --- Abuse protection (identical to hubspot-submit.js) --------------------
@@ -402,6 +403,51 @@ function buildEnquiryNote(f, sourcePage, campaign) {
     f.additional_info ? `Additional info: ${f.additional_info}` : null,
   ].filter(Boolean);
   return lines.join('\n');
+}
+
+// The office hears about every NDIS Check enquiry straight away, with all the
+// answers, so nobody has to ask the family the same questions again.
+const NDIS_CHECK_NOTIFY = process.env.NDIS_CHECK_NOTIFY_EMAIL || 'officethehealthwellbeinghub@gmail.com';
+
+// A header can't carry raw UTF-8 (names in Arabic, Amharic…): encode it if needed.
+function mimeHeader(s) {
+  const clean = String(s).replace(/[\r\n]+/g, ' ');
+  return /^[\x20-\x7e]*$/.test(clean) ? clean : `=?UTF-8?B?${Buffer.from(clean, 'utf-8').toString('base64')}?=`;
+}
+
+async function notifyNdisCheck(f, lead) {
+  const rows = [
+    ['Reference', lead.reference],
+    ['Name', f.name || '(not given)'],
+    ['Email', f.email || '(not given)'],
+    ['I am a', f.enquirer_role],
+    ['Service to talk about', f.service_needed],
+  ].filter(([, v]) => v);
+  const answers = String(f.additional_info || '').split('\n').filter((l) => l && l !== 'NDIS Check answers:')
+    .map((l) => { const i = l.indexOf(': '); return i > 0 ? [l.slice(0, i), l.slice(i + 2)] : ['', l]; });
+  const text = [
+    `New NDIS Check enquiry — ${lead.reference || ''}`,
+    '',
+    ...rows.map(([k, v]) => `${k}: ${v}`),
+    '',
+    'Their answers:',
+    ...answers.map(([k, v]) => (k ? `${k}: ${v}` : v)),
+    '',
+    'It is in the Command Centre under this reference, with a task to contact them within 2 business hours.',
+  ].join('\n');
+  const tr = ([k, v]) => `<tr><td style="padding:4px 12px 4px 0;color:#555;vertical-align:top">${escapeHtml(k)}</td><td style="padding:4px 0"><b>${escapeHtml(v)}</b></td></tr>`;
+  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;color:#1E1912">
+<h2 style="color:#7B2D8B;margin:0 0 12px">New NDIS Check enquiry — ${escapeHtml(lead.reference)}</h2>
+<table style="border-collapse:collapse">${rows.map(tr).join('')}</table>
+<h3 style="margin:18px 0 6px">Their answers</h3>
+<table style="border-collapse:collapse">${answers.map(tr).join('')}</table>
+<p style="color:#555">It is in the Command Centre under this reference, with a task to contact them within 2 business hours.</p></div>`;
+  await sendEmail({
+    to: NDIS_CHECK_NOTIFY,
+    subject: mimeHeader(`New NDIS Check enquiry: ${f.name || f.email || 'no name'} (${lead.reference})`),
+    text,
+    html,
+  });
 }
 
 function buildReferralNote(f, sourcePage, campaign, isStaffEntry, contactWasReferrers) {
@@ -897,6 +943,10 @@ module.exports = async (req, res) => {
     }
 
     const reference = lead.reference;
+
+    if (formName === 'enquiry' && !isStaffEntry && f.ndis_check === 'yes') {
+      await notifyNdisCheck(f, lead).catch((err) => console.error('NDIS Check notification not sent:', err.message));
+    }
 
     // ---- Acknowledgement, sent directly, no HubSpot workflow needed -----
     let acknowledgementStatus = 'not_applicable';
