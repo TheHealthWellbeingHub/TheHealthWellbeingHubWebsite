@@ -13,7 +13,7 @@
   background:#E6DFD1 url(/static/img/ndis-check/paper.webp) center/700px repeat;color:var(--ink);padding:22px 16px 56px;overflow:hidden}
 .nc *{box-sizing:border-box}
 .nc-top{position:relative;display:flex;align-items:center;justify-content:center;max-width:760px;margin:0 auto 6px;min-height:40px}
-.nc-eyebrow{position:absolute;left:0;font:400 15px/1 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--gr)}
+.nc-eyebrow{position:absolute;left:0;margin:0;font:400 15px/1 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--gr)}
 .nc-mark{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;width:38px;height:38px;border-radius:50%;background:var(--card2);border:1.5px solid var(--ink);font:700 12px 'Playfair Display',serif;color:var(--pur);margin-right:8px;vertical-align:middle}
 .nc-mark i{color:#4A7C3F}
 .nc-prog{display:flex;align-items:center}
@@ -135,12 +135,32 @@
 .nc-form .form-status.ok{color:#2f6b2a}
 .nc-more{max-width:760px;margin:44px auto 0;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;text-align:center}
 .nc-more h2{grid-column:1/-1;font:400 36px/1.05 var(--hand);margin:0}
-.nc-rule{display:flex;align-items:center;justify-content:center;text-align:center;background:var(--card);border:1.5px solid rgba(30,25,18,.45);padding:14px 12px;transform:rotate(var(--r,-.8deg));box-shadow:4px 5px 0 rgba(30,25,18,.1)}
+.nc-rule{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;text-align:center;background:var(--card);border:1.5px solid rgba(30,25,18,.45);padding:14px 12px;transform:rotate(var(--r,-.8deg));box-shadow:4px 5px 0 rgba(30,25,18,.1)}
 .nc-rule:nth-child(odd){--r:.9deg}
 .nc-rule b{display:block;font:400 26px/1.1 var(--hand);color:var(--pur)}
+.nc-rule span{font:400 17px/1.3 var(--body);color:var(--gr)}
+/* Plain-language explainer under the checker: what search engines and people who want detail read. */
+.nc-info{max-width:760px;margin:52px auto 0;font:400 20px/1.45 var(--body);color:var(--ink)}
+.nc-info h2{font:400 34px/1.1 var(--hand);margin:36px 0 10px;text-align:center}
+.nc-info p{margin:0 0 12px}
+.nc-steps b{font-weight:400;font-family:var(--hand);font-size:21px;color:var(--pur)}
+.nc-info a{color:var(--pur);text-decoration:underline}
+.nc-table{width:100%;border-collapse:collapse;background:var(--card);border:1.5px solid rgba(30,25,18,.45);margin:8px 0 6px}
+.nc-table th,.nc-table td{padding:8px 14px;border-bottom:1px dashed rgba(30,25,18,.3);text-align:left}
+.nc-table th{font:400 22px var(--hand);color:var(--pur)}
+.nc-table td:last-child,.nc-table th:last-child{text-align:right}
+.nc-src{font-size:15px;color:var(--gr)}
+.nc-faq details{background:var(--card);border:1.5px solid rgba(30,25,18,.45);margin:0 0 10px;padding:12px 16px}
+.nc-faq summary{cursor:pointer;font:400 23px/1.2 var(--hand);color:var(--ink)}
+.nc-faq details p{margin:8px 0 0}
+.nc-again{text-align:center;margin-top:22px}
+.nc-again a{display:inline-block;text-decoration:none;color:#F6F2EA}
 @media (max-width:700px){
   .nc{padding:14px 12px 44px}
-  .nc-eyebrow{position:static;margin-right:auto}
+  .nc-eyebrow{position:static;margin-right:auto;font-size:12px;letter-spacing:.08em;white-space:nowrap}
+  .nc-top{flex-wrap:wrap;row-gap:8px}
+  .nc-prog{width:100%;justify-content:center}
+  .nc-prog i{width:16px}
   .nc-series{display:none}
   .nc-top{justify-content:space-between}
   .nc-piece{--lead:215px}
@@ -169,7 +189,7 @@
 {% block content %}
 <section class="nc" aria-labelledby="nc-title">
   <div class="nc-top">
-    <div class="nc-eyebrow"><span class="nc-mark" aria-hidden="true">H<i>&amp;</i>W</span><span class="nc-series">Now You Know · </span>NDIS Check</div>
+    <h1 class="nc-eyebrow"><span class="nc-mark" aria-hidden="true">H<i>&amp;</i>W</span>NDIS Check · Eligibility Checker</h1>
     <div class="nc-prog" id="nc-prog" hidden aria-hidden="true"></div>
   </div>
 
@@ -181,7 +201,7 @@
       <div class="nc-snaps" id="nc-snaps"></div>
     </div>
     <div class="nc-card in" id="nc-card" aria-live="polite">
-      <h1 class="nc-q" id="nc-title" tabindex="-1">Can the NDIS help? Find out in <em>1 minute<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8 C 50 2, 120 12, 198 5"/></svg></em></h1>
+      <h2 class="nc-q" id="nc-title" tabindex="-1">Can the NDIS help? Find out in <em>1 minute<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8 C 50 2, 120 12, 198 5"/></svg></em></h2>
       <p class="nc-hint">Tap the answers. That’s it.</p>
       <div class="nc-opts">
         <button class="nc-btn nc-go" type="button" data-action="begin" data-track="ndis_check_start" data-track-location="ndis_check">Start &rarr;</button>
@@ -209,11 +229,47 @@
   <noscript><p class="nc-hint" style="text-align:center">This check needs JavaScript. You can call us on <a href="tel:{{ site.phone_tel }}">{{ site.phone_display }}</a> instead.</p></noscript>
 
   <div class="nc-more">
-    <h2>Who can join the NDIS?</h2>
-    <div class="nc-rule"><b>Under 65</b></div>
-    <div class="nc-rule"><b>Lives in Australia</b></div>
-    <div class="nc-rule"><b>Has a disability for life</b></div>
-    <div class="nc-rule"><b>The NDIA decides</b></div>
+    <h2>Who is eligible for the NDIS?</h2>
+    <div class="nc-rule"><b>Under 65</b><span>When you apply.</span></div>
+    <div class="nc-rule"><b>Lives in Australia</b><span>A citizen, a permanent resident, or some New Zealand citizens.</span></div>
+    <div class="nc-rule"><b>Has a disability for life</b><span>It makes everyday life hard without help. Or a young child who needs early support.</span></div>
+    <div class="nc-rule"><b>The NDIA decides</b><span>After you apply.</span></div>
+  </div>
+
+  <div class="nc-info">
+    <h2>About NDIS Check</h2>
+    <p>NDIS Check is a free NDIS eligibility checker. It asks 7 quick questions. It shows if the NDIS could help you, or someone you care for. It also shows what an NDIS plan could include, and a rough guess of how much a plan could be each year.</p>
+    <p>It takes about 1 minute. You don’t need to sign up. It is a guide only. The NDIA (National Disability Insurance Agency) decides who can join, after you apply. Read the full <a href="{{ url('/ndis-eligibility/') }}">NDIS eligibility criteria</a>.</p>
+
+    <h2>How much NDIS funding could I get?</h2>
+    <p>Every plan is different. It depends on your needs and goals, not your income. The checker’s guess uses the NDIA’s own figures for people of the same age, with the same kind of disability, who need about the same help.</p>
+    <p>Here is the average yearly NDIS plan by age, for people who don’t live in 24/7 supported housing:</p>
+    <table class="nc-table">
+      <thead><tr><th scope="col">Age</th><th scope="col">Average plan a year</th></tr></thead>
+      <tbody>
+      {% for age, amount in plan_averages %}<tr><td>{{ age }}</td><td>{{ amount }}</td></tr>
+      {% endfor %}</tbody>
+    </table>
+    <p class="nc-src">Source: NDIA Quarterly Report, Supplement E, March 2026. The average across all NDIS plans is about $85,000 a year.</p>
+    <p>More figures, by disability too: <a href="{{ url('/ndis-funding/') }}">NDIS funding: how much could you get?</a></p>
+
+    <h2>How to apply for the NDIS</h2>
+    <ol class="nc-steps">
+      <li><b>Check your NDIS eligibility.</b> Use the checker above. It takes 1 minute.</li>
+      <li><b>Gather your papers.</b> Proof of age and where you live, and letters or reports about the disability from your doctor or therapist.</li>
+      <li><b>Send your application to the NDIA.</b> This is called an access request.</li>
+      <li><b>The NDIA decides.</b> If you can join, you get an NDIS plan.</li>
+    </ol>
+    <p>The full guide: <a href="{{ url('/how-to-apply-for-ndis/') }}">how to apply for the NDIS</a>.</p>
+    <p>You don’t have to do this alone. Leave your name and email in the checker, and we’ll get back to you within 2 business hours. We’ll explain each step, in your language.</p>
+    <p>We are a registered NDIS provider in Logan, Queensland. Our team speaks English, Arabic, Somali, Dari and Amharic. See <a href="{{ url('/services/') }}">our NDIS services</a> or <a href="{{ url('/multilingual-ndis-support/') }}">our multilingual support</a>.</p>
+
+    <h2>Questions people ask</h2>
+    <div class="nc-faq">
+      {% for f in faqs %}<details><summary>{{ f.q }}</summary><p>{{ f.a }}</p></details>
+      {% endfor %}
+    </div>
+    <p class="nc-again"><a class="nc-btn nc-go" href="#nc-card" data-track="ndis_check_click" data-track-location="ndis_check_faq">Start NDIS Check &uarr;</a></p>
   </div>
 </section>
 {% endblock %}

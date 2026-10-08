@@ -81,7 +81,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 @media(min-width:1025px) and (max-width:1120px){
   .nav-logo-sub{display:none}
-  .nav-link{font-size:12.5px;padding:8px 5px}
+  .nav-link{font-size:12px;padding:8px 4px}
   .nav-refer,.nav-cta{padding:9px 12px;font-size:12.5px}
 }
 
@@ -404,8 +404,18 @@ footer{background:var(--nd);padding:64px 32px 28px}
 .blog-card-link{font-size:13px;font-weight:700;color:var(--p)}
 .blog-meta{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--tm);margin-bottom:18px}
 .blog-hero-cat{color:var(--p);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.08em;margin-bottom:14px}
+.guide-table{width:100%;border-collapse:collapse;margin:8px 0 6px;font-size:15px}
+.guide-table th,.guide-table td{padding:9px 12px;border-bottom:1px solid var(--b);text-align:left}
+.guide-table th{background:var(--pt);color:var(--pd);font-weight:700}
+.guide-table td:last-child,.guide-table th:last-child{text-align:right;white-space:nowrap}
+.guide-note{font-size:13px !important;color:var(--tm) !important}
+.guide-check{background:var(--pt);border:1.5px solid var(--pt2);border-radius:var(--rl);padding:20px 22px;margin:20px 0;text-align:center}
+.guide-check p{font-weight:600;color:var(--pd);margin-bottom:14px !important}
+.guide-check .btn-hero-primary{display:inline-flex}
 .article-cta{background:var(--pt);border:1.5px solid var(--pt2);border-radius:var(--rl);padding:28px;margin:36px 0;text-align:center}
 .article-cta p{font-size:15px;color:var(--pd);font-weight:600;margin-bottom:16px}
+.article-cta .checker-link{font-size:14px;font-weight:500;color:var(--t);margin:16px 0 0}
+.checker-link a{color:var(--p);text-decoration:underline;font-weight:700}
 .related-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:36px}
 .related-links a{background:var(--pt);color:var(--p);font-size:13px;font-weight:600;padding:9px 16px;border-radius:20px}
 .related-links a:hover{background:var(--pt2)}

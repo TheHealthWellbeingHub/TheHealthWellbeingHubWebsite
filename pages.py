@@ -210,21 +210,52 @@ def build(render, SITE, C):
     )
 
     # ------------------------------------------------------------------
-    # NDIS CHECK — a quick, illustrated "could the NDIS help?" guide with a
-    # rough plan range. Eligibility and funding wording is a compliance
-    # matter: reviewed and approved for publishing 8 Oct 2026.
+    # NDIS ELIGIBILITY CHECKER — a quick, illustrated "could the NDIS help?"
+    # guide with a rough plan range. Eligibility and funding wording is a
+    # compliance matter: a person reviews it before it is published.
+    # The tool is called "NDIS Check"; the guides below each target one group of searches.
     # ------------------------------------------------------------------
     path = "/ndis-check/"
+    checker_desc = ("NDIS Check is a free NDIS eligibility checker. Can I get the NDIS? Find out in 1 minute, "
+                    "plus what a plan could include and a funding estimate.")
     render(
         "ndis_check.html", path,
-        title="NDIS Check: Could the NDIS Help? | The Health & Well-being Hub",
-        meta_description="Can the NDIS help, and how much might a plan be? Find out in 1 minute. Only the NDIA can decide who can join.",
+        priority="0.9",
+        title="NDIS Check: Can I Get the NDIS? Free NDIS Eligibility Checker",
+        meta_description=checker_desc,
+        og_title="NDIS Check: can I get the NDIS? Free eligibility checker",
+        og_image="/static/img/ndis-check/og.jpg",
         breadcrumbs=crumbs(("NDIS Check", path)),
+        faqs=C.NDIS_CHECKER_FAQS,
+        plan_averages=C.NDIS_PLAN_AVERAGES_BY_AGE,
         schema_json=S.graph(
-            S.webpage_node(SITE, path, "NDIS Check", "A quick guide to whether the NDIS could help."),
+            S.webpage_node(SITE, path, "NDIS Check", checker_desc),
+            S.web_application_node(SITE, path, "NDIS Check: NDIS eligibility checker", checker_desc),
+            S.faqpage_node(SITE, path, C.NDIS_CHECKER_FAQS),
             S.breadcrumb_node(SITE, path, crumbs(("NDIS Check", path))),
         ),
     )
+
+    # NDIS GUIDES: eligibility, applying, funding. Each points to NDIS Check.
+    for g in C.GUIDES:
+        path = f"/{g['slug']}/"
+        bc = crumbs((g["nav"].capitalize() if g["nav"][0].islower() else g["nav"], path))
+        render(
+            "guide_page.html", path,
+            priority="0.8",
+            guide=g,
+            guides=C.GUIDES,
+            title=g["meta_title"],
+            meta_description=g["meta_description"],
+            og_image="/static/img/ndis-check/og.jpg",
+            breadcrumbs=bc,
+            schema_json=S.graph(
+                S.webpage_node(SITE, path, g["title"], g["meta_description"]),
+                S.article_node(SITE, g, path),
+                S.faqpage_node(SITE, path, g["faqs"]),
+                S.breadcrumb_node(SITE, path, bc),
+            ),
+        )
 
     # ------------------------------------------------------------------
     # BLOG INDEX + POSTS
