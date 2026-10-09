@@ -400,24 +400,23 @@
   "rev": "-v2"
  },
  {
-  "slug": "ndis-check",
+  "slug": "ndis-check-launch",
   "no": 23,
-  "title": "NDIS Check: can you get the NDIS?",
-  "length": "38 s",
-  "hook": "Can you get the NDIS? There's a quick way to find out.",
-  "ig": "Can you get the NDIS? There's a quick way to find out.\n\nNDIS Check is free and takes about 1 minute. That's quicker than boiling the kettle. Answer 7 quick questions, like your age and what's hard without help.\n\nYou'll see if the NDIS could help, what a plan could include, and a rough guess of how much a plan could be each year.\n\nLeave your name and email, and we'll get back to you within 2 business hours.\n\nTry it: link in bio, or thehealthwellbeinghub.com/ndis-check\n\nIt's a guide, not a decision. Only the NDIA decides who can join.",
-  "tt": "Can you get the NDIS? Find out in 1 minute with NDIS Check. Link in bio.",
-  "tags_ig": "#NDIS #NDISAustralia #NowYouKnow #LoganQLD #BrisbaneNDIS #NDISEligibility #NDISCheck",
-  "tags_tt": "#NDIS #NDISEligibility #NDISAustralia #NowYouKnow #DisabilitySupport",
-  "review": "Compliance review: eligibility and funding wording. Keep 'could', 'rough guess' and 'example plan', and that the NDIA decides.",
+  "title": "Introducing NDIS Check (launch)",
+  "length": "41 s",
+  "hook": "Finding out if you can get the NDIS shouldn't be hard.",
+  "ig": "Finding out if you can get the NDIS shouldn't be hard. But for a lot of families, it is: long forms, confusing words, and no idea where to start.\n\nSo we built something. Introducing NDIS Check.\n\nIt's a free, simple way to see if the NDIS could help you, or someone you care for. Seven quick questions, done before the kettle boils. You'll see what a plan could include, and a rough guess of how much.\n\nWant help with the next step? Leave your name and email and we'll take it from there, in your language. We speak English, Arabic, Somali, Dari and Amharic.\n\nTry it now: link in bio, or thehealthwellbeinghub.com/ndis-check\n\nIt's a guide, not a decision. Only the NDIA decides who can join.",
+  "tt": "Finding out if you can get the NDIS shouldn't be hard. So we built NDIS Check. Free, 7 quick questions. Link in bio.",
+  "tags_ig": "#NDIS #NDISAustralia #NDISEligibility #NDISCheck #LoganQLD #BrisbaneNDIS #NowYouKnow",
+  "tags_tt": "#NDIS #NDISEligibility #NDISAustralia #DisabilitySupport #NowYouKnow",
+  "review": "Compliance review: eligibility and funding wording. Keep 'could', 'rough guess' and that the NDIA decides. 'For a lot of families, it is' is our view, not a statistic.",
   "pin": false,
   "files": {
-   "ig": "NowYouKnow-23-ndis-check-instagram.mp4",
-   "tt": "NowYouKnow-23-ndis-check-tiktok.mp4",
-   "cover": "NowYouKnow-23-ndis-check-tiktok-cover.jpg",
-   "igcover": "NowYouKnow-23-ndis-check-instagram-cover.jpg"
-  },
-  "rev": "-v2"
+   "ig": "NowYouKnow-23-ndis-check-launch-instagram.mp4",
+   "tt": "NowYouKnow-23-ndis-check-launch-tiktok.mp4",
+   "cover": "NowYouKnow-23-ndis-check-launch-tiktok-cover.jpg",
+   "igcover": "NowYouKnow-23-ndis-check-launch-instagram-cover.jpg"
+  }
  },
  {
   "slug": "preview-10s",
