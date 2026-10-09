@@ -400,6 +400,25 @@
   "rev": "-v2"
  },
  {
+  "slug": "ndis-check",
+  "no": 23,
+  "title": "NDIS Check: can you get the NDIS?",
+  "length": "38 s",
+  "hook": "Can you get the NDIS? There's a quick way to find out.",
+  "ig": "Can you get the NDIS? There's a quick way to find out.\n\nNDIS Check is free and takes about 1 minute. That's quicker than boiling the kettle. Answer 7 quick questions, like your age and what's hard without help.\n\nYou'll see if the NDIS could help, what a plan could include, and a rough guess of how much a plan could be each year.\n\nLeave your name and email, and we'll get back to you within 2 business hours.\n\nTry it: link in bio, or thehealthwellbeinghub.com/ndis-check\n\nIt's a guide, not a decision. Only the NDIA decides who can join.",
+  "tt": "Can you get the NDIS? Find out in 1 minute with NDIS Check. Link in bio.",
+  "tags_ig": "#NDIS #NDISAustralia #NowYouKnow #LoganQLD #BrisbaneNDIS #NDISEligibility #NDISCheck",
+  "tags_tt": "#NDIS #NDISEligibility #NDISAustralia #NowYouKnow #DisabilitySupport",
+  "review": "Compliance review: eligibility and funding wording. Keep 'could', 'rough guess' and 'example plan', and that the NDIA decides.",
+  "pin": false,
+  "files": {
+   "ig": "NowYouKnow-23-ndis-check-instagram.mp4",
+   "tt": "NowYouKnow-23-ndis-check-tiktok.mp4",
+   "cover": "NowYouKnow-23-ndis-check-tiktok-cover.jpg",
+   "igcover": "NowYouKnow-23-ndis-check-instagram-cover.jpg"
+  }
+ },
+ {
   "slug": "preview-10s",
   "no": 20,
   "title": "Now You Know: series preview",
