@@ -320,6 +320,7 @@ section[hidden] { display: none; }
         <label>Day <input type="date" name="day" required></label>
         <label>Time <input type="time" name="time"></label>
       </div>
+      <label>Ends (for events) <input type="time" name="end_time"></label>
       <p class="hint" id="it-wkd" hidden>That's a weekend. Weekends usually stay blank.</p>
       <fieldset><legend>Where it goes (leave blank for an event or reminder)</legend>
         <div class="plats">
@@ -549,15 +550,17 @@ function entries() {
   return [...vids, ...items].sort((a, b) => a.day.localeCompare(b.day) || (a.time || "99").localeCompare(b.time || "99") || a.title.localeCompare(b.title));
 }
 const late = (e) => e.day < today() && !["Posted", "Done"].includes(e.status);
+// "6–9pm" for an item with an end time, else just the start.
+const span = (e, short) => e.end_time ? clock(e.time, short).replace(/(am|pm)$/, (ap) => (clock(e.end_time).endsWith(ap) ? "" : ap)) + "–" + clock(e.end_time, short) : clock(e.time, short);
 const plats = (e) => (e.platforms || []).map((x) => PLAT[x] || x).join(" + ");
 function chip(e) {
-  const tip = `${clock(e.time) ? clock(e.time) + " · " : ""}${KINDS[e.kind]}: ${e.title}${plats(e) ? " · " + plats(e) : ""} · ${e.status}`;
-  return `<button type="button" class="ev k-${e.kind} ${statusClass(e.status)}${late(e) ? " late" : ""}" data-key="${esc(e.key)}" title="${esc(tip)}" aria-label="${esc(tip)}">${e.time ? `<span class="tm">${clock(e.time, true)}</span>` : ""}${e.status === "Posted" || e.status === "Done" ? "✓ " : ""}${esc(e.title)}</button>`;
+  const tip = `${e.time ? span(e) + " · " : ""}${KINDS[e.kind]}: ${e.title}${plats(e) ? " · " + plats(e) : ""} · ${e.status}`;
+  return `<button type="button" class="ev k-${e.kind} ${statusClass(e.status)}${late(e) ? " late" : ""}" data-key="${esc(e.key)}" title="${esc(tip)}" aria-label="${esc(tip)}">${e.time ? `<span class="tm">${span(e, true)}</span>` : ""}${e.status === "Posted" || e.status === "Done" ? "✓ " : ""}${esc(e.title)}</button>`;
 }
 function arow(e, withDay) {
   const st = late(e) ? '<span class="st late">Not marked posted</span>' : `<span class="st ${statusClass(e.status)}">${esc(e.status)}</span>`;
   return `<button type="button" class="arow k-${e.kind}" data-key="${esc(e.key)}">
-    <span class="tm2">${withDay ? esc(fmt(e.day, { day: "numeric", month: "short" })) + "<br>" : ""}${e.time ? clock(e.time) : "All day"}</span>
+    <span class="tm2">${withDay ? esc(fmt(e.day, { day: "numeric", month: "short" })) + "<br>" : ""}${e.time ? span(e) : "All day"}</span>
     <span class="pic"${e.pic ? ` style="background-image:url('${esc(e.pic)}')"` : ""}></span>
     <span class="bd"><span class="kind">${KINDS[e.kind]}${plats(e) ? " · " + esc(plats(e)) : ""}</span><br><span class="ti">${esc(e.title)}</span>${e.sub ? `<br><span class="sub">${esc(e.sub)}</span>` : ""}</span>
     ${st}</button>`;
@@ -598,7 +601,7 @@ function render() { renderVideos(); renderCal(); }
 function openItem(e, iso) {
   form.reset();
   const it = e || { kind: "post", day: iso || (picked >= today() ? picked : today()), time: "08:00", platforms: ["instagram"], status: "Planned", title: "", notes: "", story: "" };
-  for (const k of ["id", "story", "kind", "title", "day", "time", "status", "notes"]) form.elements[k].value = it[k] || "";
+  for (const k of ["id", "story", "kind", "title", "day", "time", "end_time", "status", "notes"]) form.elements[k].value = it[k] || "";
   form.querySelectorAll('[name="platforms"]').forEach((c) => { c.checked = (it.platforms || []).includes(c.value); });
   $("#it-h").textContent = e ? "Change this item" : "Add to calendar";
   form.querySelector("[data-del]").hidden = !e;
@@ -618,7 +621,7 @@ form.addEventListener("submit", async (ev) => {
   ev.preventDefault();
   const f = form.elements;
   const body = { id: f.id.value || undefined, story: f.story.value || null, kind: f.kind.value, title: f.title.value.trim(), day: f.day.value,
-    time: f.time.value || null, status: f.status.value, notes: f.notes.value,
+    time: f.time.value || null, end_time: f.end_time.value || null, status: f.status.value, notes: f.notes.value,
     platforms: [...form.querySelectorAll('[name="platforms"]:checked')].map((c) => c.value) };
   if (!body.title) { toast("Give it a title."); f.title.focus(); return; }
   if (!body.day) { toast("Pick a day."); f.day.focus(); return; }

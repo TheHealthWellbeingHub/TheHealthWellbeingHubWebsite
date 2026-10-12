@@ -17,7 +17,7 @@
 //   GET  /api/social?r=links&slugs=a,b[&stories=c,d][&days=120]   JSON of long-lived ig/tt video and story image links for a scheduler
 //   GET  /api/social?r=file&kind=story&name=note-07                 302 to a signed story image link
 //   GET  /api/social?r=calendar             calendar items other than library videos (videos come from r=status)
-//   POST /api/social?r=cal-save             JSON: { id?, day, time, kind, platforms, title, story, status, notes }  (no id = new)
+//   POST /api/social?r=cal-save             JSON: { id?, day, time, end_time, kind, platforms, title, story, status, notes }  (no id = new)
 //   POST /api/social?r=cal-delete           JSON: { id }
 const crypto = require('crypto');
 const fs = require('fs');
@@ -41,11 +41,11 @@ const isId = (v) => typeof v === 'string' && /^[0-9a-f-]{36}$/.test(v);
 // A calendar item as the page sends it, checked field by field; null when anything is off.
 function calItem(b) {
   const item = {
-    day: b.day, time: b.time || null, kind: b.kind, title: String(b.title || '').trim(),
+    day: b.day, time: b.time || null, end_time: b.end_time || null, kind: b.kind, title: String(b.title || '').trim(),
     platforms: Array.isArray(b.platforms) ? [...new Set(b.platforms)] : [],
     story: b.story || null, status: b.status || 'Planned', notes: typeof b.notes === 'string' ? b.notes : '',
   };
-  const ok = isDay(item.day) && (item.time === null || isTime(item.time)) && CAL_KINDS.includes(item.kind)
+  const ok = isDay(item.day) && (item.time === null || isTime(item.time)) && (item.end_time === null || isTime(item.end_time)) && CAL_KINDS.includes(item.kind)
     && item.title.length >= 1 && item.title.length <= 200 && item.platforms.every((x) => CAL_PLATFORMS.includes(x))
     && (item.story === null || /^[a-z0-9-]{1,60}$/.test(item.story)) && CAL_STATUSES.includes(item.status) && item.notes.length <= 4000;
   return ok ? item : null;
@@ -156,7 +156,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, days, links, stories });
     }
     if (r === 'calendar' && req.method === 'GET') {
-      const items = await rest('/social_calendar?select=id,day,time,kind,platforms,title,story,status,notes,updated_at&order=day,time', { method: 'GET' });
+      const items = await rest('/social_calendar?select=id,day,time,end_time,kind,platforms,title,story,status,notes,updated_at&order=day,time', { method: 'GET' });
       res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json({ ok: true, items });
     }
