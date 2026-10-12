@@ -9,8 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap">
 <style>
-/* One table row per video. Clicking a row opens the Instagram video full size, with its captions,
-   status and notes beside it. */
+/* Two tabs. Calendar: every post, story and event by day (videos come from their "post on" day,
+   everything else from the social_calendar table). Videos: one table row per video; clicking a row
+   opens the Instagram video full size, with its captions, status and notes beside it. */
 :root { --p: #7B2D8B; --pd: #5C2068; --pt: #F5EDF8; --pt2: #EAD8F0; --n: #1D3461; --g: #4A7C3F; --gl: #EAF3DE;
   --amber: #8A5A12; --amber-l: #FBF0DC; --t: #1a1a2e; --tm: #5a5a7a; --b: #E8E0ED; --w: #fff; --ow: #FAFAFA;
   --fd: 'Playfair Display', Georgia, serif; --fb: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
@@ -88,11 +89,11 @@ select.scheduled { background: var(--pt); border-color: var(--pt2); color: var(-
 .dl a:hover, .copy:hover, .nav button:hover:not(:disabled) { border-color: var(--p); color: var(--p); }
 .dl a.main { background: var(--p); border-color: var(--p); color: var(--w); }
 .dl a.main:hover { background: var(--pd); color: var(--w); }
-:is(button, select, summary, textarea, input, a):focus-visible { outline: 2px solid var(--p); outline-offset: 2px; }
+:is(button, select, summary, textarea, input, a, .ev, .arow, .cell):focus-visible { outline: 2px solid var(--p); outline-offset: 2px; }
 .empty { padding: 28px; text-align: center; color: var(--tm); }
 
 /* Full-size preview */
-dialog { padding: 0; border: 0; background: transparent; width: 100vw; height: 100dvh; max-width: none; max-height: none; overflow-y: auto; }
+#viewer { padding: 0; border: 0; background: transparent; width: 100vw; height: 100dvh; max-width: none; max-height: none; overflow-y: auto; }
 dialog::backdrop { background: rgba(14,16,36,.9); }
 .viewer { min-height: 100%; display: grid; grid-template-columns: auto minmax(320px, 400px); justify-content: center; align-items: center; gap: 24px; padding: 20px 64px 20px 20px; }
 .viewer video:focus { outline: none; }
@@ -114,6 +115,108 @@ dialog::backdrop { background: rgba(14,16,36,.9); }
 .toast { position: fixed; left: 50%; bottom: 20px; z-index: 10; transform: translateX(-50%); background: var(--n); color: var(--w); padding: 9px 16px; border-radius: 99px; font-size: 12px; opacity: 0; transition: opacity .2s; pointer-events: none; }
 .toast.on { opacity: 1; }
 dialog .toast { bottom: 24px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--b); margin: 18px 0 4px; }
+.tabs button { font: 700 13px var(--fb); padding: 10px 16px; border: 0; background: none; color: var(--tm); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.tabs button[aria-selected="true"] { color: var(--p); border-bottom-color: var(--p); }
+section[hidden] { display: none; }
+#tab-videos .lede, #tab-cal .lede { margin-top: 14px; }
+
+/* Calendar */
+.k-video { --kc: var(--p); --kb: #F5EDF8; } .k-story { --kc: #B5446E; --kb: #FBEAF1; } .k-post { --kc: var(--n); --kb: #E8EDF6; }
+.k-event { --kc: var(--g); --kb: var(--gl); } .k-other { --kc: #6B6B80; --kb: #F0F0F4; }
+.calbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 18px 0 10px; }
+.month { display: flex; align-items: center; gap: 6px; margin-right: auto; }
+.month h2 { font: 700 20px/1.1 var(--fd); color: var(--n); margin: 0 6px; min-width: 8.6em; }
+.btn { font: 700 12px var(--fb); padding: 7px 12px; border-radius: 8px; border: 1px solid var(--b); background: var(--w); color: var(--t); cursor: pointer; }
+.btn:hover { border-color: var(--p); color: var(--p); }
+.btn.icon { width: 34px; padding-inline: 0; font-size: 15px; line-height: 1; }
+.btn.primary { background: var(--p); border-color: var(--p); color: var(--w); }
+.btn.primary:hover { background: var(--pd); color: var(--w); }
+.seg { display: inline-flex; border: 1px solid var(--b); border-radius: 8px; overflow: hidden; }
+.seg button { font: 500 12px var(--fb); padding: 7px 12px; border: 0; background: var(--w); color: var(--t); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--pt); color: var(--pd); font-weight: 700; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 11px; color: var(--tm); margin-bottom: 12px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; background: var(--kb); border-left: 3px solid var(--kc); }
+.legend .lp i { background: var(--w); border: 1px dashed var(--tm); }
+.legend .ls i { background: var(--pt2); border: 0; border-left: 3px solid var(--p); }
+.legend .ld i { background: var(--pt2); border: 0; opacity: .45; }
+.grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) repeat(2, minmax(0, .5fr)); background: var(--w); border: 1px solid var(--b); border-radius: 14px; overflow: clip; }
+.wh { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tm); padding: 8px; border-bottom: 1px solid var(--b); border-right: 1px solid var(--b); }
+.wh:nth-child(7n), .cell:nth-child(7n) { border-right: 0; }
+.cell { min-height: 116px; padding: 6px; border-right: 1px solid var(--b); border-bottom: 1px solid var(--b); cursor: pointer; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cell.wkend { background: #FBFAFC; }
+.cell.othermo { background: var(--ow); } .cell.othermo .dn { color: #B5B0C0; }
+.cell.sel { box-shadow: inset 0 0 0 2px var(--p); }
+.cell:hover { background: #FCF8FD; }
+.grid .cell:nth-last-child(-n+7) { border-bottom: 0; }
+.dn { font-size: 12px; font-weight: 700; color: var(--n); font-variant-numeric: tabular-nums; }
+.cell.today .dn span { background: var(--n); color: var(--w); border-radius: 99px; padding: 1px 7px; }
+.evs { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ev { all: unset; box-sizing: border-box; display: block; width: 100%; font-size: 11px; line-height: 1.35; padding: 3px 6px; border-radius: 6px; background: var(--kb); border-left: 3px solid var(--kc); color: var(--t); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev .tm { font-weight: 700; color: var(--kc); margin-right: 3px; font-variant-numeric: tabular-nums; }
+.ev.s-planned, .ev.s-part { background: var(--w); outline: 1px dashed var(--kc); outline-offset: -1px; }
+.ev.s-posted, .ev.s-done { opacity: .5; }
+.ev.s-hold { background: var(--amber-l); border-left-color: var(--amber); }
+.ev.late { outline: 1px solid #C24141; outline-offset: -1px; }
+.ev:hover { filter: brightness(.96); }
+.agenda { margin-top: 16px; background: var(--w); border: 1px solid var(--b); border-radius: 14px; overflow: clip; }
+.ahead { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--b); }
+.ahead b { font: 700 15px var(--fd); color: var(--n); }
+.agroup { margin: 0; padding: 12px 14px 6px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tm); background: var(--ow); border-bottom: 1px solid var(--b); }
+.agroup.is-today { color: var(--p); }
+.arow { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 58px 34px minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding: 9px 14px; border-bottom: 1px solid var(--b); cursor: pointer; }
+.arow:last-child { border-bottom: 0; }
+.arow:hover { background: #FCF8FD; }
+.arow .tm2 { font-weight: 700; color: var(--n); font-variant-numeric: tabular-nums; font-size: 12px; }
+.pic { width: 34px; aspect-ratio: 9/16; border-radius: 5px; background: var(--kb) center/cover no-repeat; border-left: 3px solid var(--kc); }
+.arow .ti { font-weight: 700; color: var(--t); overflow-wrap: anywhere; }
+.arow .sub { font-size: 11px; color: var(--tm); overflow-wrap: anywhere; }
+.st { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 99px; white-space: nowrap; background: var(--ow); color: var(--tm); border: 1px dashed #CFC6D6; }
+.st.s-scheduled { background: var(--pt); color: var(--pd); border: 0; }
+.st.s-part { background: var(--pt); color: var(--pd); border: 1px dashed var(--pt2); }
+.st.s-posted, .st.s-done { background: var(--gl); color: var(--g); border: 0; }
+.st.s-hold { background: var(--amber-l); color: var(--amber); border: 0; }
+.st.late { background: #FBEAEA; color: #8A1F1F; border: 0; }
+.kind { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--kc); }
+
+/* Add / edit a calendar item */
+#item { width: min(600px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); margin: auto; padding: 0; border: 0; border-radius: 16px; background: var(--w); color: var(--t); overflow-y: auto; }
+.sheet { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 20px; }
+.sheet.has-pic { grid-template-columns: 150px minmax(0, 1fr); }
+.sheet .storypic { width: 100%; aspect-ratio: 9/16; object-fit: cover; border-radius: 10px; background: var(--pt); }
+.sheet h2 { font: 700 19px/1.2 var(--fd); color: var(--n); margin: 0 0 12px; }
+.sheet .sub { font-size: 12px; color: var(--tm); margin: -8px 0 12px; }
+.fields label, .fields legend { display: block; font-size: 11px; font-weight: 500; color: var(--tm); margin-bottom: 10px; }
+.fields :is(input:not([type="checkbox"]), select, textarea) { display: block; width: 100%; margin-top: 4px; font: 13px var(--fb); color: var(--t); border: 1px solid var(--b); border-radius: 8px; padding: 8px 10px; background: var(--w); }
+.fields textarea { min-height: 84px; resize: vertical; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fields fieldset { border: 0; padding: 0; margin: 0 0 10px; }
+.fields legend { padding: 0; margin-bottom: 6px; }
+.plats { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.plats label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--t); margin: 0; cursor: pointer; }
+.hint { font-size: 11px; color: var(--amber); margin: -4px 0 10px; }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.acts .del { margin-left: auto; color: #8A1F1F; }
+.acts .del:hover { border-color: #8A1F1F; color: #8A1F1F; }
+
+@media (max-width: 700px) {
+  .month { width: 100%; } .month h2 { min-width: 0; flex: 1; font-size: 18px; }
+  .grid { grid-template-columns: repeat(5, minmax(0, 1fr)) repeat(2, minmax(0, .6fr)); }
+  .wh { padding: 6px 2px; text-align: center; letter-spacing: 0; }
+  .cell { min-height: 58px; padding: 4px; align-items: center; }
+  /* Coloured dots only; tapping the day lists it below. */
+  .evs { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 3px; }
+  .ev { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: var(--kc); font-size: 0; pointer-events: none; }
+  .ev.s-planned, .ev.s-part { background: var(--w); outline: 1.5px solid var(--kc); outline-offset: -1.5px; }
+  .ev.s-hold { background: var(--amber); }
+  .arow { grid-template-columns: 34px minmax(0, 1fr); grid-template-areas: "pic tm" "pic ti" "pic st"; }
+  .arow .pic { grid-area: pic; align-self: start; } .arow .tm2 { grid-area: tm; } .arow .bd { grid-area: ti; } .arow .st { grid-area: st; justify-self: start; margin-top: 4px; }
+  .sheet.has-pic { grid-template-columns: minmax(0, 1fr); }
+  .sheet .storypic { width: 120px; }
+}
 
 @media (max-width: 900px) {
   /* Each row becomes a card. */
@@ -147,7 +250,33 @@ dialog .toast { bottom: 24px; }
 </div></header>
 <main>
   <div class="eyebrow">Team only · Social media</div>
-  <h1>Now You Know videos</h1>
+  <h1>Social media</h1>
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button type="button" role="tab" id="tb-cal" aria-controls="tab-cal" data-tab="cal">Calendar</button>
+    <button type="button" role="tab" id="tb-videos" aria-controls="tab-videos" data-tab="videos">Now You Know videos</button>
+  </div>
+  <section id="tab-cal" role="tabpanel" aria-labelledby="tb-cal">
+  <p class="lede">Everything that's going out, day by day. Posts and stories go at 8:00am Brisbane time, and weekends stay blank. Click anything to open it. Use Add to calendar for one-off posts, events and reminders.</p>
+  <div class="calbar">
+    <div class="month">
+      <button type="button" class="btn icon" data-mo="-1" aria-label="Previous month">‹</button>
+      <h2 id="cal-title" aria-live="polite">–</h2>
+      <button type="button" class="btn icon" data-mo="1" aria-label="Next month">›</button>
+      <button type="button" class="btn" data-mo="0">Today</button>
+    </div>
+    <div class="seg" role="group" aria-label="Show as">
+      <button type="button" data-cv="month" aria-pressed="true">Month</button>
+      <button type="button" data-cv="list" aria-pressed="false">List</button>
+    </div>
+    <button type="button" class="btn primary" data-add>+ Add to calendar</button>
+  </div>
+  <div class="legend" aria-hidden="true">
+    <span class="k-video"><i></i>Video</span><span class="k-story"><i></i>Story</span><span class="k-post"><i></i>Post</span><span class="k-event"><i></i>Event</span><span class="k-other"><i></i>Other</span>
+    <span class="lp"><i></i>Planned, not scheduled yet</span><span class="ls"><i></i>Scheduled</span><span class="ld"><i></i>Posted</span>
+  </div>
+  <div id="cal"></div>
+  </section>
+  <section id="tab-videos" role="tabpanel" aria-labelledby="tb-videos" hidden>
   <p class="lede">Every video with its Instagram and TikTok files, covers for each platform, and captions. New videos go out every Monday and Thursday, in the order below. Click a row to watch the video full size. Tick the review once it's approved, and set the status when it goes live.</p>
   <div class="tally">
     <div class="next-card"><span>Next post</span><b id="t-next">–</b><small id="t-next-what"></small></div>
@@ -168,6 +297,7 @@ dialog .toast { bottom: 24px; }
       <tbody id="list"></tbody>
     </table>
   </div>
+  </section>
 </main>
 <dialog id="viewer" aria-label="Video preview">
   <button type="button" class="close" data-close aria-label="Close preview">×</button>
@@ -175,6 +305,41 @@ dialog .toast { bottom: 24px; }
     <video id="player" controls playsinline preload="auto"></video>
     <div class="panel" id="panel"></div>
   </div>
+</dialog>
+<dialog id="item" aria-labelledby="it-h">
+  <form id="itemform" class="sheet" novalidate>
+    <img class="storypic" id="it-pic" alt="" hidden>
+    <div class="fields">
+      <h2 id="it-h">Add to calendar</h2>
+      <input type="hidden" name="id"><input type="hidden" name="story">
+      <label>What is it
+        <select name="kind"><option value="post">Post</option><option value="story">Story</option><option value="event">Event</option><option value="other">Other (reminder, note)</option></select>
+      </label>
+      <label>Title <input name="title" maxlength="200" required autocomplete="off"></label>
+      <div class="two">
+        <label>Day <input type="date" name="day" required></label>
+        <label>Time <input type="time" name="time"></label>
+      </div>
+      <p class="hint" id="it-wkd" hidden>That's a weekend. Weekends usually stay blank.</p>
+      <fieldset><legend>Where it goes (leave blank for an event or reminder)</legend>
+        <div class="plats">
+          <label><input type="checkbox" name="platforms" value="instagram"> Instagram</label>
+          <label><input type="checkbox" name="platforms" value="tiktok"> TikTok</label>
+          <label><input type="checkbox" name="platforms" value="facebook"> Facebook</label>
+          <label><input type="checkbox" name="platforms" value="other"> Other</label>
+        </div>
+      </fieldset>
+      <label>Status
+        <select name="status"><option>Planned</option><option>Scheduled</option><option>Posted</option><option>On hold</option><option>Done</option></select>
+      </label>
+      <label>Notes <textarea name="notes" maxlength="4000" placeholder="Caption, what to bring, links…"></textarea></label>
+      <div class="acts">
+        <button type="submit" class="btn primary">Save</button>
+        <button type="button" class="btn" data-cancel>Cancel</button>
+        <button type="button" class="btn del" data-del hidden>Delete</button>
+      </div>
+    </div>
+  </form>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -185,12 +350,12 @@ const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const file = (kind, slug, dl) => `/api/social?r=file&kind=${kind}&slug=${encodeURIComponent(slug)}${dl ? "&dl=1" : ""}`;
 let state = {}, filter = "all", current = null;
-const viewer = $("#viewer"), player = $("#player");
+const viewer = $("#viewer"), player = $("#player"), itemDlg = $("#item"), form = $("#itemform");
 function toast(msg) {
-  const t = $("#toast"); (viewer.open ? viewer : document.body).appendChild(t);
+  const t = $("#toast"); (viewer.open ? viewer : itemDlg.open ? itemDlg : document.body).appendChild(t);
   t.textContent = msg; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), 2200);
 }
-const rows = () => LIBRARY.map((v) => ({ ...v, review_ok: false, ig_status: "Not posted", tt_status: "Not posted", notes: "", post_on: null, ...(state[v.slug] || {}) }))
+const rows = () => LIBRARY.map((v) => ({ ...v, review_ok: false, ig_status: "Not posted", tt_status: "Not posted", notes: "", post_on: null, post_time: null, ...(state[v.slug] || {}) }))
   // Schedule order: dated videos by date, then the rest (already posted, or not planned) by number.
   .sort((a, b) => (a.post_on ? 0 : 1) - (b.post_on ? 0 : 1) || String(a.post_on).localeCompare(String(b.post_on)) || a.no - b.no);
 // Dates are days in Brisbane, stored as YYYY-MM-DD and shown as dd-mm-yyyy.
@@ -226,7 +391,7 @@ const statusSelect = (k, r, name) => `<select data-k="${k}" class="${r[k].toLowe
 const downloads = (r) => `
   <div class="dl"><span>Instagram</span><a class="main" href="${file("ig", r.slug, 1)}" aria-label="Download Instagram video">Video</a><a href="${file("igcover", r.slug, 1)}" aria-label="Download Instagram cover">Cover</a></div>
   <div class="dl"><span>TikTok</span><a href="${file("tt", r.slug, 1)}" aria-label="Download TikTok video, no captions">Video</a><a href="${file("cover", r.slug, 1)}" aria-label="Download TikTok cover">Cover</a></div>`;
-function render() {
+function renderVideos() {
   const all = rows();
   const next = nextUp(all);
   $("#t-next").textContent = next ? day(next.post_on) : "Nothing planned";
@@ -274,6 +439,7 @@ function renderPanel() {
       <label class="tick">Instagram ${statusSelect("ig_status", r, "Instagram")}</label>
       <label class="tick">TikTok ${statusSelect("tt_status", r, "TikTok")}</label>
       <label class="tick">Post on <input class="day" data-k="post_on" inputmode="numeric" placeholder="dd-mm-yyyy" value="${esc(r.post_on ? day(r.post_on) : "")}"></label>
+      <label class="tick">at <input class="day" type="time" data-k="post_time" value="${esc(r.post_time || "08:00")}" aria-label="Post time, Brisbane"></label>
     </div>
     <div>${downloads(r)}</div>
     <div><h3>Instagram caption</h3><pre>${esc(r.ig)}</pre><div class="tags">${esc(r.tags_ig)}</div><button type="button" class="copy" data-copy="ig">Copy Instagram caption</button></div>
@@ -308,8 +474,10 @@ async function api(r, opts) {
   return body;
 }
 async function load() {
-  try { const { rows } = await api("status"); state = Object.fromEntries(rows.map((x) => [x.slug, x])); }
-  catch (e) { toast("Couldn't load the latest statuses. Refresh to try again."); }
+  const [st, ca] = await Promise.allSettled([api("status"), api("calendar")]);
+  if (st.status === "fulfilled") state = Object.fromEntries(st.value.rows.map((x) => [x.slug, x]));
+  if (ca.status === "fulfilled") cal = ca.value.items;
+  if (st.status === "rejected" || ca.status === "rejected") toast("Couldn't load everything. Refresh to try again.");
   render();
 }
 async function save(slug, field, value) {
@@ -326,6 +494,7 @@ document.addEventListener("change", (e) => {
     value = parseDay(el.value);
     if (value === undefined) { toast("Type the day as dd-mm-yyyy, for example 12-10-2026."); el.focus(); return; }
   }
+  if (el.dataset.k === "post_time") value = el.value && el.value !== "08:00" ? el.value : null;
   save(row.dataset.slug, el.dataset.k, value);
 });
 document.addEventListener("click", async (e) => {
@@ -345,6 +514,167 @@ document.addEventListener("click", async (e) => {
   const tr = e.target.closest("#list tr[data-slug]");
   if (tr && !e.target.closest("a, input, select, label, textarea")) openViewer(tr.dataset.slug);
 });
+// ---------- Calendar ----------
+// Videos are placed by their "post on" day (time defaults to 8:00am); everything else is a social_calendar row.
+let cal = [], month = today().slice(0, 7), picked = today();
+let calView = matchMedia("(max-width: 700px)").matches ? "list" : "month", showPast = false;
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+calView = store.get("hw-social-calview") || calView;
+const KINDS = { video: "Video", story: "Story", post: "Post", event: "Event", other: "Other" };
+const PLAT = { instagram: "IG", tiktok: "TikTok", facebook: "FB", other: "Other" };
+const isoOf = (d) => d.toISOString().slice(0, 10);
+const addDays = (iso, n) => { const d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return isoOf(d); };
+const fmt = (iso, o) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-AU", { timeZone: "UTC", ...o });
+function clock(t, short) {
+  if (!t) return "";
+  const [h, m] = t.split(":").map(Number), ap = h < 12 ? "am" : "pm", h12 = h % 12 || 12;
+  return short && m === 0 ? h12 + ap : `${h12}:${String(m).padStart(2, "0")}${ap}`;
+}
+const statusClass = (s) => "s-" + ({ "On hold": "hold", "Part scheduled": "part" }[s] || s.toLowerCase());
+function videoStatus(r) {
+  if (posted(r)) return "Posted";
+  const ig = r.ig_status !== "Not posted", tt = r.tt_status !== "Not posted";
+  return ig && tt ? "Scheduled" : ig || tt ? "Part scheduled" : "Planned";
+}
+function entries() {
+  const vids = rows().filter((r) => r.post_on).map((r) => ({
+    key: "v:" + r.slug, kind: "video", day: r.post_on, time: r.post_time || "08:00", slug: r.slug,
+    title: (r.no ? "No. " + r.no + " · " : "") + r.title, platforms: ["instagram", "tiktok"], status: videoStatus(r),
+    sub: `Instagram: ${r.ig_status} · TikTok: ${r.tt_status}`, pic: file("cover", r.slug),
+  }));
+  const items = cal.map((c) => ({
+    ...c, key: "c:" + c.id, sub: (c.notes || "").split("\n")[0],
+    pic: c.story ? `/api/social?r=file&kind=story&name=${encodeURIComponent(c.story)}` : "",
+  }));
+  return [...vids, ...items].sort((a, b) => a.day.localeCompare(b.day) || (a.time || "99").localeCompare(b.time || "99") || a.title.localeCompare(b.title));
+}
+const late = (e) => e.day < today() && !["Posted", "Done"].includes(e.status);
+const plats = (e) => (e.platforms || []).map((x) => PLAT[x] || x).join(" + ");
+function chip(e) {
+  const tip = `${clock(e.time) ? clock(e.time) + " · " : ""}${KINDS[e.kind]}: ${e.title}${plats(e) ? " · " + plats(e) : ""} · ${e.status}`;
+  return `<button type="button" class="ev k-${e.kind} ${statusClass(e.status)}${late(e) ? " late" : ""}" data-key="${esc(e.key)}" title="${esc(tip)}" aria-label="${esc(tip)}">${e.time ? `<span class="tm">${clock(e.time, true)}</span>` : ""}${e.status === "Posted" || e.status === "Done" ? "✓ " : ""}${esc(e.title)}</button>`;
+}
+function arow(e, withDay) {
+  const st = late(e) ? '<span class="st late">Not marked posted</span>' : `<span class="st ${statusClass(e.status)}">${esc(e.status)}</span>`;
+  return `<button type="button" class="arow k-${e.kind}" data-key="${esc(e.key)}">
+    <span class="tm2">${withDay ? esc(fmt(e.day, { day: "numeric", month: "short" })) + "<br>" : ""}${e.time ? clock(e.time) : "All day"}</span>
+    <span class="pic"${e.pic ? ` style="background-image:url('${esc(e.pic)}')"` : ""}></span>
+    <span class="bd"><span class="kind">${KINDS[e.kind]}${plats(e) ? " · " + esc(plats(e)) : ""}</span><br><span class="ti">${esc(e.title)}</span>${e.sub ? `<br><span class="sub">${esc(e.sub)}</span>` : ""}</span>
+    ${st}</button>`;
+}
+function dayList(all, iso) {
+  const list = all.filter((e) => e.day === iso);
+  return `<div class="agenda"><div class="ahead"><b>${esc(fmt(iso, { weekday: "long", day: "numeric", month: "long" }))}</b><button type="button" class="btn" data-add="${iso}">+ Add on this day</button></div>
+    ${list.length ? list.map((e) => arow(e)).join("") : '<div class="empty">Nothing on this day.</div>'}</div>`;
+}
+function renderCal() {
+  const all = entries(), t = today();
+  document.querySelectorAll("[data-cv]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.cv === calView));
+  document.querySelectorAll("[data-mo]").forEach((b) => { b.hidden = calView === "list"; });
+  if (calView === "list") {
+    $("#cal-title").textContent = "Coming up";
+    const from = showPast ? addDays(t, -30) : t, shown = all.filter((e) => e.day >= from);
+    const days = [...new Set(shown.map((e) => e.day))];
+    $("#cal").innerHTML = `<div class="agenda"><div class="ahead"><b>${showPast ? "Last 30 days and coming up" : "From today"}</b><button type="button" class="btn" data-past>${showPast ? "Hide past days" : "Show the last 30 days"}</button></div>
+      ${days.length ? days.map((d) => `<h3 class="agroup${d === t ? " is-today" : ""}">${d === t ? "Today · " : ""}${esc(fmt(d, { weekday: "long", day: "numeric", month: "long" }))}</h3>${shown.filter((e) => e.day === d).map((e) => arow(e)).join("")}`).join("")
+        : '<div class="empty">Nothing planned yet.</div>'}</div>`;
+    return;
+  }
+  const first = month + "-01";
+  $("#cal-title").textContent = fmt(first, { month: "long", year: "numeric" });
+  const start = addDays(first, -((new Date(first + "T00:00:00Z").getUTCDay() + 6) % 7));
+  const nextMonth = addDays(first, 32).slice(0, 7);
+  let cells = "";
+  for (let d = start; d.slice(0, 7) !== nextMonth || new Date(d + "T00:00:00Z").getUTCDay() !== 1; d = addDays(d, 1)) {
+    const list = all.filter((e) => e.day === d), wd = new Date(d + "T00:00:00Z").getUTCDay();
+    const label = `${fmt(d, { weekday: "long", day: "numeric", month: "long" })}: ${list.length ? list.length + (list.length === 1 ? " item" : " items") : "nothing"}`;
+    cells += `<div class="cell${d.slice(0, 7) !== month ? " othermo" : ""}${wd === 0 || wd === 6 ? " wkend" : ""}${d === t ? " today" : ""}${d === picked ? " sel" : ""}" data-day="${d}" tabindex="0" role="button" aria-label="${esc(label)}">
+      <div class="dn"><span>${Number(d.slice(8))}</span></div><div class="evs">${list.map(chip).join("")}</div></div>`;
+  }
+  $("#cal").innerHTML = `<div class="grid">${["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((w) => `<div class="wh">${w}</div>`).join("")}${cells}</div>${dayList(all, picked)}`;
+}
+function render() { renderVideos(); renderCal(); }
+
+function openItem(e, iso) {
+  form.reset();
+  const it = e || { kind: "post", day: iso || (picked >= today() ? picked : today()), time: "08:00", platforms: ["instagram"], status: "Planned", title: "", notes: "", story: "" };
+  for (const k of ["id", "story", "kind", "title", "day", "time", "status", "notes"]) form.elements[k].value = it[k] || "";
+  form.querySelectorAll('[name="platforms"]').forEach((c) => { c.checked = (it.platforms || []).includes(c.value); });
+  $("#it-h").textContent = e ? "Change this item" : "Add to calendar";
+  form.querySelector("[data-del]").hidden = !e;
+  const pic = $("#it-pic");
+  pic.hidden = !it.story; form.classList.toggle("has-pic", Boolean(it.story));
+  if (it.story) pic.src = `/api/social?r=file&kind=story&name=${encodeURIComponent(it.story)}`; else pic.removeAttribute("src");
+  weekendHint();
+  itemDlg.showModal();
+  form.elements.title.focus();
+}
+function weekendHint() {
+  const v = form.elements.day.value, wd = v ? new Date(v + "T00:00:00Z").getUTCDay() : 1;
+  $("#it-wkd").hidden = !(wd === 0 || wd === 6);
+}
+form.elements.day.addEventListener("input", weekendHint);
+form.addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const f = form.elements;
+  const body = { id: f.id.value || undefined, story: f.story.value || null, kind: f.kind.value, title: f.title.value.trim(), day: f.day.value,
+    time: f.time.value || null, status: f.status.value, notes: f.notes.value,
+    platforms: [...form.querySelectorAll('[name="platforms"]:checked')].map((c) => c.value) };
+  if (!body.title) { toast("Give it a title."); f.title.focus(); return; }
+  if (!body.day) { toast("Pick a day."); f.day.focus(); return; }
+  try {
+    const { item } = await api("cal-save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    cal = cal.filter((c) => c.id !== item.id).concat(item);
+    picked = item.day; month = item.day.slice(0, 7);
+    itemDlg.close(); render(); toast("Saved");
+  } catch (e) { toast(e.message || "Couldn't save. Try again."); }
+});
+form.querySelector("[data-cancel]").addEventListener("click", () => itemDlg.close());
+form.querySelector("[data-del]").addEventListener("click", async () => {
+  const id = form.elements.id.value;
+  if (!id || !confirm("Delete this from the calendar?")) return;
+  try { await api("cal-delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    cal = cal.filter((c) => c.id !== id); itemDlg.close(); render(); toast("Deleted"); }
+  catch (e) { toast(e.message || "Couldn't delete. Try again."); }
+});
+itemDlg.addEventListener("click", (e) => { if (e.target === itemDlg) itemDlg.close(); });
+
+function openEntry(key) {
+  if (key.startsWith("v:")) return openViewer(key.slice(2));
+  const c = cal.find((x) => "c:" + x.id === key);
+  if (c) openItem(c);
+}
+function pickDay(d) {
+  picked = d;
+  if (d.slice(0, 7) !== month) month = d.slice(0, 7);
+  renderCal();
+  const box = $("#cal .agenda"); if (box && matchMedia("(max-width: 700px)").matches) box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+document.addEventListener("click", (e) => {
+  const tab = e.target.closest("[data-tab]"); if (tab) { showTab(tab.dataset.tab); return; }
+  const add = e.target.closest("[data-add]"); if (add) { openItem(null, add.dataset.add || ""); return; }
+  const mo = e.target.closest("[data-mo]");
+  if (mo) {
+    const n = Number(mo.dataset.mo);
+    if (!n) { month = today().slice(0, 7); picked = today(); }
+    else { const d = new Date(month + "-01T00:00:00Z"); d.setUTCMonth(d.getUTCMonth() + n); month = isoOf(d).slice(0, 7); }
+    renderCal(); return;
+  }
+  const cv = e.target.closest("[data-cv]"); if (cv) { calView = cv.dataset.cv; store.set("hw-social-calview", calView); renderCal(); return; }
+  if (e.target.closest("[data-past]")) { showPast = !showPast; renderCal(); return; }
+  const ev = e.target.closest("#cal [data-key]"); if (ev) { openEntry(ev.dataset.key); return; }
+  const cell = e.target.closest("#cal .cell"); if (cell) pickDay(cell.dataset.day);
+});
+document.addEventListener("keydown", (e) => {
+  const cell = e.target.closest && e.target.closest("#cal .cell");
+  if (cell && e.target === cell && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pickDay(cell.dataset.day); }
+});
+function showTab(name) {
+  document.querySelectorAll("[data-tab]").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === name));
+  $("#tab-cal").hidden = name !== "cal"; $("#tab-videos").hidden = name !== "videos";
+  store.set("hw-social-tab", name);
+}
+showTab(store.get("hw-social-tab") === "videos" ? "videos" : "cal");
 render();
 load();
 </script>
