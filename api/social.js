@@ -14,7 +14,7 @@
 //   POST /api/social?r=update              JSON: { slug, field, value }   (post_on: 'YYYY-MM-DD' or null)
 //   GET  /api/social?r=file&kind=ig|tt|cover|igcover&slug=…[&dl=1]   302 to a signed link
 //        (cover = TikTok cover, igcover = Instagram cover; both 1080x1920)
-//   GET  /api/social?r=links&slugs=a,b[&days=120]   JSON of long-lived ig/tt video links for a scheduler
+//   GET  /api/social?r=links&slugs=a,b[&stories=c,d][&days=120]   JSON of long-lived ig/tt video and story image links for a scheduler
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -123,8 +123,13 @@ module.exports = async (req, res) => {
           tt: await storageSignedUrl(BUCKET, objectPath('tt', video), days * 86400),
         };
       }
+      // Story cards (A Note For Us Both) are images under story/ in the same bucket, asked for by name.
+      const stories = {};
+      for (const name of String(req.query.stories || '').split(',').filter((n) => /^[a-z0-9-]{1,60}$/.test(n))) {
+        stories[name] = await storageSignedUrl(BUCKET, `story/${name}.jpg`, days * 86400);
+      }
       res.setHeader('Cache-Control', 'no-store');
-      return res.status(200).json({ ok: true, days, links });
+      return res.status(200).json({ ok: true, days, links, stories });
     }
     if (r === 'file' && req.method === 'GET') {
       const { kind, slug, dl } = req.query;
