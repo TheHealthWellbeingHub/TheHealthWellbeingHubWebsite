@@ -20,6 +20,8 @@ def organization_graph(site):
         "@id": org_id,
         "name": site["name"],
         "url": site["base_url"] + "/",
+        "logo": site["base_url"] + "/static/img/logo.png",
+        "image": site["base_url"] + "/static/img/logo.png",
         "telephone": site["phone_e164"],
         "email": site["email"],
         "priceRange": "$$",

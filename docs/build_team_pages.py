@@ -38,20 +38,13 @@ SHELL = """<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>{title}</title>
-<link rel="icon" href="data:image/svg+xml,{favicon}">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
 </head>
 <body>
 {body}
 </body>
 </html>
 """
-
-FAVICON = (
-    "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E"
-    "%3Ccircle cx='50' cy='50' r='46' fill='%237B2D8B'/%3E"
-    "%3Cpath d='M50 34c-8-12-30-8-30 10 0 16 30 40 30 40s30-24 30-40c0-18-22-22-30-10z' fill='white'/%3E"
-    "%3C/svg%3E"
-)
 
 
 def build(src_name, out_name, title):
@@ -62,7 +55,7 @@ def build(src_name, out_name, title):
     # document may only have one, and it belongs in <head>, so drop it here.
     body = re.sub(r"^\s*<title>.*?</title>\s*", "", body, count=1, flags=re.S | re.I)
 
-    html = SHELL.format(title=title, body=body.strip(), favicon=FAVICON)
+    html = SHELL.format(title=title, body=body.strip())
     os.makedirs(OUT, exist_ok=True)
     dest = os.path.join(OUT, out_name)
     # Explicit encoding, never the locale default — the whole point of this file.
