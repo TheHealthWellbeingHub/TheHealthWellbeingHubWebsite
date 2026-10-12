@@ -73,7 +73,8 @@
    "tt": "NowYouKnow-03-carers-break-tiktok.mp4",
    "cover": "NowYouKnow-03-carers-break-tiktok-cover.jpg",
    "igcover": "NowYouKnow-03-carers-break-instagram-cover.jpg"
-  }
+  },
+  "rev": "-v2"
  },
  {
   "slug": "3-month-review",
@@ -92,7 +93,8 @@
    "tt": "NowYouKnow-04-3-month-review-tiktok.mp4",
    "cover": "NowYouKnow-04-3-month-review-tiktok-cover.jpg",
    "igcover": "NowYouKnow-04-3-month-review-instagram-cover.jpg"
-  }
+  },
+  "rev": "-v2"
  },
  {
   "slug": "dont-go-alone",
@@ -417,7 +419,7 @@
    "cover": "NowYouKnow-23-ndis-check-launch-tiktok-cover.jpg",
    "igcover": "NowYouKnow-23-ndis-check-launch-instagram-cover.jpg"
   },
-  "rev": "-v5"
+  "rev": "-v6"
  },
  {
   "slug": "preview-10s",
