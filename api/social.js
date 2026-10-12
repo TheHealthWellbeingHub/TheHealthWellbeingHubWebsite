@@ -15,6 +15,10 @@
 //   GET  /api/social?r=file&kind=ig|tt|cover|igcover&slug=…[&dl=1]   302 to a signed link
 //        (cover = TikTok cover, igcover = Instagram cover; both 1080x1920)
 //   GET  /api/social?r=links&slugs=a,b[&stories=c,d][&days=120]   JSON of long-lived ig/tt video and story image links for a scheduler
+//   GET  /api/social?r=file&kind=story&name=note-07                 302 to a signed story image link
+//   GET  /api/social?r=calendar             calendar items other than library videos (videos come from r=status)
+//   POST /api/social?r=cal-save             JSON: { id?, day, time, kind, platforms, title, story, status, notes }  (no id = new)
+//   POST /api/social?r=cal-delete           JSON: { id }
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -27,6 +31,24 @@ const COOKIE = 'hw_social';
 const MAX_AGE = 30 * 24 * 3600; // stay logged in for 30 days on that device
 const BUCKET = 'social-media';
 const STATUSES = ['Not posted', 'Scheduled', 'Posted'];
+const CAL_KINDS = ['story', 'post', 'event', 'other'];
+const CAL_STATUSES = ['Planned', 'Scheduled', 'Posted', 'On hold', 'Done'];
+const CAL_PLATFORMS = ['instagram', 'tiktok', 'facebook', 'other'];
+const isDay = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
+const isTime = (v) => typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
+const isId = (v) => typeof v === 'string' && /^[0-9a-f-]{36}$/.test(v);
+// A calendar item as the page sends it, checked field by field; null when anything is off.
+function calItem(b) {
+  const item = {
+    day: b.day, time: b.time || null, kind: b.kind, title: String(b.title || '').trim(),
+    platforms: Array.isArray(b.platforms) ? [...new Set(b.platforms)] : [],
+    story: b.story || null, status: b.status || 'Planned', notes: typeof b.notes === 'string' ? b.notes : '',
+  };
+  const ok = isDay(item.day) && (item.time === null || isTime(item.time)) && CAL_KINDS.includes(item.kind)
+    && item.title.length >= 1 && item.title.length <= 200 && item.platforms.every((x) => CAL_PLATFORMS.includes(x))
+    && (item.story === null || /^[a-z0-9-]{1,60}$/.test(item.story)) && CAL_STATUSES.includes(item.status) && item.notes.length <= 4000;
+  return ok ? item : null;
+}
 
 const dir = path.join(__dirname, '_social');
 const LIBRARY = JSON.parse(fs.readFileSync(path.join(dir, 'library.json'), 'utf8'));
@@ -92,7 +114,7 @@ module.exports = async (req, res) => {
 
   try {
     if (r === 'status' && req.method === 'GET') {
-      const rows = await rest('/social_videos?select=slug,review_ok,ig_status,tt_status,notes,post_on,updated_at', { method: 'GET' });
+      const rows = await rest('/social_videos?select=slug,review_ok,ig_status,tt_status,notes,post_on,post_time,updated_at', { method: 'GET' });
       res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json({ ok: true, rows });
     }
@@ -102,7 +124,8 @@ module.exports = async (req, res) => {
       const valid = (field === 'review_ok' && typeof value === 'boolean')
         || ((field === 'ig_status' || field === 'tt_status') && STATUSES.includes(value))
         || (field === 'notes' && typeof value === 'string' && value.length <= 4000)
-        || (field === 'post_on' && (value === null || (/^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)))));
+        || (field === 'post_on' && (value === null || isDay(value)))
+        || (field === 'post_time' && (value === null || isTime(value)));
       if (!valid) return res.status(400).json({ ok: false, error: 'That change isn’t allowed.' });
       await rest(`/social_videos?slug=eq.${encodeURIComponent(slug)}`, {
         method: 'PATCH',
@@ -130,6 +153,34 @@ module.exports = async (req, res) => {
       }
       res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json({ ok: true, days, links, stories });
+    }
+    if (r === 'calendar' && req.method === 'GET') {
+      const items = await rest('/social_calendar?select=id,day,time,kind,platforms,title,story,status,notes,updated_at&order=day,time', { method: 'GET' });
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({ ok: true, items });
+    }
+    if (r === 'cal-save' && req.method === 'POST') {
+      const body = req.body || {};
+      const item = calItem(body);
+      if (!item || (body.id && !isId(body.id))) return res.status(400).json({ ok: false, error: 'Check the date, type and title, then try again.' });
+      const saved = body.id
+        ? await rest(`/social_calendar?id=eq.${body.id}`, { method: 'PATCH', body: JSON.stringify({ ...item, updated_at: new Date().toISOString() }) })
+        : await rest('/social_calendar', { method: 'POST', body: JSON.stringify(item) });
+      if (!saved || !saved.length) return res.status(404).json({ ok: false, error: 'That item is gone. Refresh the page.' });
+      return res.status(200).json({ ok: true, item: saved[0] });
+    }
+    if (r === 'cal-delete' && req.method === 'POST') {
+      const { id } = req.body || {};
+      if (!isId(id)) return res.status(400).json({ ok: false, error: 'Unknown item.' });
+      await rest(`/social_calendar?id=eq.${id}`, { method: 'DELETE' });
+      return res.status(200).json({ ok: true });
+    }
+    if (r === 'file' && req.method === 'GET' && req.query.kind === 'story') {
+      const name = String(req.query.name || '');
+      if (!/^[a-z0-9-]{1,60}$/.test(name)) return res.status(404).json({ ok: false, error: 'Not found.' });
+      res.setHeader('Cache-Control', 'private, max-age=600');
+      res.setHeader('Location', await storageSignedUrl(BUCKET, `story/${name}.jpg`, 3600));
+      return res.status(302).end();
     }
     if (r === 'file' && req.method === 'GET') {
       const { kind, slug, dl } = req.query;
