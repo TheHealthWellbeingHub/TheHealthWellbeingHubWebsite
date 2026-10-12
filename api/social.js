@@ -34,7 +34,8 @@ const STATUSES = ['Not posted', 'Scheduled', 'Posted'];
 const CAL_KINDS = ['story', 'post', 'event', 'other'];
 const CAL_STATUSES = ['Planned', 'Scheduled', 'Posted', 'On hold', 'Done'];
 const CAL_PLATFORMS = ['instagram', 'tiktok', 'facebook', 'other'];
-const isDay = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
+// A real calendar day as YYYY-MM-DD (2026-02-31 doesn't round-trip, so it's refused).
+const isDay = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v)) && new Date(v + 'T00:00:00Z').toISOString().slice(0, 10) === v;
 const isTime = (v) => typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
 const isId = (v) => typeof v === 'string' && /^[0-9a-f-]{36}$/.test(v);
 // A calendar item as the page sends it, checked field by field; null when anything is off.
