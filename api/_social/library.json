@@ -273,7 +273,8 @@
    "tt": "NowYouKnow-13-wont-pay-for-tiktok.mp4",
    "cover": "NowYouKnow-13-wont-pay-for-tiktok-cover.jpg",
    "igcover": "NowYouKnow-13-wont-pay-for-instagram-cover.jpg"
-  }
+  },
+  "rev": "-v2"
  },
  {
   "slug": "registered-provider",
@@ -292,7 +293,8 @@
    "tt": "NowYouKnow-14-registered-provider-tiktok.mp4",
    "cover": "NowYouKnow-14-registered-provider-tiktok-cover.jpg",
    "igcover": "NowYouKnow-14-registered-provider-instagram-cover.jpg"
-  }
+  },
+  "rev": "-v2"
  },
  {
   "slug": "only-you-can-ask",
@@ -446,7 +448,8 @@
    "tt": "NowYouKnow-preview-10s-tiktok.mp4",
    "cover": "NowYouKnow-preview-10s-tiktok-cover.jpg",
    "igcover": "NowYouKnow-preview-10s-instagram-cover.jpg"
-  }
+  },
+  "rev": "-v2"
  },
  {
   "slug": "job-reel",
