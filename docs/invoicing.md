@@ -85,6 +85,14 @@ A week that already has a draft for a participant is left alone. To rebuild a DR
 fixing something (same invoice number), POST `create-invoice` with `"replace": true`. An
 approved or paid invoice is never changed.
 
+**Rebuild a whole week** (added 12 Oct 2026): the Command Centre's Invoicing page has a
+"Rebuild this week's invoices" button, which POSTs `/api/xero?action=rebuild-week`
+`{ start, end, clientIds? }`. Every participant set up for invoicing is rebuilt from ShiftCare
+as it is now: DRAFTs are redone in place (same number), weeks with no invoice get a new DRAFT
+(e.g. someone set up after Monday's run), and approved/sent/paid invoices are only reported.
+Use it after roster changes made after the Monday 8am run. Auth: `XERO_STATUS_TOKEN` or the
+Command Centre's send token. No email is sent.
+
 ## Monthly Support Coordination
 
 Set up 28 Sep 2026 from the office's *INVOICES SUPPORT COORDINATION* spreadsheet and the

@@ -13,6 +13,7 @@
 //   /api/xero?action=ensure-contact   POST  find a contact by name, or create it (Command Centre invoicing)
 //   /api/xero?action=payroll-employee GET/POST  can we reach Payroll? / a new support worker as an employee
 //   /api/xero?action=admin-invoice    POST  change a draft invoice's status (e.g. DELETED)
+//   /api/xero?action=rebuild-week     POST  redo one week's weekly DRAFT invoices from ShiftCare (Command Centre)
 //   /api/xero?action=status           GET   read-only health check, also served at /api/xero-status
 const ACTIONS = {
   'list-contacts': () => require('./_xero-actions/list-contacts'),
@@ -25,6 +26,7 @@ const ACTIONS = {
   'ensure-contact': () => require('./_xero-actions/ensure-contact'),
   'payroll-employee': () => require('./_xero-actions/payroll-employee'),
   'admin-invoice': () => require('./_xero-actions/admin-invoice'),
+  'rebuild-week': () => require('./_xero-actions/rebuild-week'),
   status: () => require('./_xero-actions/status'),
 };
 
