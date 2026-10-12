@@ -85,6 +85,11 @@ A week that already has a draft for a participant is left alone. To rebuild a DR
 fixing something (same invoice number), POST `create-invoice` with `"replace": true`. An
 approved or paid invoice is never changed.
 
+**Fixed weekly hours** (added 12 Oct 2026): `invoice_participants.fixed_weekly_hours`. When set,
+the invoice always bills that many weekday hours, dated Monday–Friday, whatever ShiftCare shows;
+only the dates and the km (every km logged on their shifts that week) change. Tariq Massri 20 h,
+Eisa Massri 10 h, per the office. The draft's flags say when ShiftCare's hours differ.
+
 **Rebuild a whole week** (added 12 Oct 2026): the Command Centre's Invoicing page has a
 "Rebuild this week's invoices" button, which POSTs `/api/xero?action=rebuild-week`
 `{ start, end, clientIds? }`. Every participant set up for invoicing is rebuilt from ShiftCare

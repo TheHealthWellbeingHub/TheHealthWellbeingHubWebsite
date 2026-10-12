@@ -252,11 +252,34 @@ async function buildWeek({ start, end, clientIds = null }) {
       }
       lines.push({ code, description: `${header(dates)}\n${text || code}`, quantity: round2(qty), rate, amount: round2(round2(qty) * rate) });
     };
-    addLine('weekday hours', p.weekday_code, p.weekday_text, groups.weekday.hours, groups.weekday.dates);
-    addLine('weekday hours (second line)', p.weekday_alt_code, p.weekday_alt_text, groups.weekday_alt.hours, groups.weekday_alt.dates);
-    addLine('Saturday hours', p.saturday_code, p.saturday_text, groups.saturday.hours, groups.saturday.dates);
-    addLine('Sunday hours', p.sunday_code, p.sunday_text, groups.sunday.hours, groups.sunday.dates);
-    addLine('km', p.travel_code, p.travel_text, km, billedDates);
+    const fixedHours = Number(p.fixed_weekly_hours) || 0;
+    if (fixedHours > 0 && entries.length) {
+      // Same hours every week (set on the participant, e.g. Tariq and Eisa):
+      // one weekday line dated Monday–Friday whatever the roster says, plus
+      // every km logged on their shifts this week. Only the dates and km change.
+      let allKm = 0;
+      const seen = new Set();
+      for (const { shift, client } of entries) {
+        if (shift.cancelled_at && !client.absent_reason) continue;
+        const k = kmByShift.get(String(shift.id));
+        if (k && !seen.has(String(shift.id))) {
+          seen.add(String(shift.id));
+          allKm += k.km;
+        }
+      }
+      const rostered = round2(Object.values(groups).reduce((sum, g) => sum + g.hours, 0));
+      for (let i = flags.length - 1; i >= 0; i--) if (/not included|hours aren't billed/.test(flags[i])) flags.splice(i, 1);
+      if (rostered !== fixedHours) flags.push(`Fixed ${fixedHours} h a week billed (ShiftCare has ${rostered} h this week)`);
+      const monFri = [start, addDays(start, 4)];
+      addLine('weekday hours', p.weekday_code, p.weekday_text, fixedHours, monFri);
+      addLine('km', p.travel_code, p.travel_text, allKm, monFri);
+    } else {
+      addLine('weekday hours', p.weekday_code, p.weekday_text, groups.weekday.hours, groups.weekday.dates);
+      addLine('weekday hours (second line)', p.weekday_alt_code, p.weekday_alt_text, groups.weekday_alt.hours, groups.weekday_alt.dates);
+      addLine('Saturday hours', p.saturday_code, p.saturday_text, groups.saturday.hours, groups.saturday.dates);
+      addLine('Sunday hours', p.sunday_code, p.sunday_text, groups.sunday.hours, groups.sunday.dates);
+      addLine('km', p.travel_code, p.travel_text, km, billedDates);
+    }
 
     invoices.push({
       clientId: p.shiftcare_client_id,
