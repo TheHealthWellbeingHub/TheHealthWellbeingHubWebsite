@@ -79,11 +79,11 @@ function html(res, status, body) {
 }
 const redirect = (res, to) => { res.setHeader('Cache-Control', 'no-store'); res.setHeader('Location', to); return res.status(303).end(); };
 const FOLDERS = { ig: 'ig', tt: 'tt', cover: 'tt-cover', igcover: 'ig-cover' };
-// `rev` in library.json points a video at a re-rendered file (e.g. more-doors-v2.mp4): the bucket
-// doesn't allow overwriting, so a fix is uploaded under a new name.
+// `rev` in library.json points a video at a re-rendered file (e.g. more-doors-v2.mp4), and `crev` its covers
+// (e.g. tt-cover/more-doors-c2.jpg): the bucket doesn't allow overwriting, so a fix is uploaded under a new name.
 const objectPath = (kind, video) => {
   const isCover = kind.endsWith('cover');
-  return `${FOLDERS[kind]}/${video.slug}${isCover ? '' : video.rev || ''}.${isCover ? 'jpg' : 'mp4'}`;
+  return `${FOLDERS[kind]}/${video.slug}${(isCover ? video.crev : video.rev) || ''}.${isCover ? 'jpg' : 'mp4'}`;
 };
 
 module.exports = async (req, res) => {
