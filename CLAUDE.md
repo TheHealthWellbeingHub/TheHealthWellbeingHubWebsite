@@ -168,6 +168,21 @@ recorded above.
 second language. Short sentences, plain words, no marketing throat-clearing. Avoid idiom
 that does not translate.
 
+**Replies, posts and emails sound like a person, and give a reason to come to us.**
+Standing instruction from the user, 13 Oct 2026. Applies to every Facebook/Reddit reply,
+group post, participant email and outreach message Claude drafts.
+
+- Write it the way a staff member would type it: contractions, casual openers, short
+  bullets where they keep it simple. No AI tells — no "Here's the thing", no tidy
+  groups of three, no em dashes, no "I hope this helps", no stacked emojis.
+- End with a short, honest reason to choose us, built only from the canonical facts
+  above (reply within 2 business hours, the five languages, all plan types, the right
+  service footprint). Never invent a worker, a result or a promise.
+- Match the push to the moment: one soft line on a vent or grief post, a clearer offer
+  where someone is asking for a provider. On Reddit, say we're a provider; don't post
+  links where the subreddit bans promotion.
+- Funding, eligibility and NDIA-process claims still get flagged for human review.
+
 ---
 
 ## Guiding a worker through a workflow, live
