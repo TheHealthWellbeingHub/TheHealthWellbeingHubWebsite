@@ -186,7 +186,9 @@ section[hidden] { display: none; }
 #item { width: min(600px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); margin: auto; padding: 0; border: 0; border-radius: 16px; background: var(--w); color: var(--t); overflow-y: auto; }
 .sheet { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 20px; }
 .sheet.has-pic { grid-template-columns: 150px minmax(0, 1fr); }
-.sheet .storypic { width: 100%; aspect-ratio: 9/16; object-fit: cover; border-radius: 10px; background: var(--pt); }
+.sheet .storypic { width: 100%; aspect-ratio: 9/16; object-fit: cover; border-radius: 10px; background: var(--pt); display: block; }
+.picwrap { display: flex; flex-direction: column; gap: 8px; }
+.picwrap .btn { text-align: center; text-decoration: none; }
 .sheet h2 { font: 700 19px/1.2 var(--fd); color: var(--n); margin: 0 0 12px; }
 .sheet .sub { font-size: 12px; color: var(--tm); margin: -8px 0 12px; }
 .fields label, .fields legend { display: block; font-size: 11px; font-weight: 500; color: var(--tm); margin-bottom: 10px; }
@@ -308,7 +310,10 @@ section[hidden] { display: none; }
 </dialog>
 <dialog id="item" aria-labelledby="it-h">
   <form id="itemform" class="sheet" novalidate>
-    <img class="storypic" id="it-pic" alt="" hidden>
+    <div class="picwrap" id="it-picwrap" hidden>
+      <img class="storypic" id="it-pic" alt="">
+      <a class="btn" id="it-dl" download>Download card</a>
+    </div>
     <div class="fields">
       <h2 id="it-h">Add to calendar</h2>
       <input type="hidden" name="id"><input type="hidden" name="story">
@@ -605,9 +610,10 @@ function openItem(e, iso) {
   form.querySelectorAll('[name="platforms"]').forEach((c) => { c.checked = (it.platforms || []).includes(c.value); });
   $("#it-h").textContent = e ? "Change this item" : "Add to calendar";
   form.querySelector("[data-del]").hidden = !e;
-  const pic = $("#it-pic");
-  pic.hidden = !it.story; form.classList.toggle("has-pic", Boolean(it.story));
-  if (it.story) pic.src = `/api/social?r=file&kind=story&name=${encodeURIComponent(it.story)}`; else pic.removeAttribute("src");
+  // story cards: the image, and a download for posting by hand (TikTok Stories can't be scheduled)
+  const pic = $("#it-pic"), card = it.story ? `/api/social?r=file&kind=story&name=${encodeURIComponent(it.story)}` : "";
+  $("#it-picwrap").hidden = !it.story; form.classList.toggle("has-pic", Boolean(it.story));
+  if (it.story) { pic.src = card; $("#it-dl").href = card + "&dl=1"; } else { pic.removeAttribute("src"); $("#it-dl").removeAttribute("href"); }
   weekendHint();
   itemDlg.showModal();
   form.elements.title.focus();
