@@ -15,7 +15,7 @@
 //   GET  /api/social?r=file&kind=ig|tt|cover|igcover&slug=…[&dl=1]   302 to a signed link
 //        (cover = TikTok cover, igcover = Instagram cover; both 1080x1920)
 //   GET  /api/social?r=links&slugs=a,b[&stories=c,d][&days=120]   JSON of long-lived ig/tt video and story image links for a scheduler
-//   GET  /api/social?r=file&kind=story&name=note-07                 302 to a signed story image link
+//   GET  /api/social?r=file&kind=story&name=note-07[&dl=1]          302 to a signed story image link (dl: as a download)
 //   GET  /api/social?r=calendar             calendar items other than library videos (videos come from r=status)
 //   POST /api/social?r=cal-save             JSON: { id?, day, time, end_time, kind, platforms, title, story, status, notes }  (no id = new)
 //   POST /api/social?r=cal-delete           JSON: { id }
@@ -180,7 +180,7 @@ module.exports = async (req, res) => {
       const name = String(req.query.name || '');
       if (!/^[a-z0-9-]{1,60}$/.test(name)) return res.status(404).json({ ok: false, error: 'Not found.' });
       res.setHeader('Cache-Control', 'private, max-age=600');
-      res.setHeader('Location', await storageSignedUrl(BUCKET, `story/${name}.jpg`, 3600));
+      res.setHeader('Location', await storageSignedUrl(BUCKET, `story/${name}.jpg`, 3600, req.query.dl ? `A-Note-For-Us-Both-${name}.jpg` : undefined));
       return res.status(302).end();
     }
     if (r === 'file' && req.method === 'GET') {
