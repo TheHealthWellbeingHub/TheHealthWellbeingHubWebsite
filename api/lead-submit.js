@@ -29,6 +29,25 @@ const MAX_BODY_BYTES = 20 * 1024;
 
 const rateLimitBuckets = new Map();
 
+// NDIS Check usage counter (see the handler). Values match the page's outcome().
+const NDIS_CHECK_EVENT_LIMIT = 60;
+const NDIS_CHECK_EVENTS = ['start', 'result'];
+const NDIS_CHECK_RESULTS = ['promising', 'chat', 'aged', 'residency', 'other'];
+
+function ndisCheckEventRow(b) {
+  if (!NDIS_CHECK_EVENTS.includes(b.event)) return null;
+  const clip = (v) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 100) : null);
+  return {
+    event: b.event,
+    result: b.event === 'result' && NDIS_CHECK_RESULTS.includes(b.result) ? b.result : null,
+    utm_source: clip(b.utm_source),
+    utm_medium: clip(b.utm_medium),
+    utm_campaign: clip(b.utm_campaign),
+    utm_content: clip(b.utm_content),
+    referrer_host: clip(b.referrer_host),
+  };
+}
+
 function clientIp(req) {
   const fwd = req.headers['x-forwarded-for'];
   if (typeof fwd === 'string' && fwd.length) return fwd.split(',')[0].trim();
@@ -570,8 +589,18 @@ module.exports = async (req, res) => {
     return res.status(403).json({ ok: false, error: 'Forbidden' });
   }
 
+  // NDIS Check usage counter: the page reports "start" and "result" here so
+  // staff can see how many people use the check. Anonymous counts only — no
+  // answers, names or IP addresses are stored. Always 204, never a lead.
+  if ((req.body || {}).form_name === 'ndis_check_event') {
+    if (isRateLimited(`ndis_check_event:${clientIp(req)}`, NDIS_CHECK_EVENT_LIMIT)) return res.status(204).end();
+    const row = ndisCheckEventRow(req.body);
+    if (row) await insertOne('ndis_check_events', row).catch((err) => console.error('NDIS Check event not logged:', err.message));
+    return res.status(204).end();
+  }
+
   const ip = clientIp(req);
-  const staffEntry = ['staff_referral', 'staff_enquiry', 'staff_onboarding', 'email_referral'].includes((req.body || {}).form_name);
+  const staffEntry =['staff_referral', 'staff_enquiry', 'staff_onboarding', 'email_referral'].includes((req.body || {}).form_name);
   if (isRateLimited(ip, staffEntry ? STAFF_RATE_LIMIT_MAX : RATE_LIMIT_MAX)) {
     console.warn('rate limited submission from', ip);
     return res.status(429).json({ ok: false, error: 'Too many submissions. Please try again shortly.' });
