@@ -812,6 +812,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   var them = function () { return A.who === 'them'; };
   var t = function (me, they) { return them() ? they : me; };
   var push = function (o) { (window.dataLayer = window.dataLayer || []).push(o); };
+  // Anonymous usage counter: Start and the first result each visit, with the campaign tags
+  // and the referring site. No answers. Stored in Supabase ndis_check_events by /api/lead-submit.
+  var counted = {};
+  function count(ev, result) {
+    if (counted[ev]) return; counted[ev] = 1;
+    try {
+      var q = new URLSearchParams(location.search), u = {};
+      try { u = JSON.parse(sessionStorage.getItem('hw_utm') || '{}') || {}; } catch (e) {}
+      var b = { form_name: 'ndis_check_event', event: ev, result: result || null,
+        referrer_host: document.referrer ? new URL(document.referrer).hostname : null };
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].forEach(function (k) { b[k] = q.get(k) || u[k] || null; });
+      var data = JSON.stringify(b);
+      if (!(navigator.sendBeacon && navigator.sendBeacon('/api/lead-submit', new Blob([data], { type: 'application/json' }))))
+        fetch('/api/lead-submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: data, keepalive: true }).catch(function () {});
+    } catch (e) {}
+  }
   var U = function (s) { return '<em>' + s + '<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8 C 50 2, 120 12, 198 5"/></svg></em>'; };
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1039,6 +1055,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       h: 'The NDIS may not ' + U('fit') + ' right now.', p: 'But other help may be there. We’ll help you find it.' };
 
     push({ event: 'ndis_check_result', ndis_check_result: r });
+    count('result', r);
     current = null; base = R.img;
     pic(R.img, '');
     var burst = '';
@@ -1107,7 +1124,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   card.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     var act = b.getAttribute('data-action');
-    if (act === 'begin') return ask('who');
+    if (act === 'begin') { count('start'); return ask('who'); }
     if (act === 'restart') { A = {}; history = []; return ask('who'); }
     if (act === 'back') {
       var prev = history.pop();
