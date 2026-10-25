@@ -207,6 +207,26 @@ entries in results.
 
 ---
 
+## Social media files (Supabase `social-media` bucket)
+
+The /socialmedia library and every scheduled Buffer post read their videos from the Command
+Centre project's `social-media` bucket. That project is on Supabase's free plan with a 1 GB
+storage limit, and on 14 Oct 2026 it went over (3.5 GB) because each re-render was uploaded
+next to the old one (`-v2`, `-v3`…) and nothing was removed. 130 superseded files (2.2 GB)
+were deleted that day; 1.37 GB is left.
+
+When a video or cover is re-rendered:
+
+1. Upload the new version and point `api/_social/library.json` (`rev` / `crev`) at it.
+2. Re-link any queued or draft Buffer post that still uses the old file.
+3. Delete the old file from the bucket. Before deleting, check that `library.json` on the
+   production branch doesn't use it and that no queued or draft Buffer post does.
+
+Don't move the files to Google Drive: Buffer pulls each video from its Supabase link when the
+post goes out, and Drive links to large videos aren't reliable for Buffer, TikTok or Instagram.
+
+---
+
 ## Working agreement
 
 - Claude drafts; a human approves anything participant-facing or compliance-related.
