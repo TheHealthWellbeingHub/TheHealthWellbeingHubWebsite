@@ -1,5 +1,5 @@
-// Weekly invoicing — runs every Monday 8am Brisbane (vercel.json cron,
-// Sunday 22:00 UTC). For the Monday-Sunday week just gone it builds each
+// Weekly invoicing — runs every Monday 7am Brisbane (vercel.json cron,
+// Sunday 21:00 UTC). For the Monday-Sunday week just gone it builds each
 // participant's invoice from ShiftCare (api/_invoicing.js), saves it in Xero
 // as a DRAFT dated today, and emails the office the list to check. Nothing
 // is sent to a plan manager: staff open each draft in Xero, check it, and

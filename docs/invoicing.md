@@ -13,7 +13,7 @@ the per-client `create-invoice` call that matched Xero contacts by Account Numbe
 
 ## What happens
 
-Every **Monday 8am Brisbane** (`vercel.json` cron → `api/weekly-invoice-draft.js`), for the
+Every **Monday 7am Brisbane** (`vercel.json` cron → `api/weekly-invoice-draft.js`), for the
 Monday–Sunday week just gone:
 
 1. Read every rostered shift in ShiftCare for the week, with its participants and workers.
@@ -95,7 +95,7 @@ Eisa Massri 10 h, per the office. The draft's flags say when ShiftCare's hours d
 `{ start, end, clientIds? }`. Every participant set up for invoicing is rebuilt from ShiftCare
 as it is now: DRAFTs are redone in place (same number), weeks with no invoice get a new DRAFT
 (e.g. someone set up after Monday's run), and approved/sent/paid invoices are only reported.
-Use it after roster changes made after the Monday 8am run. Auth: `XERO_STATUS_TOKEN` or the
+Use it after roster changes made after the Monday 7am run. Auth: `XERO_STATUS_TOKEN` or the
 Command Centre's send token. No email is sent.
 
 ## Monthly Support Coordination

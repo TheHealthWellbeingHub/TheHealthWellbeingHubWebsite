@@ -246,7 +246,7 @@ The worker is trying to complete a task. Get them to the next action and stop.
   we cancelled (no charge, not paid) — the API can't delete a shift. Before the read-back, check
   the participant isn't Exited, the worker's documents, clashes, and that the shift will be
   invoiced. Full rules: [`docs/workflow-shifts.md`](docs/workflow-shifts.md).
-- **Invoicing (Xero):** Core supports are drafted weekly from the ShiftCare roster (Mondays 8am).
+- **Invoicing (Xero):** Core supports are drafted weekly from the ShiftCare roster (Mondays 7am).
   Support Coordination is drafted on the 1st of each month for the month just gone, from the
   settings in Command Centre → Invoicing. How to run, check and fix either one by hand:
   [`docs/invoicing.md`](docs/invoicing.md), "Claude: doing the invoices when asked". Drafts
