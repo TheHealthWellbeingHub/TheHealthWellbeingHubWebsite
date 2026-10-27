@@ -12,7 +12,7 @@
       "maxDuration": 60
     },
     "api/weekly-invoice-draft.js": {
-      "maxDuration": 60
+      "maxDuration": 300
     },
     "api/xero.js": {
       "maxDuration": 60
@@ -22,10 +22,6 @@
     }
   },
   "crons": [
-    {
-      "path": "/api/weekly-invoice-draft",
-      "schedule": "0 21 * * 0"
-    },
     {
       "path": "/api/sc-monthly-invoice-draft",
       "schedule": "0 22 28-31 * *"

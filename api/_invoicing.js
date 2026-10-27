@@ -65,14 +65,17 @@ const round2 = (n) => Math.round(n * 100) / 100;
 
 // ---- ShiftCare ----------------------------------------------------------
 
+// ShiftCare gives 20 rows a page. Page 1 says how many pages there are; the
+// rest are read 4 at a time, so a busy week still fits in the cron's time limit.
 async function pagedShiftcare(pathname, params, key) {
-  const out = [];
-  for (let page = 1; page <= 50; page += 1) {
-    const body = await shiftcareApiFetch(pathname, { ...params, page, per_page: 20, include_metadata: true });
-    const rows = body[key] || [];
-    out.push(...rows);
-    const totalPages = Number(body._metadata && body._metadata.total_pages) || 1;
-    if (page >= totalPages || rows.length === 0) break;
+  const get = (page) => shiftcareApiFetch(pathname, { ...params, page, per_page: 20, include_metadata: true });
+  const first = await get(1);
+  const out = [...(first[key] || [])];
+  const totalPages = Math.min(50, Number(first._metadata && first._metadata.total_pages) || 1);
+  for (let page = 2; page <= totalPages; page += 4) {
+    const batch = [];
+    for (let p = page; p < page + 4 && p <= totalPages; p += 1) batch.push(get(p));
+    for (const body of await Promise.all(batch)) out.push(...(body[key] || []));
   }
   return out;
 }
