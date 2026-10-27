@@ -23,10 +23,6 @@
   },
   "crons": [
     {
-      "path": "/api/weekly-invoice-draft",
-      "schedule": "0 21 * * 0"
-    },
-    {
       "path": "/api/sc-monthly-invoice-draft",
       "schedule": "0 22 28-31 * *"
     }

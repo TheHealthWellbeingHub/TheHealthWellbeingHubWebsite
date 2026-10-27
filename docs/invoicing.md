@@ -13,7 +13,13 @@ the per-client `create-invoice` call that matched Xero contacts by Account Numbe
 
 ## What happens
 
-Every **Monday 7am Brisbane** (`vercel.json` cron → `api/weekly-invoice-draft.js`), for the
+> **Moved to the H&W Hub platform on 27 Oct 2026.** The platform now drafts the Monday invoices
+> (Invoices → Monday Xero invoices, every Monday 7am, from **approved** timesheets only). The
+> `vercel.json` cron for `api/weekly-invoice-draft.js` was removed so nothing is invoiced twice.
+> The endpoint below still works when called by hand, but don't run it for a week the platform
+> has drafted. The rest of this section describes the old job.
+
+Until 27 Oct 2026, every **Monday 7am Brisbane** (`vercel.json` cron → `api/weekly-invoice-draft.js`), for the
 Monday–Sunday week just gone:
 
 1. Read every rostered shift in ShiftCare for the week, with its participants and workers.

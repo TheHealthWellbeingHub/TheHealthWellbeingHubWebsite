@@ -267,7 +267,7 @@ Every **Monday 8am** a task appears: **"Pay support workers for {dates}"**.
 
 ## Invoicing (Xero)
 
-- **Core supports:** every **Monday 7am**, Xero **draft** invoices are made from last week's ShiftCare roster and mileage, one per participant, sent to their plan manager. The office gets an email listing the drafts and anything to check. Staff open each draft in **Xero**, check it, then approve and send it.
+- **Core supports:** every **Monday 7am**, the H&W Hub platform makes Xero **draft** invoices from last week's approved timesheets and mileage, one per participant, sent to their plan manager. The office gets an email listing the drafts and anything to check. Staff open each draft in **Xero**, check it, then approve and send it.
 - **Support Coordination:** drafts are made on the **1st of each month** for the month before, using the settings in **Invoicing**.
 - The prices and support items for each participant live in **Command Centre → Invoicing**. A participant missing an item for a day (for example Saturday) won't be billed for that day. Fix it there.
 - Only drafts are made, never sent, and never for a period already invoiced. Pricing is a compliance matter: a person checks the figures, especially when the NDIS price guide changes on 1 July.
